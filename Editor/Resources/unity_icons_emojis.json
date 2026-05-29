@@ -1,0 +1,1132 @@
+{
+  "categories": [
+    {
+      "id": "symbols",
+      "label": "◉ Symbols",
+      "emojis": [
+        {
+          "emoji": "🔴",
+          "name": "Red"
+        },
+        {
+          "emoji": "🟠",
+          "name": "Orange"
+        },
+        {
+          "emoji": "🟡",
+          "name": "Yellow"
+        },
+        {
+          "emoji": "🟢",
+          "name": "Green"
+        },
+        {
+          "emoji": "🔵",
+          "name": "Blue"
+        },
+        {
+          "emoji": "🟣",
+          "name": "Purple"
+        },
+        {
+          "emoji": "⚫",
+          "name": "Black"
+        },
+        {
+          "emoji": "⚪",
+          "name": "White"
+        },
+        {
+          "emoji": "🟤",
+          "name": "Brown"
+        },
+        {
+          "emoji": "🔶",
+          "name": "Orange Diamond"
+        },
+        {
+          "emoji": "🔷",
+          "name": "Blue Diamond"
+        },
+        {
+          "emoji": "🔸",
+          "name": "Small Orange Diamond"
+        },
+        {
+          "emoji": "🔹",
+          "name": "Small Blue Diamond"
+        },
+        {
+          "emoji": "🔺",
+          "name": "Triangle Up"
+        },
+        {
+          "emoji": "🔻",
+          "name": "Triangle Down"
+        },
+        {
+          "emoji": "⬆️",
+          "name": "Up"
+        },
+        {
+          "emoji": "⬇️",
+          "name": "Down"
+        },
+        {
+          "emoji": "⬅️",
+          "name": "Left"
+        },
+        {
+          "emoji": "➡️",
+          "name": "Right"
+        },
+        {
+          "emoji": "↗️",
+          "name": "Up-Right"
+        },
+        {
+          "emoji": "↘️",
+          "name": "Down-Right"
+        },
+        {
+          "emoji": "↙️",
+          "name": "Down-Left"
+        },
+        {
+          "emoji": "↖️",
+          "name": "Up-Left"
+        },
+        {
+          "emoji": "↕️",
+          "name": "Up-Down"
+        },
+        {
+          "emoji": "↔️",
+          "name": "Left-Right"
+        },
+        {
+          "emoji": "🔼",
+          "name": "Up Small"
+        },
+        {
+          "emoji": "🔽",
+          "name": "Down Small"
+        },
+        {
+          "emoji": "🔄",
+          "name": "Refresh / Loop"
+        },
+        {
+          "emoji": "🔃",
+          "name": "Clockwise"
+        },
+        {
+          "emoji": "✅",
+          "name": "Done / Check"
+        },
+        {
+          "emoji": "❌",
+          "name": "Error / Remove"
+        },
+        {
+          "emoji": "⚠️",
+          "name": "Warning"
+        },
+        {
+          "emoji": "❗",
+          "name": "Alert"
+        },
+        {
+          "emoji": "❓",
+          "name": "Unknown"
+        },
+        {
+          "emoji": "🚫",
+          "name": "Disabled"
+        },
+        {
+          "emoji": "⛔",
+          "name": "Blocked"
+        },
+        {
+          "emoji": "🔒",
+          "name": "Locked"
+        },
+        {
+          "emoji": "🔓",
+          "name": "Unlocked"
+        },
+        {
+          "emoji": "▶️",
+          "name": "Play"
+        },
+        {
+          "emoji": "⏸️",
+          "name": "Pause"
+        },
+        {
+          "emoji": "⏹️",
+          "name": "Stop"
+        },
+        {
+          "emoji": "⏺️",
+          "name": "Record"
+        },
+        {
+          "emoji": "⏭️",
+          "name": "Next"
+        },
+        {
+          "emoji": "⏮️",
+          "name": "Previous"
+        },
+        {
+          "emoji": "⏩",
+          "name": "Fast Forward"
+        },
+        {
+          "emoji": "⏪",
+          "name": "Rewind"
+        },
+        {
+          "emoji": "🔁",
+          "name": "Repeat"
+        },
+        {
+          "emoji": "🔀",
+          "name": "Shuffle"
+        },
+        {
+          "emoji": "🔇",
+          "name": "Muted"
+        },
+        {
+          "emoji": "🔈",
+          "name": "Volume Low"
+        },
+        {
+          "emoji": "🔊",
+          "name": "Volume High"
+        },
+        {
+          "emoji": "🔔",
+          "name": "Notification"
+        },
+        {
+          "emoji": "🔕",
+          "name": "Silent"
+        },
+        {
+          "emoji": "🔍",
+          "name": "Search"
+        },
+        {
+          "emoji": "🔎",
+          "name": "Zoom In"
+        },
+        {
+          "emoji": "💬",
+          "name": "Chat / Dialogue"
+        },
+        {
+          "emoji": "📢",
+          "name": "Broadcast"
+        },
+        {
+          "emoji": "📌",
+          "name": "Pin"
+        },
+        {
+          "emoji": "🚩",
+          "name": "Waypoint / Flag"
+        },
+        {
+          "emoji": "🏁",
+          "name": "Finish Line"
+        },
+        {
+          "emoji": "🔗",
+          "name": "Link"
+        },
+        {
+          "emoji": "🔖",
+          "name": "Bookmark"
+        },
+        {
+          "emoji": "🏷️",
+          "name": "Tag / Label"
+        },
+        {
+          "emoji": "🔥",
+          "name": "Fire"
+        },
+        {
+          "emoji": "❄️",
+          "name": "Ice"
+        },
+        {
+          "emoji": "⚡",
+          "name": "Lightning"
+        },
+        {
+          "emoji": "💧",
+          "name": "Water Drop"
+        },
+        {
+          "emoji": "💨",
+          "name": "Wind"
+        },
+        {
+          "emoji": "🌀",
+          "name": "Vortex / Spin"
+        },
+        {
+          "emoji": "💥",
+          "name": "Explosion"
+        },
+        {
+          "emoji": "✨",
+          "name": "Sparkles"
+        },
+        {
+          "emoji": "💫",
+          "name": "Star Effect"
+        },
+        {
+          "emoji": "⭐",
+          "name": "Star"
+        },
+        {
+          "emoji": "🌟",
+          "name": "Glowing Star"
+        },
+        {
+          "emoji": "⚙️",
+          "name": "Settings / Gear"
+        },
+        {
+          "emoji": "💡",
+          "name": "Idea / Light"
+        },
+        {
+          "emoji": "🔋",
+          "name": "Battery / Energy"
+        },
+        {
+          "emoji": "♻️",
+          "name": "Recycle"
+        },
+        {
+          "emoji": "☢️",
+          "name": "Radioactive"
+        },
+        {
+          "emoji": "☣️",
+          "name": "Biohazard"
+        },
+        {
+          "emoji": "⚛️",
+          "name": "Atom / Physics"
+        },
+        {
+          "emoji": "☯️",
+          "name": "Yin Yang"
+        },
+        {
+          "emoji": "♾️",
+          "name": "Infinity"
+        },
+        {
+          "emoji": "⚜️",
+          "name": "Fleur-de-lis"
+        },
+        {
+          "emoji": "🔱",
+          "name": "Trident Emblem"
+        },
+        {
+          "emoji": "⌛",
+          "name": "Hourglass Done"
+        },
+        {
+          "emoji": "⏳",
+          "name": "Hourglass Running"
+        },
+        {
+          "emoji": "⏰",
+          "name": "Alarm"
+        },
+        {
+          "emoji": "⏱️",
+          "name": "Stopwatch"
+        },
+        {
+          "emoji": "📊",
+          "name": "Bar Chart"
+        },
+        {
+          "emoji": "📈",
+          "name": "Increasing"
+        },
+        {
+          "emoji": "📉",
+          "name": "Decreasing"
+        }
+      ]
+    },
+    {
+      "id": "objects",
+      "label": "🔧 Objects",
+      "emojis": [
+        {
+          "emoji": "🔧",
+          "name": "Wrench"
+        },
+        {
+          "emoji": "🔨",
+          "name": "Hammer"
+        },
+        {
+          "emoji": "⚒️",
+          "name": "Hammer and Pick"
+        },
+        {
+          "emoji": "🛠️",
+          "name": "Hammer and Wrench"
+        },
+        {
+          "emoji": "⛏️",
+          "name": "Pickaxe"
+        },
+        {
+          "emoji": "🪚",
+          "name": "Saw"
+        },
+        {
+          "emoji": "🔩",
+          "name": "Bolt / Screw"
+        },
+        {
+          "emoji": "🪛",
+          "name": "Screwdriver"
+        },
+        {
+          "emoji": "🗜️",
+          "name": "Clamp"
+        },
+        {
+          "emoji": "📐",
+          "name": "Triangle Ruler"
+        },
+        {
+          "emoji": "📏",
+          "name": "Ruler"
+        },
+        {
+          "emoji": "✂️",
+          "name": "Scissors"
+        },
+        {
+          "emoji": "🧰",
+          "name": "Toolbox"
+        },
+        {
+          "emoji": "🧲",
+          "name": "Magnet"
+        },
+        {
+          "emoji": "🔦",
+          "name": "Flashlight"
+        },
+        {
+          "emoji": "🧱",
+          "name": "Brick / Wall"
+        },
+        {
+          "emoji": "🪜",
+          "name": "Ladder"
+        },
+        {
+          "emoji": "🪤",
+          "name": "Trap"
+        },
+        {
+          "emoji": "⚖️",
+          "name": "Balance / Scale"
+        },
+        {
+          "emoji": "🪝",
+          "name": "Hook"
+        },
+        {
+          "emoji": "⚔️",
+          "name": "Crossed Swords"
+        },
+        {
+          "emoji": "🗡️",
+          "name": "Dagger"
+        },
+        {
+          "emoji": "🛡️",
+          "name": "Shield"
+        },
+        {
+          "emoji": "🏹",
+          "name": "Bow and Arrow"
+        },
+        {
+          "emoji": "💣",
+          "name": "Bomb"
+        },
+        {
+          "emoji": "🔫",
+          "name": "Gun"
+        },
+        {
+          "emoji": "🪃",
+          "name": "Boomerang"
+        },
+        {
+          "emoji": "🧨",
+          "name": "Firecracker / Explosive"
+        },
+        {
+          "emoji": "🔬",
+          "name": "Microscope"
+        },
+        {
+          "emoji": "🔭",
+          "name": "Telescope"
+        },
+        {
+          "emoji": "⚗️",
+          "name": "Alchemy"
+        },
+        {
+          "emoji": "🧪",
+          "name": "Test Tube / Potion"
+        },
+        {
+          "emoji": "🧬",
+          "name": "DNA"
+        },
+        {
+          "emoji": "💊",
+          "name": "Medicine / Pill"
+        },
+        {
+          "emoji": "🩺",
+          "name": "Stethoscope"
+        },
+        {
+          "emoji": "🩻",
+          "name": "X-Ray"
+        },
+        {
+          "emoji": "💻",
+          "name": "Laptop"
+        },
+        {
+          "emoji": "🖥️",
+          "name": "Monitor"
+        },
+        {
+          "emoji": "📱",
+          "name": "Phone"
+        },
+        {
+          "emoji": "📡",
+          "name": "Satellite / Signal"
+        },
+        {
+          "emoji": "💾",
+          "name": "Save / Disk"
+        },
+        {
+          "emoji": "💿",
+          "name": "Disc"
+        },
+        {
+          "emoji": "📷",
+          "name": "Camera"
+        },
+        {
+          "emoji": "🎮",
+          "name": "Game Controller"
+        },
+        {
+          "emoji": "🕹️",
+          "name": "Joystick"
+        },
+        {
+          "emoji": "🔑",
+          "name": "Key"
+        },
+        {
+          "emoji": "🗝️",
+          "name": "Old Key"
+        },
+        {
+          "emoji": "💎",
+          "name": "Gem / Diamond"
+        },
+        {
+          "emoji": "💰",
+          "name": "Gold / Money Bag"
+        },
+        {
+          "emoji": "🪙",
+          "name": "Coin"
+        },
+        {
+          "emoji": "🏆",
+          "name": "Trophy"
+        },
+        {
+          "emoji": "🎁",
+          "name": "Gift / Reward"
+        },
+        {
+          "emoji": "📦",
+          "name": "Crate / Box"
+        },
+        {
+          "emoji": "🪄",
+          "name": "Magic Wand"
+        },
+        {
+          "emoji": "🔮",
+          "name": "Crystal Ball"
+        },
+        {
+          "emoji": "📜",
+          "name": "Scroll / Quest"
+        },
+        {
+          "emoji": "📖",
+          "name": "Spellbook"
+        },
+        {
+          "emoji": "🏺",
+          "name": "Artifact / Urn"
+        },
+        {
+          "emoji": "👑",
+          "name": "Crown"
+        },
+        {
+          "emoji": "🎖️",
+          "name": "Medal"
+        },
+        {
+          "emoji": "💍",
+          "name": "Ring"
+        },
+        {
+          "emoji": "🧿",
+          "name": "Amulet / Evil Eye"
+        },
+        {
+          "emoji": "📁",
+          "name": "Folder"
+        },
+        {
+          "emoji": "📂",
+          "name": "Open Folder"
+        },
+        {
+          "emoji": "📋",
+          "name": "Clipboard"
+        },
+        {
+          "emoji": "📝",
+          "name": "Note / Memo"
+        },
+        {
+          "emoji": "✏️",
+          "name": "Pencil / Edit"
+        },
+        {
+          "emoji": "🖊️",
+          "name": "Pen"
+        },
+        {
+          "emoji": "🖌️",
+          "name": "Paintbrush"
+        },
+        {
+          "emoji": "🗑️",
+          "name": "Trash / Delete"
+        }
+      ]
+    },
+    {
+      "id": "nature",
+      "label": "🌍 Nature",
+      "emojis": [
+        {
+          "emoji": "☀️",
+          "name": "Sun"
+        },
+        {
+          "emoji": "🌙",
+          "name": "Moon Crescent"
+        },
+        {
+          "emoji": "🌕",
+          "name": "Full Moon"
+        },
+        {
+          "emoji": "🌑",
+          "name": "New Moon"
+        },
+        {
+          "emoji": "🌌",
+          "name": "Galaxy"
+        },
+        {
+          "emoji": "🪐",
+          "name": "Planet / Saturn"
+        },
+        {
+          "emoji": "☄️",
+          "name": "Comet"
+        },
+        {
+          "emoji": "🌈",
+          "name": "Rainbow"
+        },
+        {
+          "emoji": "🌍",
+          "name": "Earth"
+        },
+        {
+          "emoji": "🌐",
+          "name": "Globe"
+        },
+        {
+          "emoji": "🌊",
+          "name": "Ocean Wave"
+        },
+        {
+          "emoji": "🌪️",
+          "name": "Tornado"
+        },
+        {
+          "emoji": "⛈️",
+          "name": "Thunderstorm"
+        },
+        {
+          "emoji": "🌧️",
+          "name": "Rain"
+        },
+        {
+          "emoji": "🌬️",
+          "name": "Wind Gust"
+        },
+        {
+          "emoji": "🌫️",
+          "name": "Fog / Mist"
+        },
+        {
+          "emoji": "🌋",
+          "name": "Volcano"
+        },
+        {
+          "emoji": "🏔️",
+          "name": "Mountain"
+        },
+        {
+          "emoji": "🏜️",
+          "name": "Desert"
+        },
+        {
+          "emoji": "🏝️",
+          "name": "Island"
+        },
+        {
+          "emoji": "🪨",
+          "name": "Rock / Stone"
+        },
+        {
+          "emoji": "🪵",
+          "name": "Log / Wood"
+        },
+        {
+          "emoji": "🌲",
+          "name": "Pine Tree"
+        },
+        {
+          "emoji": "🌳",
+          "name": "Tree"
+        },
+        {
+          "emoji": "🌴",
+          "name": "Palm Tree"
+        },
+        {
+          "emoji": "🌾",
+          "name": "Wheat / Field"
+        },
+        {
+          "emoji": "🌿",
+          "name": "Herb / Plant"
+        },
+        {
+          "emoji": "🍄",
+          "name": "Mushroom"
+        },
+        {
+          "emoji": "🌸",
+          "name": "Blossom"
+        },
+        {
+          "emoji": "🌺",
+          "name": "Flower"
+        },
+        {
+          "emoji": "🍀",
+          "name": "Four Leaf Clover"
+        },
+        {
+          "emoji": "🪸",
+          "name": "Coral"
+        },
+        {
+          "emoji": "🐉",
+          "name": "Dragon"
+        },
+        {
+          "emoji": "🦄",
+          "name": "Unicorn"
+        },
+        {
+          "emoji": "🦁",
+          "name": "Lion"
+        },
+        {
+          "emoji": "🐺",
+          "name": "Wolf"
+        },
+        {
+          "emoji": "🦊",
+          "name": "Fox"
+        },
+        {
+          "emoji": "🐻",
+          "name": "Bear"
+        },
+        {
+          "emoji": "🐗",
+          "name": "Boar"
+        },
+        {
+          "emoji": "🦅",
+          "name": "Eagle"
+        },
+        {
+          "emoji": "🦉",
+          "name": "Owl"
+        },
+        {
+          "emoji": "🦇",
+          "name": "Bat"
+        },
+        {
+          "emoji": "🕷️",
+          "name": "Spider"
+        },
+        {
+          "emoji": "🕸️",
+          "name": "Spider Web"
+        },
+        {
+          "emoji": "🦂",
+          "name": "Scorpion"
+        },
+        {
+          "emoji": "🐍",
+          "name": "Snake"
+        },
+        {
+          "emoji": "🦎",
+          "name": "Lizard"
+        },
+        {
+          "emoji": "🐊",
+          "name": "Crocodile"
+        },
+        {
+          "emoji": "🦖",
+          "name": "T-Rex"
+        },
+        {
+          "emoji": "🦈",
+          "name": "Shark"
+        },
+        {
+          "emoji": "🐙",
+          "name": "Octopus"
+        },
+        {
+          "emoji": "🦑",
+          "name": "Squid"
+        },
+        {
+          "emoji": "🐢",
+          "name": "Turtle"
+        },
+        {
+          "emoji": "🦋",
+          "name": "Butterfly"
+        },
+        {
+          "emoji": "🐝",
+          "name": "Bee"
+        },
+        {
+          "emoji": "🪲",
+          "name": "Beetle"
+        },
+        {
+          "emoji": "🐎",
+          "name": "Horse"
+        },
+        {
+          "emoji": "🦌",
+          "name": "Deer / Stag"
+        },
+        {
+          "emoji": "🦍",
+          "name": "Gorilla"
+        },
+        {
+          "emoji": "🐘",
+          "name": "Elephant"
+        }
+      ]
+    },
+    {
+      "id": "world",
+      "label": "🏰 World",
+      "emojis": [
+        {
+          "emoji": "🏰",
+          "name": "Castle"
+        },
+        {
+          "emoji": "🏯",
+          "name": "Japanese Castle"
+        },
+        {
+          "emoji": "⛩️",
+          "name": "Shrine / Gate"
+        },
+        {
+          "emoji": "🏠",
+          "name": "House"
+        },
+        {
+          "emoji": "🏚️",
+          "name": "Abandoned Building"
+        },
+        {
+          "emoji": "🏗️",
+          "name": "Construction Site"
+        },
+        {
+          "emoji": "🏭",
+          "name": "Factory"
+        },
+        {
+          "emoji": "🗼",
+          "name": "Tower"
+        },
+        {
+          "emoji": "⛺",
+          "name": "Tent / Camp"
+        },
+        {
+          "emoji": "🛖",
+          "name": "Hut"
+        },
+        {
+          "emoji": "🌉",
+          "name": "Bridge"
+        },
+        {
+          "emoji": "🏟️",
+          "name": "Arena / Stadium"
+        },
+        {
+          "emoji": "🛤️",
+          "name": "Rail Path"
+        },
+        {
+          "emoji": "🛣️",
+          "name": "Road"
+        },
+        {
+          "emoji": "🚀",
+          "name": "Rocket"
+        },
+        {
+          "emoji": "🛸",
+          "name": "UFO / Spaceship"
+        },
+        {
+          "emoji": "✈️",
+          "name": "Airplane"
+        },
+        {
+          "emoji": "🚁",
+          "name": "Helicopter"
+        },
+        {
+          "emoji": "⛵",
+          "name": "Sailboat"
+        },
+        {
+          "emoji": "🚢",
+          "name": "Ship"
+        },
+        {
+          "emoji": "🚂",
+          "name": "Train"
+        },
+        {
+          "emoji": "🏎️",
+          "name": "Racing Car"
+        },
+        {
+          "emoji": "🚗",
+          "name": "Car"
+        },
+        {
+          "emoji": "🚓",
+          "name": "Police Car"
+        },
+        {
+          "emoji": "🚒",
+          "name": "Fire Truck"
+        },
+        {
+          "emoji": "🛵",
+          "name": "Scooter"
+        },
+        {
+          "emoji": "🚲",
+          "name": "Bicycle"
+        },
+        {
+          "emoji": "🪂",
+          "name": "Parachute"
+        },
+        {
+          "emoji": "⚓",
+          "name": "Anchor / Harbor"
+        },
+        {
+          "emoji": "⛽",
+          "name": "Fuel / Gas"
+        },
+        {
+          "emoji": "🧙",
+          "name": "Wizard / Mage"
+        },
+        {
+          "emoji": "🧝",
+          "name": "Elf"
+        },
+        {
+          "emoji": "🧟",
+          "name": "Zombie"
+        },
+        {
+          "emoji": "🧌",
+          "name": "Troll"
+        },
+        {
+          "emoji": "🧛",
+          "name": "Vampire"
+        },
+        {
+          "emoji": "👺",
+          "name": "Goblin"
+        },
+        {
+          "emoji": "👹",
+          "name": "Ogre / Oni"
+        },
+        {
+          "emoji": "👻",
+          "name": "Ghost"
+        },
+        {
+          "emoji": "💀",
+          "name": "Skull"
+        },
+        {
+          "emoji": "☠️",
+          "name": "Skull and Crossbones"
+        },
+        {
+          "emoji": "🤖",
+          "name": "Robot"
+        },
+        {
+          "emoji": "👾",
+          "name": "Alien Monster"
+        },
+        {
+          "emoji": "🎯",
+          "name": "Target / Bullseye"
+        },
+        {
+          "emoji": "🎲",
+          "name": "Dice"
+        },
+        {
+          "emoji": "🎭",
+          "name": "Theater / Scene"
+        },
+        {
+          "emoji": "🎣",
+          "name": "Fishing"
+        },
+        {
+          "emoji": "🤿",
+          "name": "Diving"
+        },
+        {
+          "emoji": "🧗",
+          "name": "Climbing"
+        },
+        {
+          "emoji": "🗺️",
+          "name": "Map"
+        },
+        {
+          "emoji": "🧭",
+          "name": "Compass"
+        },
+        {
+          "emoji": "🚧",
+          "name": "Construction Barrier"
+        },
+        {
+          "emoji": "🎪",
+          "name": "Circus / Event"
+        },
+        {
+          "emoji": "🎴",
+          "name": "Card / Tarot"
+        },
+        {
+          "emoji": "🃏",
+          "name": "Joker / Wild Card"
+        }
+      ]
+    }
+  ]
+}

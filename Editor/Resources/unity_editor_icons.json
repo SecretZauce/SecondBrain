@@ -1,0 +1,91 @@
+{
+  "categories": [
+    {
+      "id": "editor",
+      "label": "🔧 Editor",
+      "emojis": [
+        { "emoji": "d_Folder Icon", "name": "Folder" },
+        { "emoji": "d_FolderEmpty Icon", "name": "Empty Folder" },
+        { "emoji": "d_FolderOpened Icon", "name": "Open Folder" },
+        { "emoji": "d_FolderFavorite Icon", "name": "Favorite Folder" },
+        { "emoji": "d_Project", "name": "Project" },
+        { "emoji": "d_console.erroricon", "name": "Error" },
+        { "emoji": "d_console.warnicon", "name": "Warning" },
+        { "emoji": "d_console.infoicon", "name": "Info" },
+        { "emoji": "d_Valid", "name": "Valid" },
+        { "emoji": "d_Invalid", "name": "Invalid" },
+        { "emoji": "d_DebuggerEnabled", "name": "Debug On" },
+        { "emoji": "d_DebuggerDisabled", "name": "Debug Off" },
+        { "emoji": "d_Settings", "name": "Settings" },
+        { "emoji": "d_Toolbar Minus", "name": "Remove" },
+        { "emoji": "d_Toolbar Plus", "name": "Add" },
+        { "emoji": "d_Refresh", "name": "Refresh" },
+        { "emoji": "d_Search Icon", "name": "Search" },
+        { "emoji": "d_FilterByLabel", "name": "Filter" },
+        { "emoji": "d_UnityLogo", "name": "Unity" },
+        { "emoji": "d_MoreOptions", "name": "More Options" },
+        { "emoji": "d_editicon.sml", "name": "Edit" },
+        { "emoji": "d_Import", "name": "Import" },
+        { "emoji": "d_SaveAs", "name": "Save As" },
+        { "emoji": "d_SceneViewCamera", "name": "Scene Camera" }
+      ]
+    },
+    {
+      "id": "components",
+      "label": "🖼 Components",
+      "emojis": [
+        { "emoji": "d_Transform Icon", "name": "Transform" },
+        { "emoji": "d_Camera Icon", "name": "Camera" },
+        { "emoji": "d_Light Icon", "name": "Light" },
+        { "emoji": "d_ParticleSystem Icon", "name": "Particle System" },
+        { "emoji": "d_Animator Icon", "name": "Animator" },
+        { "emoji": "d_Animation Icon", "name": "Animation" },
+        { "emoji": "d_MeshRenderer Icon", "name": "Mesh Renderer" },
+        { "emoji": "d_SkinnedMeshRenderer Icon", "name": "Skinned Mesh" },
+        { "emoji": "d_Canvas Icon", "name": "Canvas" },
+        { "emoji": "d_RawImage Icon", "name": "Image" },
+        { "emoji": "d_Text Icon", "name": "Text" },
+        { "emoji": "d_Button Icon", "name": "Button" },
+        { "emoji": "d_Slider Icon", "name": "Slider" },
+        { "emoji": "d_Toggle Icon", "name": "Toggle" },
+        { "emoji": "d_Dropdown Icon", "name": "Dropdown" },
+        { "emoji": "d_InputField Icon", "name": "Input Field" },
+        { "emoji": "d_AudioSource Icon", "name": "Audio Source" },
+        { "emoji": "d_AudioListener Icon", "name": "Audio Listener" },
+        { "emoji": "d_Rigidbody Icon", "name": "Rigidbody" },
+        { "emoji": "d_Rigidbody2D Icon", "name": "Rigidbody 2D" },
+        { "emoji": "d_BoxCollider Icon", "name": "Box Collider" },
+        { "emoji": "d_SphereCollider Icon", "name": "Sphere Collider" },
+        { "emoji": "d_CapsuleCollider Icon", "name": "Capsule Collider" },
+        { "emoji": "d_BoxCollider2D Icon", "name": "Box Collider 2D" }
+      ]
+    },
+    {
+      "id": "assets",
+      "label": "📦 Assets",
+      "emojis": [
+        { "emoji": "d_cs Script Icon", "name": "C# Script" },
+        { "emoji": "d_TextScriptImporter Icon", "name": "Text Script" },
+        { "emoji": "d_TextAsset Icon", "name": "Text Asset" },
+        { "emoji": "d_ShaderImporter Icon", "name": "Shader" },
+        { "emoji": "d_ScriptableObject Icon", "name": "ScriptableObject" },
+        { "emoji": "d_AssemblyDefinitionAsset Icon", "name": "Assembly Definition" },
+        { "emoji": "d_SceneAsset Icon", "name": "Scene" },
+        { "emoji": "d_GameObject Icon", "name": "GameObject" },
+        { "emoji": "d_Prefab Icon", "name": "Prefab" },
+        { "emoji": "d_PrefabVariant Icon", "name": "Prefab Variant" },
+        { "emoji": "d_AnimationClip Icon", "name": "Animation Clip" },
+        { "emoji": "d_AnimatorController Icon", "name": "Animator Controller" },
+        { "emoji": "d_AvatarMask Icon", "name": "Avatar Mask" },
+        { "emoji": "d_Material Icon", "name": "Material" },
+        { "emoji": "d_Mesh Icon", "name": "Mesh" },
+        { "emoji": "d_Texture Icon", "name": "Texture" },
+        { "emoji": "d_Texture2D Icon", "name": "Texture 2D" },
+        { "emoji": "d_RenderTexture Icon", "name": "Render Texture" },
+        { "emoji": "d_Sprite Icon", "name": "Sprite" },
+        { "emoji": "d_AudioClip Icon", "name": "Audio Clip" },
+        { "emoji": "d_AudioMixerController Icon", "name": "Audio Mixer" }
+      ]
+    }
+  ]
+}
