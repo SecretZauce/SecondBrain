@@ -35,6 +35,10 @@ namespace SecretZauce.SecondBrain.Editor
         bool proPresent;
         bool proEnabled;
 
+#if SECOND_BRAIN_DEV
+        static bool s_devPreviewMissingFree;
+#endif
+
         // ─────────────────────────────────────────────────────────────────────────
 
         [MenuItem("Window/Second Brain/Installer")]
@@ -45,10 +49,26 @@ namespace SecretZauce.SecondBrain.Editor
             win.Show();
         }
 
+#if SECOND_BRAIN_DEV
+        [MenuItem("Window/Second Brain/DEV ─ Dialogs/Preview: Missing Free Version")]
+        static void Dev_PreviewMissingFreeVersion()
+        {
+            s_devPreviewMissingFree = true;
+            Open();
+        }
+#endif
+
         void OnEnable()
         {
             bannerTexture = Resources.Load<Texture2D>("SecondBrainBanner");
         }
+
+#if SECOND_BRAIN_DEV
+        void OnDisable()
+        {
+            s_devPreviewMissingFree = false;
+        }
+#endif
 
         void OnGUI()
         {
@@ -78,6 +98,15 @@ namespace SecretZauce.SecondBrain.Editor
 
         void RefreshState()
         {
+#if SECOND_BRAIN_DEV
+            if (s_devPreviewMissingFree)
+            {
+                freePresent = false;
+                proPresent  = true;
+                proEnabled  = false;
+                return;
+            }
+#endif
             freePresent = IsFreeAssemblyPresent();
             proPresent  = IsProAssemblyPresent();
             proEnabled  = IsProEnabled();
