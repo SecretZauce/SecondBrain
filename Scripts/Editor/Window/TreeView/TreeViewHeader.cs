@@ -225,7 +225,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         void DrawBreadcrumbArrow(Rect labelRect, out Rect adjustedLabelRect)
         {
-            var nextRect = new Rect(labelRect.x - 4f, -1, 15f, 20f);
+            var nextRect = new Rect(labelRect.x - 4f, 2, 15f, 20f);
             // Use cached breadcrumb icon content
             GUI.Label(nextRect, new GUIContent(s_BreadcrumbIcon));
             adjustedLabelRect = labelRect;
