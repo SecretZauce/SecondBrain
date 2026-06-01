@@ -6,7 +6,7 @@ namespace SecretZauce.SecondBrain.Editor
     {
         protected override IStructure HomeRoot => Motherbase.Home;
         
-        [MenuItem("Window/SecondBrainWindow")]
+        [MenuItem("Window/Second Brain/New Second Brain Window (Home)")]
         static void OpenWindow()
         {
             OpenWindow<SecondBrainWindow>();
