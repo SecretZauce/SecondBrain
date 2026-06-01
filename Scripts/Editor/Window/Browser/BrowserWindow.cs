@@ -172,7 +172,9 @@ namespace SecretZauce.SecondBrain.Editor
                 }
                 else
                 {
-                    treeView.foldoutState.CollapseAll(collections);
+                    // Clear all saved entries so each container falls back to its own
+                    // DefaultExpandOption (AlwaysExpand / ExpandAsDefault / CollapsedAsDefault).
+                    treeView.foldoutState.Clear();
                 }
             }
         }
