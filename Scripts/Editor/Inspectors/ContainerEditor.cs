@@ -40,6 +40,10 @@ namespace SecretZauce.SecondBrain.Editor
 
             EditorGUILayout.Space(6);
 
+            DrawChildViewExpandTabs(container);
+
+            EditorGUILayout.Space(6);
+
 #if SECOND_BRAIN_PRO
             DrawDisableQuickPeek(container);
 #endif
@@ -66,13 +70,27 @@ namespace SecretZauce.SecondBrain.Editor
 
         private void DrawDefaultExpandOptionTabs(Container container)
         {
-            EditorGUILayout.LabelField("Default Expand Option", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField("Container Expand", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
             int current = (int)container.DefaultExpand;
             int selected = GUILayout.Toolbar(current, ExpandOptionLabels, GUILayout.ExpandWidth(true));
             if (selected != current)
             {
-                Undo.RecordObject(container, "Change Default Expand Option");
+                Undo.RecordObject(container, "Change Container Expand");
                 container.DefaultExpand = (DefaultExpandOption)selected;
+                EditorUtility.SetDirty(container);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private void DrawChildViewExpandTabs(Container container)
+        {
+            EditorGUILayout.LabelField("Child View Expand", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            int current = (int)container.ChildViewExpand;
+            int selected = GUILayout.Toolbar(current, ExpandOptionLabels, GUILayout.ExpandWidth(true));
+            if (selected != current)
+            {
+                Undo.RecordObject(container, "Change Child View Expand");
+                container.ChildViewExpand = (DefaultExpandOption)selected;
                 EditorUtility.SetDirty(container);
                 AssetDatabase.SaveAssets();
             }

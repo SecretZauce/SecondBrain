@@ -185,7 +185,6 @@ namespace SecretZauce.SecondBrain.Editor
             var expandOption = BrowserSettings.DefaultExpandOption;
 #if SECOND_BRAIN_PRO
             var quickPeekLayout = BrowserSettings.DefaultQuickPeekLayout;
-            var quickPeekFoldoutState = BrowserSettings.DefaultQuickPeekFoldoutState;
 #endif
 
             if (DrawCollapsibleHeader(ref newContainerFoldout, "New Container Defaults", PrefNewContainer))
@@ -207,10 +206,6 @@ namespace SecretZauce.SecondBrain.Editor
                 quickPeekLayout = (ChildViewMode)EditorGUILayout.EnumPopup(
                     new GUIContent("Preferred Child View", "Default layout for the child view (Quick Peek / Container Children) when no per-container preference has been set.\n• Tabs — one child per tab.\n• Foldouts — all children stacked as foldouts."),
                     quickPeekLayout);
-
-                quickPeekFoldoutState = (DefaultExpandOption)EditorGUILayout.EnumPopup(
-                    new GUIContent("Child View Expand", "Default expand state for foldout items inside the child view when no saved state exists.\n• Expand As Default — items open expanded.\n• Collapsed As Default — items open collapsed.\n• Always Expand — always force-expand regardless of saved state."),
-                    quickPeekFoldoutState);
 #endif
 
                 EditorGUI.indentLevel--;
@@ -305,7 +300,6 @@ namespace SecretZauce.SecondBrain.Editor
                 BrowserSettings.StorageLocation = storageLocation;
 #if SECOND_BRAIN_PRO
                 BrowserSettings.DefaultQuickPeekLayout = quickPeekLayout;
-                BrowserSettings.DefaultQuickPeekFoldoutState = quickPeekFoldoutState;
                 BrowserSettings.EnableSceneLinking = enableSceneLinking;
                 BrowserSettings.CloseOnSceneClose = closeOnSceneClose;
 #endif

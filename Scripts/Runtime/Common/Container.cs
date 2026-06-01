@@ -57,6 +57,19 @@ namespace SecretZauce.SecondBrain
             set => defaultExpandOption = value;
         }
 
+        [SerializeField]
+        private DefaultExpandOption childViewExpandOption = DefaultExpandOption.ExpandAsDefault;
+
+        /// <summary>
+        /// Default expand state for children shown in Quick Peek and ContainerChildrenInspector
+        /// when no saved per-item foldout state exists.
+        /// </summary>
+        public DefaultExpandOption ChildViewExpand
+        {
+            get => childViewExpandOption;
+            set => childViewExpandOption = value;
+        }
+
         // PRO Version Only: Explicit "Disable Quick Peek" flag. When true, QuickPeek is disabled
         // for this container and all its descendants.
         [SerializeField]
