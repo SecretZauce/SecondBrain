@@ -36,6 +36,12 @@ namespace SecretZauce.SecondBrain.Editor
                 if (child is IStructure s) ExpandAllRecursive(s);
         }
 
+        /// <summary>
+        /// Removes all entries so every node falls back to its per-container
+        /// <see cref="DefaultExpandOption"/> the next time it is rendered.
+        /// </summary>
+        public void Clear() => foldouts.Clear();
+
         public void CollapseAll(IEnumerable<IStructure> nodes)
         {
             foreach (var node in nodes)
