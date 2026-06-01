@@ -225,8 +225,11 @@ namespace SecretZauce.SecondBrain.Editor
 
         void DrawBreadcrumbArrow(Rect labelRect, out Rect adjustedLabelRect)
         {
-            var nextRect = new Rect(labelRect.x - 4f, -1, 15f, 20f);
-            // Use cached breadcrumb icon content
+            // Size the rect to the icon rather than the full header height so the
+            // default (upper-left) label style doesn't pin it to the top.
+            const float arrowSize = 14f;
+            float arrowY = Mathf.Round((labelRect.height - arrowSize) * 0.5f);
+            var nextRect = new Rect(labelRect.x - 4f, arrowY, arrowSize, arrowSize);
             GUI.Label(nextRect, new GUIContent(s_BreadcrumbIcon));
             adjustedLabelRect = labelRect;
             adjustedLabelRect.x     += 14f;

@@ -443,7 +443,8 @@ namespace SecretZauce.SecondBrain.Editor
                         displayName = "🔗 " + this.node.name;
                     }
 
-                    var isShowIcon = BrowserSettings.ShowIconsPerType && !isURL;
+                    // Don't show icon before label at all for Base with no custom emoji
+                    var isShowIcon = BrowserSettings.ShowIconsPerType && !isURL && !(node is Base);
                     labelContent = new GUIContent(displayName, isShowIcon ? this.icon : null);
                 }
 
