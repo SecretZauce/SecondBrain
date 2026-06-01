@@ -160,13 +160,20 @@ namespace SecretZauce.SecondBrain.Editor
             // Reinitialize for the new root
             ReinitializeForRootChange();
 
-            // Expand all containers when entering a base (if the setting is enabled).
-            // This runs after foldout state is loaded so the expand overrides any persisted collapsed state.
-            // Does not apply when going home (baseTarget == null) or during session restore (RestoreTargetOnOpen).
-            if (baseTarget != null && BrowserSettings.ExpandAllOnEnterBase && treeView != null && collections != null)
+            // Expand or collapse all containers depending on the setting.
+            // Runs after foldout state is loaded so the result always overrides any persisted state.
+            // Does not apply when going home (baseTarget == null).
+            if (baseTarget != null && treeView != null && collections != null)
             {
-                treeView.foldoutState.ExpandAll(collections);
-                foldoutExpandedOnEntry = true;
+                if (BrowserSettings.ExpandAllOnEnterBase)
+                {
+                    treeView.foldoutState.ExpandAll(collections);
+                    foldoutExpandedOnEntry = true;
+                }
+                else
+                {
+                    treeView.foldoutState.CollapseAll(collections);
+                }
             }
         }
 
