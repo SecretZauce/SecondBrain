@@ -6,18 +6,14 @@ namespace SecretZauce.SecondBrain.Editor
 {
     /// <summary>
     /// Custom inspector for <see cref="Container"/>.
-    /// - PreferredChildView and DefaultExpandOption displayed as horizontal selectable tab bars.
-    /// - Emoji icon and Label Color are shown on the same row; clicking them opens the
-    ///   EmojiTray / ColorTray floating pickers.
+    /// Each control is a single horizontal row: label on the left, toolbar buttons on the right.
+    /// Emoji icon and Label Color are shown on the same row via the shared base class helper.
     /// </summary>
     [CustomEditor(typeof(Container))]
     public class ContainerEditor : StructureInspectorBase
     {
-        private static readonly string[] ChildViewLabels  = { "Foldouts", "Tabs" };
+        private static readonly string[] ChildViewLabels    = { "Foldouts", "Tabs" };
         private static readonly string[] ExpandOptionLabels = { "Expanded", "Collapsed", "Always Expand" };
-
-        // Icon/color base sizes are computed at draw-time to respect the inspector window width
-        // so controls scale when the window is resized.
 
         private ReorderableList childrenList;
         private SerializedProperty childrenProp;
@@ -27,20 +23,35 @@ namespace SecretZauce.SecondBrain.Editor
             var container = (Container)target;
             serializedObject.Update();
 
-            // Shared appearance row (emoji + color)
             DrawIconColorRow();
+            EditorGUILayout.Space(30);
 
-            EditorGUILayout.Space(30); // space below Appearance section
+            DrawOneLineToolbar("Container Expand", ExpandOptionLabels, (int)container.DefaultExpand, i =>
+            {
+                Undo.RecordObject(container, "Change Container Expand");
+                container.DefaultExpand = (DefaultExpandOption)i;
+                EditorUtility.SetDirty(container);
+                AssetDatabase.SaveAssets();
+            });
 
-            DrawPreferredChildViewTabs(container);
+            EditorGUILayout.Space(8);
+            EditorGUILayout.LabelField("Child View / Quick Peek", EditorStyles.boldLabel);
 
-            EditorGUILayout.Space(6);
+            DrawOneLineToolbar("Preferred Child View", ChildViewLabels, (int)container.PreferredChildView, i =>
+            {
+                Undo.RecordObject(container, "Change Preferred Child View");
+                container.PreferredChildView = (ChildViewMode)i;
+                EditorUtility.SetDirty(container);
+                AssetDatabase.SaveAssets();
+            });
 
-            DrawDefaultExpandOptionTabs(container);
-
-            EditorGUILayout.Space(6);
-
-            DrawChildViewExpandTabs(container);
+            DrawOneLineToolbar("Child View Expand", ExpandOptionLabels, (int)container.ChildViewExpand, i =>
+            {
+                Undo.RecordObject(container, "Change Child View Expand");
+                container.ChildViewExpand = (DefaultExpandOption)i;
+                EditorUtility.SetDirty(container);
+                AssetDatabase.SaveAssets();
+            });
 
             EditorGUILayout.Space(6);
 
@@ -50,50 +61,17 @@ namespace SecretZauce.SecondBrain.Editor
             EditorGUILayout.Space(10);
 
             DrawChildrenList();
-
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawPreferredChildViewTabs(Container container)
+        private void DrawOneLineToolbar(string label, string[] options, int current, System.Action<int> onChange)
         {
-            EditorGUILayout.LabelField("Preferred Child View", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
-            int current = (int)container.PreferredChildView;
-            int selected = GUILayout.Toolbar(current, ChildViewLabels, GUILayout.ExpandWidth(true));
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(label, GUILayout.Width(EditorGUIUtility.labelWidth));
+            int selected = GUILayout.Toolbar(current, options, GUILayout.ExpandWidth(true));
+            EditorGUILayout.EndHorizontal();
             if (selected != current)
-            {
-                Undo.RecordObject(container, "Change Preferred Child View");
-                container.PreferredChildView = (ChildViewMode)selected;
-                EditorUtility.SetDirty(container);
-                AssetDatabase.SaveAssets();
-            }
-        }
-
-        private void DrawDefaultExpandOptionTabs(Container container)
-        {
-            EditorGUILayout.LabelField("Container Expand", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
-            int current = (int)container.DefaultExpand;
-            int selected = GUILayout.Toolbar(current, ExpandOptionLabels, GUILayout.ExpandWidth(true));
-            if (selected != current)
-            {
-                Undo.RecordObject(container, "Change Container Expand");
-                container.DefaultExpand = (DefaultExpandOption)selected;
-                EditorUtility.SetDirty(container);
-                AssetDatabase.SaveAssets();
-            }
-        }
-
-        private void DrawChildViewExpandTabs(Container container)
-        {
-            EditorGUILayout.LabelField("Child View Expand", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
-            int current = (int)container.ChildViewExpand;
-            int selected = GUILayout.Toolbar(current, ExpandOptionLabels, GUILayout.ExpandWidth(true));
-            if (selected != current)
-            {
-                Undo.RecordObject(container, "Change Child View Expand");
-                container.ChildViewExpand = (DefaultExpandOption)selected;
-                EditorUtility.SetDirty(container);
-                AssetDatabase.SaveAssets();
-            }
+                onChange(selected);
         }
 
         private void EnsureChildrenList()
@@ -111,7 +89,6 @@ namespace SecretZauce.SecondBrain.Editor
                     EditorGUI.LabelField(rect, $"Children ({childrenProp.arraySize})", EditorStyles.boldLabel);
 
                 childrenList.drawElementCallback = DrawChildElement;
-
                 childrenList.elementHeight = EditorGUIUtility.singleLineHeight + 4f;
             }
         }
@@ -121,7 +98,6 @@ namespace SecretZauce.SecondBrain.Editor
             EnsureChildrenList();
             if (childrenList == null)
                 return;
-
             childrenList.DoLayoutList();
         }
 
@@ -132,7 +108,7 @@ namespace SecretZauce.SecondBrain.Editor
             rect.height =  EditorGUIUtility.singleLineHeight;
             EditorGUI.ObjectField(rect, element, GUIContent.none);
         }
-        
+
 #if SECOND_BRAIN_PRO
         void DrawDisableQuickPeek(Container container)
         {
@@ -152,10 +128,3 @@ namespace SecretZauce.SecondBrain.Editor
 #endif
     }
 }
-
-
-
-
-
-
-
