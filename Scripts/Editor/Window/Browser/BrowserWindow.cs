@@ -54,6 +54,10 @@ namespace SecretZauce.SecondBrain.Editor
 
         public bool IsPopup => isPopupMode;
         bool isPopupMode;
+        // True when the current foldout state was produced by ExpandAllOnEnterBase rather than
+        // by manual user interaction.  Used by SaveFoldoutStateToEditor to avoid persisting the
+        // auto-expanded state so re-entry with the setting off sees per-container defaults.
+        bool foldoutExpandedOnEntry;
         
 #if SECOND_BRAIN_PRO
         QuickPeekHandlerBase quickPeekHandler;
@@ -149,6 +153,10 @@ namespace SecretZauce.SecondBrain.Editor
 
             targetRoot = baseTarget;
 
+            // Reset the flag AFTER saving so SaveFoldoutStateToEditor can still act on the old value,
+            // and BEFORE ReinitializeForRootChange so the new base starts with a clean flag.
+            foldoutExpandedOnEntry = false;
+
             // Reinitialize for the new root
             ReinitializeForRootChange();
 
@@ -156,7 +164,10 @@ namespace SecretZauce.SecondBrain.Editor
             // This runs after foldout state is loaded so the expand overrides any persisted collapsed state.
             // Does not apply when going home (baseTarget == null) or during session restore (RestoreTargetOnOpen).
             if (baseTarget != null && BrowserSettings.ExpandAllOnEnterBase && treeView != null && collections != null)
+            {
                 treeView.foldoutState.ExpandAll(collections);
+                foldoutExpandedOnEntry = true;
+            }
         }
 
         /// <summary>
@@ -441,7 +452,22 @@ namespace SecretZauce.SecondBrain.Editor
 
         public void SaveFoldoutStateToEditor()
         {
-            // Save foldout state when window is closed
+            // If the current foldout state was produced by ExpandAllOnEnterBase, do NOT persist it.
+            // Saving an all-expanded state would cause re-entry with the setting off to still show
+            // everything expanded.  Instead, clear the stored key so the next visit falls back to
+            // per-container DefaultExpand settings.
+            if (foldoutExpandedOnEntry)
+            {
+                try
+                {
+                    string clearKey = GetFoldoutPrefsKey();
+                    if (!string.IsNullOrEmpty(clearKey) && EditorPrefs.HasKey(clearKey))
+                        EditorPrefs.DeleteKey(clearKey);
+                }
+                catch { }
+                return;
+            }
+
             try
             {
                 var snapshot = treeView.GetFoldoutSnapshot();
