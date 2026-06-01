@@ -85,34 +85,40 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Recursively destroys all descendant objects first (leaf-to-root), then destroys
-        /// <paramref name="obj"/> itself using <see cref="Undo.DestroyObjectImmediate"/> so
-        /// the operation is registered with Unity's undo system.
+        /// Recursively destroys <paramref name="obj"/> and all its descendants using
+        /// <see cref="Undo.DestroyObjectImmediate"/> so the operation is undo-safe.
         /// <para>
-        /// For sub-assets (embedded in a parent .asset file) this removes them from that file.
-        /// For standalone assets (IHasFolder items with their own .asset file) this deletes the file.
+        /// The parent is destroyed FIRST (while its children are still live) so that
+        /// Unity's undo snapshot captures valid child references in the parent's children
+        /// list. If children were destroyed first, their references in the parent's list
+        /// would already be null/missing when the parent is captured, causing the restored
+        /// parent to have broken (null) children after undo.
         /// </para>
         /// </summary>
         static void DestroyObjectRecursive(Object obj)
         {
             if (obj == null) return;
 
-            // Snapshot the children list before destruction to avoid mutating the list we iterate
+            // Snapshot children BEFORE destroying anything so we can reach them after
+            // the parent's native object is gone.
+            List<Object> children = null;
             if (obj is IStructure structure)
+                children = structure.ChildrenObjects?.ToList();
+
+            // Destroy the parent first — children are still live, so their references
+            // are valid inside the undo snapshot Unity captures here.
+            Undo.DestroyObjectImmediate(obj);
+
+            // Now destroy each child. They are still alive (snapshotted above) and their
+            // own undo snapshots will also capture valid descendant references.
+            if (children != null)
             {
-                var children = structure.ChildrenObjects?.ToList();
-                if (children != null)
+                foreach (var child in children)
                 {
-                    foreach (var child in children)
-                    {
-                        if (child != null)
-                            DestroyObjectRecursive(child);
-                    }
+                    if (child != null)
+                        DestroyObjectRecursive(child);
                 }
             }
-
-            // Destroy the object itself — undo-safe, works for both sub-assets and main assets
-            Undo.DestroyObjectImmediate(obj);
         }
     }
 }
