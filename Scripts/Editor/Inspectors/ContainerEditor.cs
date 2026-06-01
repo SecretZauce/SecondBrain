@@ -13,7 +13,7 @@ namespace SecretZauce.SecondBrain.Editor
     [CustomEditor(typeof(Container))]
     public class ContainerEditor : StructureInspectorBase
     {
-        private static readonly string[] ChildViewLabels  = { "Tabs", "Foldouts" };
+        private static readonly string[] ChildViewLabels  = { "Foldouts", "Tabs" };
         private static readonly string[] ExpandOptionLabels = { "Expanded", "Collapsed", "Always Expand" };
 
         // Icon/color base sizes are computed at draw-time to respect the inspector window width
