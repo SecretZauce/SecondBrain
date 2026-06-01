@@ -24,7 +24,6 @@ namespace SecretZauce.SecondBrain.Editor
         const string PrefConfirmation = "SettingsWindow_Confirmation";
         const string PrefNewContainer = "SettingsWindow_NewContainer";
         const string PrefSceneLinking = "SettingsWindow_SceneLinking";
-        const string PrefQuickPeek = "SettingsWindow_QuickPeek";
         const string PrefDataStorage = "SettingsWindow_DataStorage";
 
         // Foldout states (persisted to EditorPrefs)
@@ -33,7 +32,6 @@ namespace SecretZauce.SecondBrain.Editor
         bool confirmationFoldout = true;
         bool newContainerFoldout = true;
         bool sceneLinkingFoldout = true;
-        bool quickPeekFoldout = true;
         bool dataStorageFoldout = true;
 
         // Scroll position for the settings content
@@ -84,7 +82,6 @@ namespace SecretZauce.SecondBrain.Editor
             try { confirmationFoldout = EditorPrefs.GetInt(PrefConfirmation, 1) == 1; } catch { confirmationFoldout = true; }
             try { newContainerFoldout = EditorPrefs.GetInt(PrefNewContainer, 1) == 1; } catch { newContainerFoldout = true; }
             try { sceneLinkingFoldout = EditorPrefs.GetInt(PrefSceneLinking, 1) == 1; } catch { sceneLinkingFoldout = true; }
-            try { quickPeekFoldout = EditorPrefs.GetInt(PrefQuickPeek, 1) == 1; } catch { quickPeekFoldout = true; }
             try { dataStorageFoldout = EditorPrefs.GetInt(PrefDataStorage, 1) == 1; } catch { dataStorageFoldout = true; }
         }
 
@@ -99,7 +96,6 @@ namespace SecretZauce.SecondBrain.Editor
             try { EditorPrefs.SetInt(PrefConfirmation, confirmationFoldout ? 1 : 0); } catch { }
             try { EditorPrefs.SetInt(PrefNewContainer, newContainerFoldout ? 1 : 0); } catch { }
             try { EditorPrefs.SetInt(PrefSceneLinking, sceneLinkingFoldout ? 1 : 0); } catch { }
-            try { EditorPrefs.SetInt(PrefQuickPeek, quickPeekFoldout ? 1 : 0); } catch { }
             try { EditorPrefs.SetInt(PrefDataStorage, dataStorageFoldout ? 1 : 0); } catch { }
         }
 
@@ -187,6 +183,10 @@ namespace SecretZauce.SecondBrain.Editor
             ColorDisplayStyle colorStyle = BrowserSettings.DefaultColorStyle;
             bool foldoutOnly = BrowserSettings.DefaultColorFoldoutOnly;
             var expandOption = BrowserSettings.DefaultExpandOption;
+#if SECOND_BRAIN_PRO
+            var quickPeekLayout = BrowserSettings.DefaultQuickPeekLayout;
+            var quickPeekFoldoutState = BrowserSettings.DefaultQuickPeekFoldoutState;
+#endif
 
             if (DrawCollapsibleHeader(ref newContainerFoldout, "New Container Defaults", PrefNewContainer))
             {
@@ -200,8 +200,18 @@ namespace SecretZauce.SecondBrain.Editor
                     foldoutOnly);
 
                 expandOption = (DefaultExpandOption)EditorGUILayout.EnumPopup(
-                    new GUIContent("Expand Option", "Default expand/collapse behavior applied to newly created Containers."),
+                    new GUIContent("Container Expand", "Default expand/collapse state for the container node itself in the tree view."),
                     expandOption);
+
+#if SECOND_BRAIN_PRO
+                quickPeekLayout = (ChildViewMode)EditorGUILayout.EnumPopup(
+                    new GUIContent("Preferred Child View", "Default layout for the child view (Quick Peek / Container Children) when no per-container preference has been set.\n• Tabs — one child per tab.\n• Foldouts — all children stacked as foldouts."),
+                    quickPeekLayout);
+
+                quickPeekFoldoutState = (DefaultExpandOption)EditorGUILayout.EnumPopup(
+                    new GUIContent("Child View Expand", "Default expand state for foldout items inside the child view when no saved state exists.\n• Expand As Default — items open expanded.\n• Collapsed As Default — items open collapsed.\n• Always Expand — always force-expand regardless of saved state."),
+                    quickPeekFoldoutState);
+#endif
 
                 EditorGUI.indentLevel--;
             }
@@ -253,24 +263,6 @@ namespace SecretZauce.SecondBrain.Editor
             EditorGUILayout.Space(6);
 
 #if SECOND_BRAIN_PRO
-            // ── Quick Peek ─────────────────────────────────────────────────────
-            var quickPeekLayout = BrowserSettings.DefaultQuickPeekLayout;
-            var quickPeekFoldoutState = BrowserSettings.DefaultQuickPeekFoldoutState;
-
-            if (DrawCollapsibleHeader(ref quickPeekFoldout, "Quick Peek", PrefQuickPeek))
-            {
-                EditorGUI.indentLevel++;
-                quickPeekLayout = (ChildViewMode)EditorGUILayout.EnumPopup(
-                    new GUIContent("Default Layout", "Default view mode used by Quick Peek and Container Children window when no per-container preference has been set.\n• Tabs — one child per tab.\n• Foldouts — all children stacked as foldouts."),
-                    quickPeekLayout);
-
-                quickPeekFoldoutState = (DefaultExpandOption)EditorGUILayout.EnumPopup(
-                    new GUIContent("Default Foldout State", "Initial expand state for foldout items when no saved state exists.\n• Expand As Default — items open expanded.\n• Collapsed As Default — items open collapsed.\n• Always Expand — always force-expand regardless of saved state."),
-                    quickPeekFoldoutState);
-                EditorGUI.indentLevel--;
-            }
-            EditorGUILayout.Space(6);
-
             // ── Scene Linking ──────────────────────────────────────────────────
             bool enableSceneLinking = BrowserSettings.EnableSceneLinking;
             bool closeOnSceneClose = BrowserSettings.CloseOnSceneClose;
