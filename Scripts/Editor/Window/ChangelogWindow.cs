@@ -6,37 +6,25 @@ namespace SecretZauce.SecondBrain.Editor
     internal class ChangelogWindow : EditorWindow
     {
         const string FreeChangelogPath = "SecondBrainChangelog";
-        const string ProChangelogPath  = "SecondBrainProChangelog";
 
         string content;
         Vector2 scroll;
 
-        public static void Open(bool includePro)
+        public static bool IsAvailable => Resources.Load<TextAsset>(FreeChangelogPath) != null;
+
+        public static void Open()
         {
             var win = GetWindow<ChangelogWindow>(utility: true, title: "Changelog", focus: true);
             win.minSize = new Vector2(460, 420);
             win.maxSize = new Vector2(600, 700);
-            win.LoadContent(includePro);
+            win.LoadContent();
             win.Show();
         }
 
-        void LoadContent(bool includePro)
+        void LoadContent()
         {
             var free = Resources.Load<TextAsset>(FreeChangelogPath);
-            var pro  = includePro ? Resources.Load<TextAsset>(ProChangelogPath) : null;
-
-            if (free == null && pro == null)
-            {
-                content = "No changelog found.";
-                return;
-            }
-
-            if (free != null && pro != null)
-                content = pro.text + "\n\n---\n\n" + free.text;
-            else if (pro != null)
-                content = pro.text;
-            else
-                content = free.text;
+            content = free != null ? free.text : string.Empty;
         }
 
         void OnGUI()

@@ -76,7 +76,9 @@ Open via the **⚙** toolbar button.
 | Force Naming On Create | On | Show inline name field before creating; disable to create with auto-name instantly |
 | Default Color Style | Font Color | Color style applied to newly created nodes |
 | Default Color Foldout Only | Off | Restrict color to foldout header by default on new nodes |
-| Default Expand Option | Collapsed | Initial expand state for newly created Containers |
+| Container Expand | Collapsed | Initial expand/collapse state for the container node itself in the tree view |
+| Preferred Child View *(PRO)* | Foldouts | Fallback layout for Quick Peek and Container Children window — Tabs or Foldouts — used when no per-container preference has been saved |
+| Child View Expand *(PRO)* | Expand as Default | Initial foldout expand state in Quick Peek and Container Children Inspector when no saved per-item state exists |
 | Double-Click Action | Rename | What double-clicking a leaf item does: **Rename** or **Enter** |
 | Item Size | Medium | Row height — Tiny / Small / Medium / Large / Extra Large |
 | Expand All on Enter Base | Off | When enabled, all containers in a Base expand automatically when you navigate into it. Does not affect foldout state on session reopen or domain reload. |
@@ -84,11 +86,9 @@ Open via the **⚙** toolbar button.
 | Enable Quick Peek *(PRO)* | On | Toggle Quick Peek hover preview globally |
 | Enable Scene Linking *(PRO)* | On | Toggle all Scene Linking auto-open / close globally |
 | Close on Scene Close *(PRO)* | Off | Auto-close the browser window when its linked scene closes |
-| Default Quick Peek Layout *(PRO)* | Foldouts | Fallback layout inside Quick Peek panels — Tabs or Foldouts — used when no per-container preference has been saved |
-| Default Quick Peek Foldout State *(PRO)* | Expand as Default | Initial foldout expand state in Quick Peek and Container Children Inspector when no saved per-item state exists |
 
 > [!NOTE]
-> **Default Expand Option** sets the initial state only for *newly created* Containers. Override it per-Container in the [Container Inspector](#container-inspector).
+> **Container Expand**, **Preferred Child View**, and **Child View Expand** are all grouped under **New Container Defaults** in the Settings popup.
 
 > [!NOTE]
-> **Default Quick Peek Layout** is the fallback only. Switching the layout inside a Quick Peek panel saves the preference back to that container permanently, overriding this default for that container.
+> **Preferred Child View** is the fallback only. Switching the layout inside a Quick Peek panel saves the preference back to that container permanently, overriding this default for that container.

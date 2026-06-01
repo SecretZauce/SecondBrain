@@ -48,9 +48,9 @@ The panel header contains a layout toggle (tab icon / foldout icon) to switch be
 | Turn off **Enable Quick Peek** in [Settings](styling-and-settings.md#settings) | Globally — all Containers |
 | Enable **Disable Quick Peek** in the Container Inspector | Per-Container and all its descendants |
 
-**Layout defaults** are set in [Settings](styling-and-settings.md#settings):
-- **Default Quick Peek Layout** — the fallback layout (Tabs or Foldouts) when no per-container preference has been saved.
-- **Default Quick Peek Foldout State** — whether foldout items start expanded or collapsed when no saved per-item state exists.
+**Layout defaults** are set under **New Container Defaults** in [Settings](styling-and-settings.md#settings):
+- **Preferred Child View** — the fallback layout (Tabs or Foldouts) when no per-container preference has been saved.
+- **Child View Expand** — whether foldout items start expanded or collapsed when no saved per-item state exists.
 
 ---
 
