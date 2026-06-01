@@ -358,6 +358,10 @@ namespace SecretZauce.SecondBrain.Editor
 
 #if SECOND_BRAIN_PRO
             quickPeekHandler.CloseQuickPeek();
+            // Bump after CloseQuickPeek so SaveFoldoutStateIfNeeded captures token T, then the
+            // next browser open sees T+1 and treats all saved QuickPeek history as stale.
+            try { EditorPrefs.SetInt("QuickPeek_SessionToken", EditorPrefs.GetInt("QuickPeek_SessionToken", 0) + 1); }
+            catch { }
 #endif
             DeinitializeControllerAndState();
         }
