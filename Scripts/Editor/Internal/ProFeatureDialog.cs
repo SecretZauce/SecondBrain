@@ -42,8 +42,7 @@ namespace SecretZauce.SecondBrain.Editor
     internal class ProFeatureDialogWindow : EditorWindow
     {
         // ── Layout constants ───────────────────────────────────────────────────
-        const float WindowWidth  = 380f;
-        const float WindowHeight = 210f;
+        const float WindowWidth = 380f;
         const float Padding      = 20f;
 
         // ── State ──────────────────────────────────────────────────────────────
@@ -53,7 +52,6 @@ namespace SecretZauce.SecondBrain.Editor
         // ── Cached styles (created lazily inside OnGUI) ────────────────────────
         GUIStyle titleStyle;
         GUIStyle bodyStyle;
-        GUIStyle linkStyle;
 
         // ── Entry point ────────────────────────────────────────────────────────
         public static void Show(string featureName, string upgradeUrl)
@@ -62,14 +60,15 @@ namespace SecretZauce.SecondBrain.Editor
             wnd.featureName = featureName;
             wnd.upgradeUrl  = upgradeUrl;
             wnd.titleContent = new GUIContent("SecondBrain PRO");
-            wnd.minSize = wnd.maxSize = new Vector2(WindowWidth, WindowHeight);
+            wnd.minSize = new Vector2(WindowWidth, 100);
+            wnd.maxSize = new Vector2(WindowWidth, 2000);
 
-            // Centre over the main editor window
+            // Horizontal centering; vertical settles on first Repaint
             var main = EditorGUIUtils.GetMainWindowRect();
             wnd.position = new Rect(
-                main.x + (main.width  - WindowWidth)  * 0.5f,
-                main.y + (main.height - WindowHeight)  * 0.5f,
-                WindowWidth, WindowHeight);
+                main.x + (main.width - WindowWidth) * 0.5f,
+                main.y + main.height * 0.35f,
+                WindowWidth, 200);
 
             wnd.ShowUtility();   // modal-ish: stays on top, no docking
         }
@@ -90,15 +89,6 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 fontSize  = 12,
                 alignment = TextAnchor.MiddleCenter
-            };
-
-            linkStyle = new GUIStyle(EditorStyles.miniLabel)
-            {
-                fontSize        = 11,
-                alignment       = TextAnchor.MiddleCenter,
-                normal          = { textColor = new Color(0.25f, 0.55f, 1f) },
-                hover           = { textColor = new Color(0.40f, 0.70f, 1f) },
-                stretchWidth    = false
             };
         }
 
@@ -125,46 +115,14 @@ namespace SecretZauce.SecondBrain.Editor
             GUILayout.Space(4);
 
             // ── "What's on pro version?" link ─────────────────────────────────
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-
-                var linkContent = new GUIContent("What's on pro version?");
-                var linkRect    = GUILayoutUtility.GetRect(linkContent, linkStyle);
-
-                bool hasUrl = !string.IsNullOrEmpty(upgradeUrl);
-
-                // Underline
-                if (Event.current.type == EventType.Repaint)
-                {
-                    var underlineColor = hasUrl
-                        ? new Color(0.25f, 0.55f, 1f, 0.7f)
-                        : new Color(0.5f, 0.5f, 0.5f, 0.4f);
-                    EditorGUI.DrawRect(new Rect(linkRect.x, linkRect.yMax - 1f, linkRect.width, 1f), underlineColor);
-                }
-
-                if (hasUrl)
-                {
-                    EditorGUIUtility.AddCursorRect(linkRect, MouseCursor.Link);
-                    if (GUI.Button(linkRect, linkContent, linkStyle))
-                        Application.OpenURL(upgradeUrl);
-                }
-                else
-                {
-                    // No URL configured — render as a dimmed non-interactive label
-                    var dimStyle = new GUIStyle(linkStyle)
-                    {
-                        normal = { textColor = new Color(0.5f, 0.5f, 0.5f) }
-                    };
-                    GUI.Label(linkRect, linkContent, dimStyle);
-                }
-
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
-            }
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            DrawLinkButton("What's on pro version?", upgradeUrl);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
 
             // ── Spacer then button row ─────────────────────────────────────────
-            GUILayout.FlexibleSpace();
+            GUILayout.Space(12);
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(Padding);
@@ -190,6 +148,41 @@ namespace SecretZauce.SecondBrain.Editor
             GUILayout.EndHorizontal();
 
             GUILayout.Space(Padding);
+
+            if (Event.current.type == EventType.Repaint)
+            {
+                float h = GUILayoutUtility.GetLastRect().yMax;
+                if (Mathf.Abs(minSize.y - h) > 0.5f)
+                {
+                    minSize = maxSize = new Vector2(WindowWidth, h);
+                    var main = EditorGUIUtils.GetMainWindowRect();
+                    position = new Rect(
+                        main.x + (main.width  - WindowWidth) * 0.5f,
+                        main.y + (main.height - h) * 0.5f,
+                        WindowWidth, h);
+                }
+            }
+        }
+
+        // ── Link helper (matches InstallerWindow.DrawLinkButton style) ─────────
+        void DrawLinkButton(string label, string url)
+        {
+            bool hasUrl = !string.IsNullOrEmpty(url);
+            var style = new GUIStyle(EditorStyles.miniLabel)
+            {
+                normal  = { textColor = hasUrl ? new Color(0.25f, 0.8f, 1f) : new Color(0.5f, 0.5f, 0.5f) },
+                hover   = { textColor = new Color(0.45f, 0.70f, 1f) },
+                padding = new RectOffset(0, 0, 2, 2),
+                fontSize = 12
+            };
+            using (new EditorGUI.DisabledGroupScope(!hasUrl))
+            {
+                if (GUILayout.Button(label, style) && hasUrl)
+                    Application.OpenURL(url);
+            }
+            var r = GUILayoutUtility.GetLastRect();
+            EditorGUI.DrawRect(new Rect(r.x, r.yMax - 1, r.width, 1),
+                hasUrl ? new Color(0.25f, 0.55f, 1f, 0.6f) : new Color(0.5f, 0.5f, 0.5f, 0.3f));
         }
     }
 }
