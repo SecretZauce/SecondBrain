@@ -154,7 +154,7 @@ namespace SecretZauce.SecondBrain.Editor
             targetRoot = baseTarget;
 
             // Invalidate QuickPeek foldout/layout history so stale saves from the previous
-            // visit don't override DefaultQuickPeekFoldoutState on the next hover.
+            // visit don't override the container's ChildViewExpand default on the next hover.
             if (baseTarget != null)
             {
                 try { EditorPrefs.SetInt("QuickPeek_SessionToken", EditorPrefs.GetInt("QuickPeek_SessionToken", 0) + 1); }

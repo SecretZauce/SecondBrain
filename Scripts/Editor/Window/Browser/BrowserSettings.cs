@@ -59,7 +59,6 @@ namespace SecretZauce.SecondBrain.Editor
         const string KeyCloseOnSceneClose = "Browser_CloseOnSceneClose_v1";
         const string KeyDefaultExpandOption = "Browser_DefaultExpandOption_v1";
         const string KeyDefaultQuickPeekLayout = "Browser_DefaultQuickPeekLayout_v1";
-        const string KeyDefaultQuickPeekFoldoutState = "Browser_DefaultQuickPeekFoldoutState_v1";
         const string KeyDoubleClickAction = "Browser_DoubleClickAction_v1";
         const string KeyItemSize = "Browser_ItemSize_v1";
         const string KeyItemFontSize = "Browser_ItemFontSize_v1";
@@ -261,21 +260,6 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 if (DefaultQuickPeekLayout == value) return;
                 EditorPrefs.SetInt(KeyDefaultQuickPeekLayout, (int)value);
-                OnSettingsChanged?.Invoke();
-            }
-        }
-
-        /// <summary>
-        /// PRO Version Only: Default foldout expand state used by Quick Peek and
-        /// ContainerChildrenInspector when no persisted per-item state exists.
-        /// </summary>
-        public static DefaultExpandOption DefaultQuickPeekFoldoutState
-        {
-            get => (DefaultExpandOption)EditorPrefs.GetInt(KeyDefaultQuickPeekFoldoutState, (int)DefaultExpandOption.ExpandAsDefault);
-            set
-            {
-                if (DefaultQuickPeekFoldoutState == value) return;
-                EditorPrefs.SetInt(KeyDefaultQuickPeekFoldoutState, (int)value);
                 OnSettingsChanged?.Invoke();
             }
         }
