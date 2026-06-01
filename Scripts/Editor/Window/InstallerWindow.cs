@@ -190,8 +190,11 @@ namespace SecretZauce.SecondBrain.Editor
             DrawLinkButton("Discord", () => Application.OpenURL(DiscordUrl));
             DrawLinkSeparator();
             DrawLinkButton("Report a Bug", () => Application.OpenURL(ReportBugUrl));
-            DrawLinkSeparator();
-            DrawLinkButton("Changelog", () => ChangelogWindow.Open(proPresent));
+            if (ChangelogWindow.IsAvailable)
+            {
+                DrawLinkSeparator();
+                DrawLinkButton("Changelog", () => ChangelogWindow.Open());
+            }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
