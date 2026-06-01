@@ -1642,6 +1642,78 @@ namespace SecretZauce.SecondBrain.Editor
             moveHandlers.Clear();
         }
 
+        // ──────────────────────────────────────────────────────────────────────────────
+        // Creation Undo-Redo Handler
+        // ──────────────────────────────────────────────────────────────────────────────
+
+        readonly List<CreationUndoRedoHandler> creationHandlers = new List<CreationUndoRedoHandler>();
+
+        /// <summary>
+        /// Unregisters all accumulated <see cref="CreationUndoRedoHandler"/> instances.
+        /// Must be called when the window closes to prevent handlers from accumulating.
+        /// </summary>
+        public void DisposeCreationHandlers()
+        {
+            foreach (var h in creationHandlers)
+                Undo.undoRedoPerformed -= h.OnUndoRedo;
+            creationHandlers.Clear();
+        }
+
+        void RegisterCreationUndoRedoHandler(int childInstanceId, string parentAssetPath)
+        {
+            var handler = new CreationUndoRedoHandler(childInstanceId, parentAssetPath);
+            creationHandlers.Add(handler);
+            Undo.undoRedoPerformed += handler.OnUndoRedo;
+        }
+
+        /// <summary>
+        /// Handles <see cref="Undo.undoRedoPerformed"/> for a single child-creation operation.
+        /// Unity's undo system does not automatically re-embed a sub-asset in its parent
+        /// .asset file when <see cref="Undo.RegisterCreatedObjectUndo"/> is redone; this
+        /// handler detects the redo and calls <see cref="AssetDatabase.AddObjectToAsset"/>
+        /// so the child is properly persisted and the next deferred refresh finds it in the file.
+        /// </summary>
+        class CreationUndoRedoHandler
+        {
+            readonly int childInstanceId;
+            readonly string parentAssetPath;
+            bool isCurrentlyPresent = true;
+
+            public CreationUndoRedoHandler(int childInstanceId, string parentAssetPath)
+            {
+                this.childInstanceId = childInstanceId;
+                this.parentAssetPath = parentAssetPath;
+            }
+
+            public void OnUndoRedo()
+            {
+                var child = EditorUtility.InstanceIDToObject(childInstanceId) as ScriptableObject;
+
+                if (isCurrentlyPresent && child == null)
+                {
+                    // Undo detected: child was destroyed by the undo system.
+                    // The deferred SaveAssets + reimport in OnUndoRedoPerformed removes it from
+                    // the file automatically — no AssetDatabase op needed here.
+                    isCurrentlyPresent = false;
+                }
+                else if (!isCurrentlyPresent && child != null)
+                {
+                    // Redo detected: child was re-created by the undo system.
+                    // Re-embed in the parent asset file if Unity's redo did not do so.
+                    string currentPath = AssetDatabase.GetAssetPath(child);
+                    if (string.IsNullOrEmpty(currentPath) && !string.IsNullOrEmpty(parentAssetPath))
+                    {
+                        try { AssetDatabase.AddObjectToAsset(child, parentAssetPath); }
+                        catch (Exception ex) { Debug.LogWarning($"CreationUndoRedoHandler: could not re-embed child on redo — {ex.Message}"); }
+                    }
+                    // Ensure the parent path is tracked so the deferred ScheduleRefreshAffectedAssets
+                    // (already queued by OnUndoRedoPerformed) will save and reimport the file.
+                    SubAssetRefreshUtils.RegisterAffectedAsset(child);
+                    isCurrentlyPresent = true;
+                }
+            }
+        }
+
         /// <summary>
         /// Subscribes to <see cref="Undo.undoRedoPerformed"/> and re-runs or reverses the
         /// sub-asset file migration whenever Unity's undo system reverts/re-applies the
@@ -1837,6 +1909,9 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         AssetDatabase.AddObjectToAsset(scriptableChild, assetPath);
                         Undo.RegisterCreatedObjectUndo(scriptableChild, "Create Child Asset");
+                        // Unity does not re-embed sub-assets on redo of RegisterCreatedObjectUndo,
+                        // so track this creation to manually re-embed on redo.
+                        RegisterCreationUndoRedoHandler(scriptableChild.GetInstanceID(), assetPath);
                     }
                 }
 

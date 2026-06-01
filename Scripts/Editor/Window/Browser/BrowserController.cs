@@ -246,6 +246,7 @@ namespace SecretZauce.SecondBrain.Editor
         {
             SelectionUtils.UnregisterOnSelectionChange(OnUnitySelectionChanged);
             LifecycleManager?.DisposeMoveHandlers();
+            LifecycleManager?.DisposeCreationHandlers();
         }
 
         public void RecordSelectionChange(string operationName)
