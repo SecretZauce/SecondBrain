@@ -405,8 +405,14 @@ namespace SecretZauce.SecondBrain.Editor
 
             // Capture foldout state
             CaptureFoldoutSnapshot(treeView);
-            LifecycleManager.DeleteItems(paths, treeView);
-            UpdateUnitySelection(selectionState.GetAllPaths());
+            // Subscribe AFTER the existing relay (constructor) so selectionState is already
+            // updated when we call UpdateUnitySelection. Must land before CollapseUndoOperations
+            // so the Unity Selection.objects undo record is part of the delete group — otherwise
+            // Unity treats it as a separate undo entry requiring a second Ctrl+Z.
+            void onSelectionForDelete(int[] _) => UpdateUnitySelection(selectionState.GetAllPaths());
+            LifecycleManager.OnSelectionRequested += onSelectionForDelete;
+            try { LifecycleManager.DeleteItems(paths, treeView); }
+            finally { LifecycleManager.OnSelectionRequested -= onSelectionForDelete; }
         }
 
         void RemoveItems(List<int[]> paths, TreeView treeView)
@@ -425,8 +431,11 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             CaptureFoldoutSnapshot(treeView);
-            LifecycleManager.RemoveItems(paths, treeView, selectionState);
-            UpdateUnitySelection(selectionState.GetAllPaths());
+            // Same pattern: UpdateUnitySelection inside the undo group via the selection event.
+            void onSelectionForRemove(int[] _) => UpdateUnitySelection(selectionState.GetAllPaths());
+            LifecycleManager.OnSelectionRequested += onSelectionForRemove;
+            try { LifecycleManager.RemoveItems(paths, treeView, selectionState); }
+            finally { LifecycleManager.OnSelectionRequested -= onSelectionForRemove; }
         }
 
         public void ReparentItems(
