@@ -13,6 +13,7 @@ namespace SecretZauce.SecondBrain.Editor
         const string DocumentationUrl  = "https://secretzauce.gitbook.io/second-brain";
         const string DiscordUrl        = "https://discord.gg/secretzauce";
         const string ReportBugUrl      = "https://github.com/SecretZauce/second-brain/issues";
+        const string ChangelogUrl      = "https://github.com/SecretZauce/second-brain/blob/main/CHANGELOG.md";
         const string ProFeaturesUrl    = ProLicenseUtils.ASSET_STORE_URL;
         const string FreePackageGitUrl = "https://github.com/SecretZauce/second-brain-free.git";
 
@@ -190,11 +191,8 @@ namespace SecretZauce.SecondBrain.Editor
             DrawLinkButton("Discord", () => Application.OpenURL(DiscordUrl));
             DrawLinkSeparator();
             DrawLinkButton("Report a Bug", () => Application.OpenURL(ReportBugUrl));
-            if (ChangelogWindow.IsAvailable)
-            {
-                DrawLinkSeparator();
-                DrawLinkButton("Changelog", () => ChangelogWindow.Open());
-            }
+            DrawLinkSeparator();
+            DrawLinkButton("Changelog", () => Application.OpenURL(ChangelogUrl));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
