@@ -1886,11 +1886,8 @@ namespace SecretZauce.SecondBrain.Editor
             if (parentObj is not IStructure parentStruct)
                 return;
 
-            // Record undo for the parent so the list change can be reverted
             try
             {
-                Undo.RegisterCompleteObjectUndo(parentObj as Object, "Add Child");
-
                 // If both parent and child are ScriptableObjects, embed the child as a sub-asset of the parent file
                 if (parentObj is ScriptableObject scriptableParent && newChild is ScriptableObject scriptableChild)
                 {
@@ -1908,9 +1905,12 @@ namespace SecretZauce.SecondBrain.Editor
                     if (!string.IsNullOrEmpty(assetPath))
                     {
                         AssetDatabase.AddObjectToAsset(scriptableChild, assetPath);
+                        // Register the child BEFORE the parent so undo processes them in the
+                        // correct order: parent is undone first (child still alive → redo snapshot
+                        // captures parent.children with a live reference), child is undone second.
+                        // On redo the order reverses: child re-created first, then parent.children
+                        // restored with the live reference.
                         Undo.RegisterCreatedObjectUndo(scriptableChild, "Create Child Asset");
-                        // Unity does not re-embed sub-assets on redo of RegisterCreatedObjectUndo,
-                        // so track this creation to manually re-embed on redo.
                         RegisterCreationUndoRedoHandler(scriptableChild.GetInstanceID(), assetPath);
                     }
                 }
@@ -1933,6 +1933,11 @@ namespace SecretZauce.SecondBrain.Editor
                     }
                 }
                 catch { }
+
+                // Record parent undo AFTER the child's undo record so that on undo the parent
+                // record is reversed first (while the child is still alive).  This ensures the
+                // redo snapshot Unity captures for the parent contains a live child reference.
+                Undo.RegisterCompleteObjectUndo(parentObj as Object, "Add Child");
 
                 // Add to parent's children list (in-memory) using the IStructure API
                 var addResult = parentStruct.AddChild(newChild);
