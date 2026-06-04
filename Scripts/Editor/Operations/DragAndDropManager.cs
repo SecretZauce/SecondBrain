@@ -48,6 +48,23 @@ namespace SecretZauce.SecondBrain.Editor
         /// <summary>True when the current external drag contains GameObjects from scenes that have never been saved.</summary>
         public bool HasUnsavedSceneObjects => hasUnsavedSceneObjects;
 
+        /// <summary>Returns a snapshot copy of the currently dragged items (for Pro drag-out).</summary>
+        public List<Object> GetDraggedItems() => new List<Object>(draggedItems);
+
+        /// <summary>Returns deep-copied paths of the currently dragged items (for Pro drag-out).</summary>
+        public List<int[]> GetDraggedPaths()
+        {
+            var result = new List<int[]>(draggedPaths.Count);
+            foreach (var p in draggedPaths)
+            {
+                if (p == null) continue;
+                var copy = new int[p.Length];
+                Array.Copy(p, copy, p.Length);
+                result.Add(copy);
+            }
+            return result;
+        }
+
         /// <summary>
         /// Sets the owner TreeView so this manager can access the per-window Root.
         /// Called by TreeView after construction.

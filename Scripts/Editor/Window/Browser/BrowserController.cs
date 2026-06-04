@@ -745,6 +745,18 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
+        /// Moves items identified by explicit <paramref name="paths"/> to <paramref name="targetBase"/>.
+        /// Used by the Pro drag-out cross-window transfer to migrate items without requiring
+        /// them to be currently selected.
+        /// </summary>
+        public void MoveItemsByPaths(List<int[]> paths, Base targetBase, TreeView treeView)
+        {
+            if (paths == null || paths.Count == 0 || targetBase == null) return;
+            CaptureFoldoutSnapshot(treeView);
+            LifecycleManager.MoveItemsToBase(paths, targetBase, treeView);
+        }
+
+        /// <summary>
         /// Clears the linked scene GUID from the provided Base.
         /// This uses Undo.RecordObject and persists the change then refreshes the controller state.
         /// </summary>

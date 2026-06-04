@@ -120,6 +120,20 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public bool IsAtHome() => targetRoot == null;
 
+        /// <summary>Exposes selection state for Pro cross-window drag-out operations.</summary>
+        public SelectionStateSO SelectionState => selectionState;
+
+        /// <summary>
+        /// Rebuilds the TreeView from current asset state and repaints.
+        /// Used by Pro drag-out to refresh both the source and destination windows
+        /// after a cross-window item transfer.
+        /// </summary>
+        public void RefreshTree()
+        {
+            RefreshSerializedDatabase();
+            Repaint();
+        }
+
         /// <summary>
         /// Navigates this window to the given target. Null means "go home".
         /// Saves foldout state, persists the target to EditorPrefs for this window instance,
@@ -853,6 +867,25 @@ namespace SecretZauce.SecondBrain.Editor
                 // ignore
             }
 
+#if SECOND_BRAIN_PRO
+            // Handle DragExited so the source window can run post-drop actions
+            // (e.g. "Create Prefab" dialog when a SceneObjectRef is dropped on the Project Browser).
+            if (Event.current.type == EventType.DragExited)
+                SecretZauce.SecondBrain.Pro.Editor.DragOutController.HandleDragExited(this);
+
+            // Reject a cross-window drag from re-entering its own source window to prevent
+            // accidental duplication (the user should use internal drag for within-window moves).
+            if (Event.current.type == EventType.DragUpdated)
+            {
+                var sbSelf = SecretZauce.SecondBrain.Pro.Editor.DragOutController.GetActiveDragData();
+                if (sbSelf != null && sbSelf.SourceWindow == this)
+                {
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+                    return false;
+                }
+            }
+#endif
+
             // Handle external drag into empty Base (no containers yet) — create a default
             // Container on drop and add the dragged assets to it.
             if (Root is Base && (collections == null || collections.Count == 0))
@@ -902,19 +935,43 @@ namespace SecretZauce.SecondBrain.Editor
                 }
             }
 
-            // External drag over empty space in a non-empty Base: show Copy cursor so the
+            // External drag over empty space in a non-empty Base: show Copy/Move cursor so the
             // user knows they can drop here (the tree still has rows, but the mouse is below them).
             if (Root is Base && Event.current.type == EventType.DragUpdated
                 && DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0
                 && treeView.DragDropManager.IsExternalDrag && !treeView.DragInput.HasHover)
             {
-                bool hasUnsaved = DragAndDrop.objectReferences.Any(
-                    SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
-                DragAndDrop.visualMode = hasUnsaved
-                    ? DragAndDropVisualMode.Rejected
-                    : DragAndDropVisualMode.Copy;
-                Repaint();
+#if SECOND_BRAIN_PRO
+                var sbEmpty = SecretZauce.SecondBrain.Pro.Editor.DragOutController.GetActiveDragData();
+                if (sbEmpty != null && sbEmpty.SourceWindow != this)
+                {
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+                    Repaint();
+                }
+                else
+#endif
+                {
+                    bool hasUnsaved = DragAndDrop.objectReferences.Any(
+                        SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
+                    DragAndDrop.visualMode = hasUnsaved
+                        ? DragAndDropVisualMode.Rejected
+                        : DragAndDropVisualMode.Copy;
+                    Repaint();
+                }
             }
+
+#if SECOND_BRAIN_PRO
+            // Override visual mode to Move for cross-window drags landing on a valid row target.
+            if (Event.current.type == EventType.DragUpdated)
+            {
+                var sbMove = SecretZauce.SecondBrain.Pro.Editor.DragOutController.GetActiveDragData();
+                if (sbMove != null && sbMove.SourceWindow != this
+                    && treeView.DragDropManager.HasValidDropTarget())
+                {
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+                }
+            }
+#endif
 
             // Let TreeView's DragInput handle global drag decisions first
             var dragResult = treeView.ProcessGlobalDragEvent();
@@ -922,11 +979,25 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 if (dragResult.Cancelled)
                 {
-                    // External drag dropped on empty space in a Base → create a new Container.
+                    // External drag dropped on empty space in a Base.
                     // We detect "empty space" by checking that no row was hovered (HasHover == false).
                     if (dragResult.IsExternal && Root is Base && !treeView.DragInput.HasHover
                         && dragResult.DraggedItems != null && dragResult.DraggedItems.Count > 0)
                     {
+#if SECOND_BRAIN_PRO
+                        // Cross-window: move items from source window to dest Base root
+                        var sbCancel = SecretZauce.SecondBrain.Pro.Editor.DragOutController.GetActiveDragData();
+                        if (sbCancel != null && sbCancel.SourceWindow != this)
+                        {
+                            DragAndDrop.AcceptDrag();
+                            SecretZauce.SecondBrain.Pro.Editor.DragOutController.ExecuteCrossWindowTransfer(
+                                sbCancel, this, null, DragAndDropManager.DropPosition.None,
+                                treeView, selectionState, collections);
+                            Repaint();
+                            return true;
+                        }
+#endif
+                        // Normal external drag → create new Container for the dropped assets
                         bool hasUnsaved = dragResult.DraggedItems.Any(
                             SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
                         if (hasUnsaved)
@@ -963,6 +1034,24 @@ namespace SecretZauce.SecondBrain.Editor
 
                     if (dragResult.IsExternal)
                     {
+#if SECOND_BRAIN_PRO
+                        // Cross-window SecondBrain drag: migrate items via MoveItemsByPaths
+                        // instead of AddExternalItems (which blocks cross-asset IStructures).
+                        var sbDrop = SecretZauce.SecondBrain.Pro.Editor.DragOutController.GetActiveDragData();
+                        if (sbDrop != null && sbDrop.SourceWindow != this)
+                        {
+                            DragAndDrop.AcceptDrag();
+                            SecretZauce.SecondBrain.Pro.Editor.DragOutController.ExecuteCrossWindowTransfer(
+                                sbDrop, this,
+                                dragResult.DropTargetPath,
+                                (DragAndDropManager.DropPosition)dragResult.DropPosition,
+                                treeView, selectionState, collections);
+                            originalDragManager.CancelDrag();
+                            Event.current.Use();
+                            Repaint();
+                            return true;
+                        }
+#endif
                         // External drop - add external items
                         Controller.AddExternalItems(
                             dragResult.DraggedItems,
