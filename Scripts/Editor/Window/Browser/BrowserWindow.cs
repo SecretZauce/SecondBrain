@@ -902,12 +902,54 @@ namespace SecretZauce.SecondBrain.Editor
                 }
             }
 
+            // External drag over empty space in a non-empty Base: show Copy cursor so the
+            // user knows they can drop here (the tree still has rows, but the mouse is below them).
+            if (Root is Base && Event.current.type == EventType.DragUpdated
+                && DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0
+                && treeView.DragDropManager.IsExternalDrag && !treeView.DragInput.HasHover)
+            {
+                bool hasUnsaved = DragAndDrop.objectReferences.Any(
+                    SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
+                DragAndDrop.visualMode = hasUnsaved
+                    ? DragAndDropVisualMode.Rejected
+                    : DragAndDropVisualMode.Copy;
+                Repaint();
+            }
+
             // Let TreeView's DragInput handle global drag decisions first
             var dragResult = treeView.ProcessGlobalDragEvent();
             if (dragResult != null && dragResult.Handled)
             {
                 if (dragResult.Cancelled)
                 {
+                    // External drag dropped on empty space in a Base → create a new Container.
+                    // We detect "empty space" by checking that no row was hovered (HasHover == false).
+                    if (dragResult.IsExternal && Root is Base && !treeView.DragInput.HasHover
+                        && dragResult.DraggedItems != null && dragResult.DraggedItems.Count > 0)
+                    {
+                        bool hasUnsaved = dragResult.DraggedItems.Any(
+                            SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
+                        if (hasUnsaved)
+                        {
+                            ShowNotification(new GUIContent(SceneObjectRefUtils.UnsavedSceneNotification));
+                        }
+                        else
+                        {
+                            DragAndDrop.AcceptDrag();
+                            Controller.CreateContainerAndAddExternalItems(
+                                dragResult.DraggedItems, treeView, selectionState);
+                            EditorApplication.delayCall += () =>
+                            {
+                                RefreshSerializedDatabase();
+                                if (Controller.LastFoldoutSnapshot != null)
+                                    treeView.SetFoldoutSnapshot(Controller.LastFoldoutSnapshot);
+                                Repaint();
+                            };
+                        }
+                        Repaint();
+                        return true;
+                    }
+
                     treeView.DragDropManager.CancelDrag();
                     Event.current.Use();
                     Repaint();

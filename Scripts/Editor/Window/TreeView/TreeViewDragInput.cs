@@ -407,10 +407,20 @@ namespace SecretZauce.SecondBrain.Editor
                     return result;
                 }
 
-                // Invalid drop - cancel drag
+                // Invalid drop — capture external state before clearing drag
+                bool wasExternal = dragDropManager.IsExternalDrag;
+                List<Object> externalObjs = null;
+                if (wasExternal && DragAndDrop.objectReferences != null)
+                {
+                    externalObjs = new List<Object>();
+                    foreach (var o in DragAndDrop.objectReferences)
+                        if (o != null) externalObjs.Add(o);
+                }
                 dragDropManager.CancelDrag();
                 result.Handled = true;
                 result.Cancelled = true;
+                result.IsExternal = wasExternal;
+                result.DraggedItems = externalObjs;
                 result.NeedsRepaint = true;
                 e.Use();
                 return result;
