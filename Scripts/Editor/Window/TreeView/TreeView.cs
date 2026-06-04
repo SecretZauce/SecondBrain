@@ -435,15 +435,12 @@ namespace SecretZauce.SecondBrain.Editor
 #if SECOND_BRAIN_PRO
                     // Transition to Unity's external DragAndDrop so items can be dropped
                     // on Scene View, Project Browser, or another BrowserWindow.
-                    if (OwnerWindow != null)
+                    if (OwnerWindow != null && ProFeature.Provider != null)
                     {
                         var dragItems = DragDropManager.GetDraggedItems();
                         var dragPaths = DragDropManager.GetDraggedPaths();
                         if (dragItems.Count > 0)
-                        {
-                            SecretZauce.SecondBrain.Pro.Editor.DragOutController.BeginExternalDrag(
-                                OwnerWindow, dragItems, dragPaths);
-                        }
+                            ProFeature.Provider.BeginExternalDrag(OwnerWindow, dragItems, dragPaths);
                     }
 #endif
                     DragDropManager.CancelDrag();

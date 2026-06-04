@@ -871,18 +871,15 @@ namespace SecretZauce.SecondBrain.Editor
             // Handle DragExited so the source window can run post-drop actions
             // (e.g. "Create Prefab" dialog when a SceneObjectRef is dropped on the Project Browser).
             if (Event.current.type == EventType.DragExited)
-                SecretZauce.SecondBrain.Pro.Editor.DragOutController.HandleDragExited(this);
+                ProFeature.Provider?.HandleDragExited(this);
 
             // Reject a cross-window drag from re-entering its own source window to prevent
             // accidental duplication (the user should use internal drag for within-window moves).
-            if (Event.current.type == EventType.DragUpdated)
+            if (Event.current.type == EventType.DragUpdated
+                && ProFeature.Provider?.IsCrossWindowDragFromThisWindow(this) == true)
             {
-                var sbSelf = SecretZauce.SecondBrain.Pro.Editor.DragOutController.GetActiveDragData();
-                if (sbSelf != null && sbSelf.SourceWindow == this)
-                {
-                    DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
-                    return false;
-                }
+                DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+                return false;
             }
 #endif
 
@@ -942,8 +939,7 @@ namespace SecretZauce.SecondBrain.Editor
                 && treeView.DragDropManager.IsExternalDrag && !treeView.DragInput.HasHover)
             {
 #if SECOND_BRAIN_PRO
-                var sbEmpty = SecretZauce.SecondBrain.Pro.Editor.DragOutController.GetActiveDragData();
-                if (sbEmpty != null && sbEmpty.SourceWindow != this)
+                if (ProFeature.Provider?.IsCrossWindowDragFromAnotherWindow(this) == true)
                 {
                     DragAndDrop.visualMode = DragAndDropVisualMode.Move;
                     Repaint();
@@ -962,14 +958,11 @@ namespace SecretZauce.SecondBrain.Editor
 
 #if SECOND_BRAIN_PRO
             // Override visual mode to Move for cross-window drags landing on a valid row target.
-            if (Event.current.type == EventType.DragUpdated)
+            if (Event.current.type == EventType.DragUpdated
+                && ProFeature.Provider?.IsCrossWindowDragFromAnotherWindow(this) == true
+                && treeView.DragDropManager.HasValidDropTarget())
             {
-                var sbMove = SecretZauce.SecondBrain.Pro.Editor.DragOutController.GetActiveDragData();
-                if (sbMove != null && sbMove.SourceWindow != this
-                    && treeView.DragDropManager.HasValidDropTarget())
-                {
-                    DragAndDrop.visualMode = DragAndDropVisualMode.Move;
-                }
+                DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
 #endif
 
@@ -986,13 +979,10 @@ namespace SecretZauce.SecondBrain.Editor
                     {
 #if SECOND_BRAIN_PRO
                         // Cross-window: move items from source window to dest Base root
-                        var sbCancel = SecretZauce.SecondBrain.Pro.Editor.DragOutController.GetActiveDragData();
-                        if (sbCancel != null && sbCancel.SourceWindow != this)
+                        if (ProFeature.Provider?.ExecuteCrossWindowTransfer(
+                                this, null, (int)DragAndDropManager.DropPosition.None,
+                                treeView, selectionState, collections) == true)
                         {
-                            DragAndDrop.AcceptDrag();
-                            SecretZauce.SecondBrain.Pro.Editor.DragOutController.ExecuteCrossWindowTransfer(
-                                sbCancel, this, null, DragAndDropManager.DropPosition.None,
-                                treeView, selectionState, collections);
                             Repaint();
                             return true;
                         }
@@ -1037,15 +1027,10 @@ namespace SecretZauce.SecondBrain.Editor
 #if SECOND_BRAIN_PRO
                         // Cross-window SecondBrain drag: migrate items via MoveItemsByPaths
                         // instead of AddExternalItems (which blocks cross-asset IStructures).
-                        var sbDrop = SecretZauce.SecondBrain.Pro.Editor.DragOutController.GetActiveDragData();
-                        if (sbDrop != null && sbDrop.SourceWindow != this)
+                        if (ProFeature.Provider?.ExecuteCrossWindowTransfer(
+                                this, dragResult.DropTargetPath, dragResult.DropPosition,
+                                treeView, selectionState, collections) == true)
                         {
-                            DragAndDrop.AcceptDrag();
-                            SecretZauce.SecondBrain.Pro.Editor.DragOutController.ExecuteCrossWindowTransfer(
-                                sbDrop, this,
-                                dragResult.DropTargetPath,
-                                (DragAndDropManager.DropPosition)dragResult.DropPosition,
-                                treeView, selectionState, collections);
                             originalDragManager.CancelDrag();
                             Event.current.Use();
                             Repaint();
