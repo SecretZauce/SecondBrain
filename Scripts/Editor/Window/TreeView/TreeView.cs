@@ -963,7 +963,8 @@ namespace SecretZauce.SecondBrain.Editor
             if (labelColor.HasValue && (colorStyle == ColorDisplayStyle.Background || colorStyle == ColorDisplayStyle.Gradient) && !isSelected)
             {
                 var bgColorRect = itemRect;
-                bgColorRect.height += 2;
+                // Use minimal height extension that works across all font sizes
+                bgColorRect.height += 1;
                 if (colorStyle == ColorDisplayStyle.Background)
                 {
                     EditorGUI.DrawRect(bgColorRect, new Color(labelColor.Value.r, labelColor.Value.g, labelColor.Value.b, 0.1f));
