@@ -562,6 +562,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Clear previous hover state so TreeViewDragInput can recompute hover for this frame
             DragInput.ClearHover();
 
+
             scrollPosition = GUILayout.BeginScrollView(scrollPosition);
             for (int i = 0; i < colCount; i++)
             {
@@ -1114,7 +1115,15 @@ namespace SecretZauce.SecondBrain.Editor
                 GUILayout.ExpandWidth(true));
             rowRect.x += 13; 
             rowRect.width -= 26;
+            
+            // Reserve space for quick peek zone when clipping the input field
+            float rightPeekOffset = 0f;
+#if SECOND_BRAIN_PRO
+            if (ProFeature.Provider != null && BrowserSettings.EnableQuickPeek)
+                rightPeekOffset = TreeViewDragInput.QuickPeekZoneWidth;
+#endif
             Rect inputRect = rowRect;
+            inputRect.width -= rightPeekOffset;
 
             // Draw selection-style highlight so it looks like an active rename
             var ghostSelRect = rowRect;
