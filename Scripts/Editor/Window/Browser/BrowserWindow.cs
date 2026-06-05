@@ -1224,10 +1224,7 @@ namespace SecretZauce.SecondBrain.Editor
                 return;
 
             InitializeWindow(newWindow as BrowserWindow);
-
-            // Try to add the new window as a tab in the same docked parent area
-            bool dockedSuccessfully = TryAddAsTabInSameParent(newWindow);
-
+            bool dockedSuccessfully = TryAddAsTabInSameParent(newWindow) || AddTabToSameDockArea(newWindow);
             if (!dockedSuccessfully)
             {
                 // Fall back to a floating window slightly offset from the current one
