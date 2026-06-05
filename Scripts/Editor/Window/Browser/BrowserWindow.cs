@@ -111,7 +111,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         static void InitializeWindow(BrowserWindow wnd)
         {
-            wnd.minSize = new Vector2(400, 300);
+            wnd.minSize = new Vector2(300, 300);
             wnd.RefreshSerializedDatabase();
         }
 

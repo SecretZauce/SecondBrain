@@ -38,7 +38,7 @@ namespace SecretZauce.SecondBrain.Editor
         Vector2 scrollPos;
 
         // Popup dimensions
-        const float PopupWidth = 280f;
+        const float PopupWidth = 320f;
         const float PopupHeight = 380f;
 
         /// <summary>
