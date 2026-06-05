@@ -13,7 +13,7 @@ namespace SecretZauce.SecondBrain.Editor
     public class ContainerEditor : StructureInspectorBase
     {
         private static readonly string[] ChildViewLabels    = { "Foldouts", "Tabs" };
-        private static readonly string[] ExpandOptionLabels = { "Expanded", "Collapsed", "Always Expand" };
+        private static readonly string[] ExpandOptionLabels = { "Expand", "Collapse", "Always" };
 
         private ReorderableList childrenList;
         private SerializedProperty childrenProp;
@@ -66,9 +66,35 @@ namespace SecretZauce.SecondBrain.Editor
 
         private void DrawOneLineToolbar(string label, string[] options, int current, System.Action<int> onChange)
         {
+            // Responsive toolbar: show a Popup when the inspector is too narrow for a tab-style toolbar
+            const float controlMinWidth = 180f; // minimum width needed to display toolbar comfortably
+            float viewWidth = EditorGUIUtility.currentViewWidth;
+            float labelWidth = EditorGUIUtility.labelWidth;
+            float availableForControl = viewWidth - labelWidth - 16f; // small padding
+
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(label, GUILayout.Width(EditorGUIUtility.labelWidth));
-            int selected = GUILayout.Toolbar(current, options, GUILayout.ExpandWidth(true));
+            // If label itself would consume most of the width, stack the label above the control to avoid overlap
+            if (labelWidth >= viewWidth - 80f)
+            {
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.LabelField(label);
+                EditorGUILayout.BeginHorizontal();
+            }
+
+            EditorGUILayout.LabelField(label, GUILayout.Width(labelWidth));
+
+            int selected;
+            if (availableForControl < controlMinWidth)
+            {
+                // Narrow: use a Popup (dropdown)
+                selected = EditorGUILayout.Popup(current, options, GUILayout.ExpandWidth(true));
+            }
+            else
+            {
+                // Wide enough: use the tab-style toolbar
+                selected = GUILayout.Toolbar(current, options, GUILayout.MinWidth(90f));
+            }
+
             EditorGUILayout.EndHorizontal();
             if (selected != current)
                 onChange(selected);

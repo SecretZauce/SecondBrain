@@ -139,6 +139,18 @@ namespace SecretZauce.SecondBrain.Editor
                 scrollPos = Vector2.zero;
             }
 
+            // If we're editing one or more objects, show a Clear button to remove assigned icon(s)
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if ((_target != null) || (_targets != null && _targets.Count > 0))
+            {
+                if (GUILayout.Button("Clear", GUILayout.Width(64)))
+                {
+                    ApplyIcon(string.Empty);
+                }
+            }
+            GUILayout.EndHorizontal();
+
             GUILayout.Space(4);
 
             if (selectedMode == 0)
