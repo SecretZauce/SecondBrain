@@ -620,12 +620,34 @@ namespace SecretZauce.SecondBrain.Editor
             if (_scrollViewRect.width <= 0f) return;
 
             float pw = TreeViewDragInput.QuickPeekZoneWidth;
-            EditorGUI.DrawRect(new Rect(_scrollViewRect.xMax - pw, _scrollViewRect.y, pw, _scrollViewRect.height), new Color(0f, 0f, 0f, 0.1f));
+            
+            // Unity's vertical scrollbar is typically 15 pixels wide. Account for it when visible.
+            // Scrollbar appears when content extends beyond viewport in either direction
+            const float scrollbarWidth = 15f;
+            
+            // The scrollbar is visible if we're not at the top (scrolled down) or not at max scroll
+            // For simplicity and reliability, assume scrollbar is visible if scroll position is active
+            // or if we have enough items that scrolling is likely needed
+            bool hasVerticalScrollbar = scrollPosition.y > 0.1f;
+            
+            // Also check if we have many visible items which would require scrolling
+            if (!hasVerticalScrollbar && visiblePaths != null && visiblePaths.Count > 10)
+            {
+                // Estimate if we need scrollbar based on item count and viewport height
+                float estimatedContentHeight = visiblePaths.Count * BrowserSettings.GetItemRowHeight();
+                hasVerticalScrollbar = estimatedContentHeight > _scrollViewRect.height;
+            }
+            
+            float scrollbarOffset = hasVerticalScrollbar ? scrollbarWidth : 0f;
+            
+            // Draw the peek zone overlay, adjusted for scrollbar
+            float peekZoneX = _scrollViewRect.xMax - pw - scrollbarOffset;
+            EditorGUI.DrawRect(new Rect(peekZoneX, _scrollViewRect.y, pw, _scrollViewRect.height), new Color(0f, 0f, 0f, 0.1f));
 
-            DrawPeekColumnIcon(pw);
+            DrawPeekColumnIcon(pw, scrollbarOffset);
         }
 
-        void DrawPeekColumnIcon(float pw)
+        void DrawPeekColumnIcon(float pw, float scrollbarOffset)
         {
             var side = DragInput.QuickPeekHoveredSide;
             if (side == QuickPeekSide.None) return;
@@ -647,9 +669,10 @@ namespace SecretZauce.SecondBrain.Editor
 
             const float iconSize = 14f;
 
+            // Adjust icon X position for scrollbar
             float iconGuiX = (side == QuickPeekSide.Left)
                 ? _scrollViewRect.x + pw * 0.5f - iconSize * 0.5f
-                : _scrollViewRect.xMax - pw * 0.5f - iconSize * 0.5f;
+                : _scrollViewRect.xMax - scrollbarOffset - pw * 0.5f - iconSize * 0.5f;
 
             Rect hoveredScreenRect = DragInput.QuickPeekHoveredScreenRect;
             if (hoveredScreenRect.width <= 0f) return;
