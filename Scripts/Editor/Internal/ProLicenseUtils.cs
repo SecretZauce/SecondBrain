@@ -101,7 +101,7 @@ namespace SecretZauce.SecondBrain.Editor
 #if SECOND_BRAIN_DEV && SECOND_BRAIN_PRO
         // ─── Menu Items (DEV + PRO only) ────────────────────────────────────────
 
-        [MenuItem("Window/Second Brain/DEV — Rollback to Free")]
+        [MenuItem("Tools/Second Brain/DEV — Rollback to Free")]
         static void RollbackToFree()
         {
             if (EditorUtility.DisplayDialog(

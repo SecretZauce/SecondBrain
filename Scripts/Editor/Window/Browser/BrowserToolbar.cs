@@ -128,12 +128,12 @@ namespace SecretZauce.SecondBrain.Editor
                 padding = new RectOffset(0, 0, 0, 0)
             };
 #if SECOND_BRAIN_PRO
-            if (GUILayout.Button(s_NewTabIcon != null ? new GUIContent(s_NewTabIcon, "Open in New Window") : new GUIContent("+", "Open in New Window"), s_PlusButtonStyle, GUILayout.Width(30), GUILayout.Height(toolbarHeight - 2)))
+            if (GUILayout.Button(new GUIContent(s_NewTabIcon, "New Tab"), s_PlusButtonStyle, GUILayout.Width(30), GUILayout.Height(toolbarHeight - 2)))
             {
                 ownerWindow.PopOutNewWindow();
             }
 #else
-            if (GUILayout.Button(s_NewTabIcon != null ? new GUIContent(s_NewTabIcon, "Open in New Window (SecondBrain PRO)") : new GUIContent("+", "Open in New Window (SecondBrain PRO)"), s_PlusButtonStyle, GUILayout.Width(30), GUILayout.Height(toolbarHeight - 2)))
+            if (GUILayout.Button(new GUIContent(s_NewTabIcon, "New Tab (SecondBrain PRO)"), s_PlusButtonStyle, GUILayout.Width(30), GUILayout.Height(toolbarHeight - 2)))
             {
                 ProFeatureDialog.Show("Multiple Tabs");
             }

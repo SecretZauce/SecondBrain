@@ -168,7 +168,7 @@ namespace SecretZauce.SecondBrain.Editor
         static int StartDevProgress(string phase) =>
             Progress.Start($"{ProgressTitle} DEV", $"Simulating: {phase}");
 
-        [MenuItem("Window/Second Brain/DEV ─ Init/Simulate: Uninitialized Phase")]
+        [MenuItem("Tools/Second Brain/DEV ─ Init/Simulate: Uninitialized Phase")]
         static void Dev_SimulateUninitialized()
         {
             var mb = Motherbase.Home;
@@ -181,7 +181,7 @@ namespace SecretZauce.SecondBrain.Editor
             catch { Progress.Finish(id, Progress.Status.Failed); throw; }
         }
 
-        [MenuItem("Window/Second Brain/DEV ─ Init/Simulate: Check for Pro Phase")]
+        [MenuItem("Tools/Second Brain/DEV ─ Init/Simulate: Check for Pro Phase")]
         static void Dev_SimulateFreeInitialized()
         {
             var mb = Motherbase.Home;
@@ -194,7 +194,7 @@ namespace SecretZauce.SecondBrain.Editor
             catch { Progress.Finish(id, Progress.Status.Failed); throw; }
         }
 
-        [MenuItem("Window/Second Brain/DEV ─ Init/Simulate: Complete Pro Phase")]
+        [MenuItem("Tools/Second Brain/DEV ─ Init/Simulate: Complete Pro Phase")]
         static void Dev_SimulateProInitialized()
         {
             var mb = Motherbase.Home;
@@ -207,7 +207,7 @@ namespace SecretZauce.SecondBrain.Editor
             catch { Progress.Finish(id, Progress.Status.Failed); throw; }
         }
 
-        [MenuItem("Window/Second Brain/DEV ─ Init/Run from Current State")]
+        [MenuItem("Tools/Second Brain/DEV ─ Init/Run from Current State")]
         static void Dev_RunFromCurrentState()
         {
             var mb = Motherbase.Home;
@@ -216,7 +216,7 @@ namespace SecretZauce.SecondBrain.Editor
             RunInitializationFlow();
         }
 
-        [MenuItem("Window/Second Brain/DEV ─ Init/Reset State to Uninitialized (next reload)")]
+        [MenuItem("Tools/Second Brain/DEV ─ Init/Reset State to Uninitialized (next reload)")]
         static void Dev_ResetStateOnly()
         {
             var mb = Motherbase.Home;

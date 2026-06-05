@@ -42,7 +42,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         // ─────────────────────────────────────────────────────────────────────────
 
-        [MenuItem("Window/Second Brain/Installer")]
+        [MenuItem("Tools/Second Brain/Installer")]
         public static void Open()
         {
             var win = GetWindow<InstallerWindow>(utility: true, title: "SecondBrain Installer", focus: true);
@@ -51,7 +51,7 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
 #if SECOND_BRAIN_DEV
-        [MenuItem("Window/Second Brain/DEV ─ Dialogs/Preview: Missing Free Version")]
+        [MenuItem("Tools/Second Brain/DEV ─ Dialogs/Preview: Missing Free Version")]
         static void Dev_PreviewMissingFreeVersion()
         {
             s_devPreviewMissingFree = true;

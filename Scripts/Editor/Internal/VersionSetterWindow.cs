@@ -36,7 +36,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         // ─────────────────────────────────────────────────────────────────────────
 
-        [MenuItem("Window/Second Brain/DEV — Set Version")]
+        [MenuItem("Tools/Second Brain/DEV — Set Version")]
         static void Open()
         {
             var win = GetWindow<VersionSetterWindow>(utility: true, title: "DEV — Set Version", focus: true);

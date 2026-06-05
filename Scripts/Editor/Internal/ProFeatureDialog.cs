@@ -27,7 +27,7 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
 #if SECOND_BRAIN_DEV
-        [MenuItem("Window/Second Brain/DEV ─ Dialogs/Preview: Pro License Dialog")]
+        [MenuItem("Tools/Second Brain/DEV ─ Dialogs/Preview: Pro License Dialog")]
         static void Dev_PreviewProLicenseDialog()
         {
             LearnMoreUrl = ProLicenseUtils.ASSET_STORE_URL;
