@@ -8,6 +8,7 @@ namespace SecretZauce.SecondBrain
     {
         [SerializeField] string globalId;
         [SerializeField] string lastKnownScene;
+        [SerializeField] string lastKnownSceneGuid;
         [SerializeField] string lastKnownPath;
         [SerializeField] string lastKnownGameObjectName;
         [SerializeField] string lastKnownComponentType;
@@ -15,6 +16,7 @@ namespace SecretZauce.SecondBrain
 
         public string GlobalId => globalId;
         public string LastKnownScene => lastKnownScene;
+        public string LastKnownSceneGuid => lastKnownSceneGuid;
         public string LastKnownPath => lastKnownPath;
         public string LastKnownGameObjectName => lastKnownGameObjectName;
         public string LastKnownComponentType => lastKnownComponentType;

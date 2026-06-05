@@ -9,11 +9,13 @@ namespace SecretZauce.SecondBrain
         [SerializeField] string globalId;
         [SerializeField] string lastKnownName;
         [SerializeField] string lastKnownScene;
+        [SerializeField] string lastKnownSceneGuid;
         [SerializeField] string lastKnownPath;
 
         public string GlobalId => globalId;
         public string LastKnownName => lastKnownName;
         public string LastKnownScene => lastKnownScene;
+        public string LastKnownSceneGuid => lastKnownSceneGuid;
         public string LastKnownPath => lastKnownPath;
     }
 }

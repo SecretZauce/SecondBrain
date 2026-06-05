@@ -71,6 +71,10 @@ namespace SecretZauce.SecondBrain.Editor
                 if (lastKnownSceneProp != null)
                     lastKnownSceneProp.stringValue = go.scene.name;
 
+                var lastKnownSceneGuidProp = sceneObjProp.FindPropertyRelative("lastKnownSceneGuid");
+                if (lastKnownSceneGuidProp != null && !string.IsNullOrEmpty(go.scene.path))
+                    lastKnownSceneGuidProp.stringValue = AssetDatabase.AssetPathToGUID(go.scene.path);
+
                 var lastKnownPathProp = sceneObjProp.FindPropertyRelative("lastKnownPath");
                 if (lastKnownPathProp != null)
                     lastKnownPathProp.stringValue = GetGameObjectPath(go);
@@ -117,15 +121,26 @@ namespace SecretZauce.SecondBrain.Editor
 
         public static void GoToSceneObject(string globalId, string sceneName, string lastKnownPath)
         {
+            GoToSceneObject(globalId, sceneName, null, lastKnownPath);
+        }
+
+        public static void GoToSceneObject(string globalId, string sceneName, string sceneGuid, string lastKnownPath)
+        {
             EditorGUIUtils.ShowNotificationOnActiveView(new GUIContent("Go to '" + lastKnownPath + "' in scene '" + sceneName + "'"));
             // Run after current GUI event to avoid GUI state issues
             EditorApplication.delayCall += () =>
             {
                 try
                 {
-                    // Find a scene asset that matches the stored scene name
+                    // Find a scene asset - prefer GUID lookup for renamed scenes
                     string scenePath = null;
-                    if (!string.IsNullOrEmpty(sceneName))
+                    if (!string.IsNullOrEmpty(sceneGuid))
+                    {
+                        scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
+                    }
+                    
+                    // Fallback: search by scene name
+                    if (string.IsNullOrEmpty(scenePath) && !string.IsNullOrEmpty(sceneName))
                     {
                         var guids = AssetDatabase.FindAssets("t:Scene");
                         foreach (var guid in guids)

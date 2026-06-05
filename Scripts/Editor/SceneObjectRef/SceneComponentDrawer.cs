@@ -26,11 +26,39 @@ namespace SecretZauce.SecondBrain.Editor
             Rect infoRect = new Rect(objectRect.xMax + spacing, fieldRect.y, infoWidth, fieldRect.height);
 
             var lastKnownPath = property.FindPropertyRelative("lastKnownPath")?.stringValue;
-            var lastKnownScene = property.FindPropertyRelative("lastKnownScene")?.stringValue;
+            var lastKnownSceneProp = property.FindPropertyRelative("lastKnownScene");
+            var lastKnownSceneGuidProp = property.FindPropertyRelative("lastKnownSceneGuid");
+            var lastKnownScene = lastKnownSceneProp?.stringValue;
+            var lastKnownSceneGuid = lastKnownSceneGuidProp?.stringValue;
             var lastKnownGameObjectName = property.FindPropertyRelative("lastKnownGameObjectName")?.stringValue;
             var lastKnownComponentType = property.FindPropertyRelative("lastKnownComponentType")?.stringValue;
             var lastKnownComponentTypeName = property.FindPropertyRelative("lastKnownComponentTypeName")?.stringValue;
             Component resolved = current as Component;
+
+            // Auto-update scene name if the scene was renamed (GUID matches but name differs)
+            bool sceneWasRenamed = false;
+            if (resolved != null && resolved.gameObject != null && !string.IsNullOrEmpty(lastKnownSceneGuid))
+            {
+                var currentScenePath = resolved.gameObject.scene.path;
+                if (!string.IsNullOrEmpty(currentScenePath))
+                {
+                    var currentSceneGuid = AssetDatabase.AssetPathToGUID(currentScenePath);
+                    if (currentSceneGuid == lastKnownSceneGuid && resolved.gameObject.scene.name != lastKnownScene)
+                    {
+                        sceneWasRenamed = true;
+                        lastKnownScene = resolved.gameObject.scene.name;
+                    }
+                }
+            }
+            // Fallback: if no scene name stored, try to resolve from GUID
+            else if (resolved == null && !string.IsNullOrEmpty(lastKnownSceneGuid) && string.IsNullOrEmpty(lastKnownScene))
+            {
+                var scenePath = AssetDatabase.GUIDToAssetPath(lastKnownSceneGuid);
+                if (!string.IsNullOrEmpty(scenePath))
+                {
+                    lastKnownScene = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+                }
+            }
 
             Component displayed;
             bool objectChanged = false;
@@ -58,11 +86,27 @@ namespace SecretZauce.SecondBrain.Editor
                     ? SceneObjectRefUtils.GetGameObjectPath(displayed.gameObject)
                     : string.Empty;
                 isPickedMismatched =
-                    (lastKnownScene != null && lastKnownScene != displayed.gameObject.scene.name) ||
                     (lastKnownPath != null && lastKnownPath != displayedPath) ||
                     (lastKnownGameObjectName != null && lastKnownGameObjectName != displayed.gameObject.name) ||
                     (lastKnownComponentType != null && lastKnownComponentType != displayed.GetType().AssemblyQualifiedName) ||
                     (lastKnownComponentTypeName != null && lastKnownComponentTypeName != displayed.GetType().Name);
+                
+                // Only flag scene mismatch if GUID also differs (not just name)
+                if (!string.IsNullOrEmpty(lastKnownSceneGuid) && displayed.gameObject != null)
+                {
+                    var currentScenePath = displayed.gameObject.scene.path;
+                    if (!string.IsNullOrEmpty(currentScenePath))
+                    {
+                        var currentSceneGuid = AssetDatabase.AssetPathToGUID(currentScenePath);
+                        if (currentSceneGuid != lastKnownSceneGuid)
+                            isPickedMismatched = true;
+                    }
+                }
+                else if (lastKnownScene != null && displayed.gameObject != null && lastKnownScene != displayed.gameObject.scene.name)
+                {
+                    // Fallback: if no GUID stored, check by name
+                    isPickedMismatched = true;
+                }
             }
 
             string status = "None";
@@ -96,10 +140,10 @@ namespace SecretZauce.SecondBrain.Editor
             if (status == "Missing")
             {
                 if (GUI.Button(goRect, "Go", EditorStyles.miniButton))
-                    SceneComponentRefUtils.GoToSceneComponent(idProp?.stringValue, lastKnownScene, lastKnownPath);
+                    SceneComponentRefUtils.GoToSceneComponent(idProp?.stringValue, lastKnownScene, lastKnownSceneGuid, lastKnownPath);
             }
 
-            if (objectChanged || isPickedMismatched)
+            if (objectChanged || isPickedMismatched || sceneWasRenamed)
             {
                 var newPicked = displayed;
                 string newGid = string.Empty;
@@ -128,6 +172,14 @@ namespace SecretZauce.SecondBrain.Editor
                             gidProp.stringValue = newGid ?? string.Empty;
                     }
 
+                    if (sceneWasRenamed)
+                    {
+                        // Update the scene name when rename detected
+                        var sceneNameProp = rootProp.FindPropertyRelative("lastKnownScene");
+                        if (sceneNameProp != null && newPicked != null && newPicked.gameObject != null)
+                            sceneNameProp.stringValue = newPicked.gameObject.scene.name;
+                    }
+
                     RecordFallbackInfo(rootProp, newPicked);
                     so.ApplyModifiedProperties();
                     EditorUtility.SetDirty(target);
@@ -143,8 +195,26 @@ namespace SecretZauce.SecondBrain.Editor
         static void RecordFallbackInfo(SerializedProperty rootProp, Component picked)
         {
             var lastKnownScene = rootProp.FindPropertyRelative("lastKnownScene");
+            var lastKnownSceneGuid = rootProp.FindPropertyRelative("lastKnownSceneGuid");
             if (lastKnownScene != null)
-                lastKnownScene.stringValue = picked != null && picked.gameObject != null ? picked.gameObject.scene.name : string.Empty;
+            {
+                if (picked != null && picked.gameObject != null)
+                {
+                    lastKnownScene.stringValue = picked.gameObject.scene.name;
+                    
+                    // Store scene GUID for rename detection
+                    if (lastKnownSceneGuid != null && !string.IsNullOrEmpty(picked.gameObject.scene.path))
+                    {
+                        lastKnownSceneGuid.stringValue = AssetDatabase.AssetPathToGUID(picked.gameObject.scene.path);
+                    }
+                }
+                else
+                {
+                    lastKnownScene.stringValue = string.Empty;
+                    if (lastKnownSceneGuid != null)
+                        lastKnownSceneGuid.stringValue = string.Empty;
+                }
+            }
 
             var lastKnownPath = rootProp.FindPropertyRelative("lastKnownPath");
             if (lastKnownPath != null)

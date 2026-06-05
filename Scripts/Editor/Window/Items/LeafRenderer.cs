@@ -74,6 +74,39 @@ namespace SecretZauce.SecondBrain.Editor
             }
             return path;
         }
+
+        /// <summary>
+        /// Checks if a scene is currently loaded, using GUID for rename-safe detection.
+        /// Falls back to name-based check for backward compatibility.
+        /// </summary>
+        static bool IsSceneLoaded(string sceneGuid, string sceneName)
+        {
+            // Prefer GUID-based lookup (stable across renames)
+            if (!string.IsNullOrEmpty(sceneGuid))
+            {
+                var scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
+                if (!string.IsNullOrEmpty(scenePath))
+                {
+                    // Check all loaded scenes to see if any match this path
+                    for (int i = 0; i < SceneManager.sceneCount; i++)
+                    {
+                        var loadedScene = SceneManager.GetSceneAt(i);
+                        if (loadedScene.path == scenePath)
+                            return loadedScene.isLoaded;
+                    }
+                }
+            }
+            
+            // Fallback: name-based check (for backward compatibility or if GUID is missing)
+            if (!string.IsNullOrEmpty(sceneName))
+            {
+                var scene = SceneManager.GetSceneByName(sceneName);
+                return scene.isLoaded;
+            }
+            
+            return false;
+        }
+
         public LeafRenderer(TreeView tv, int[] rowPath, Object nodeObj, Texture iconTexture, Rect rowRectIn, Rect trueIndentedItemRectIn) : base(tv)
         {
             path = rowPath;
@@ -147,9 +180,10 @@ namespace SecretZauce.SecondBrain.Editor
                 var sceneObj = sceneRef.sceneObject;
                 string displayName = !string.IsNullOrEmpty(sceneObj?.LastKnownName) ? sceneObj.LastKnownName : this.node.name;
                 string sceneName = sceneObj?.LastKnownScene;
+                string sceneGuid = sceneObj?.LastKnownSceneGuid;
                 string assetPath = sceneObj?.LastKnownPath;
                 string gid = sceneObj?.GlobalId;
-                bool sceneLoaded = !string.IsNullOrEmpty(sceneName) && SceneManager.GetSceneByName(sceneName).isLoaded;
+                bool sceneLoaded = IsSceneLoaded(sceneGuid, sceneName);
 
                 // Reuse cached item style; apply per-call properties.
                 s_ItemStyle.normal.textColor = EditorStyles.label.normal.textColor; // reset to default
@@ -221,7 +255,7 @@ namespace SecretZauce.SecondBrain.Editor
                     arrowRectNudged.y -= 1;
                     if (GUI.Button(arrowRectNudged, new GUIContent(s_EnterIcon), s_ArrowStyle))
                     {
-                        SceneObjectRefUtils.GoToSceneObject(gid, sceneName, assetPath);
+                        SceneObjectRefUtils.GoToSceneObject(gid, sceneName, sceneGuid, assetPath);
                         Event.current?.Use();
                         treeView.OwnerWindow?.TryCloseIfPopup();
                         return true; // Handled: prevent row selection from also occurring
@@ -233,9 +267,10 @@ namespace SecretZauce.SecondBrain.Editor
                 var sceneComponent = sceneComponentRef.sceneComponent;
                 string displayName = SceneComponentRefUtils.GetDisplayName(sceneComponent);
                 string sceneName = sceneComponent?.LastKnownScene;
+                string sceneGuid = sceneComponent?.LastKnownSceneGuid;
                 string assetPath = sceneComponent?.LastKnownPath;
                 string gid = sceneComponent?.GlobalId;
-                bool sceneLoaded = !string.IsNullOrEmpty(sceneName) && SceneManager.GetSceneByName(sceneName).isLoaded;
+                bool sceneLoaded = IsSceneLoaded(sceneGuid, sceneName);
 
                 s_ItemStyle.normal.textColor = EditorStyles.label.normal.textColor;
                 int itemFontSize = BrowserSettings.GetItemFontSize();
@@ -295,7 +330,7 @@ namespace SecretZauce.SecondBrain.Editor
                     arrowRectNudged.y -= 1;
                     if (GUI.Button(arrowRectNudged, new GUIContent(s_EnterIcon), s_ArrowStyle))
                     {
-                        SceneComponentRefUtils.GoToSceneComponent(gid, sceneName, assetPath);
+                        SceneComponentRefUtils.GoToSceneComponent(gid, sceneName, sceneGuid, assetPath);
                         Event.current?.Use();
                         treeView.OwnerWindow?.TryCloseIfPopup();
                         return true;

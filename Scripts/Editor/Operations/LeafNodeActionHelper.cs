@@ -14,6 +14,38 @@ namespace SecretZauce.SecondBrain.Editor
     public static class LeafNodeActionHelper
     {
         /// <summary>
+        /// Checks if a scene is currently loaded, using GUID for rename-safe detection.
+        /// Falls back to name-based check for backward compatibility.
+        /// </summary>
+        static bool IsSceneLoaded(string sceneGuid, string sceneName)
+        {
+            // Prefer GUID-based lookup (stable across renames)
+            if (!string.IsNullOrEmpty(sceneGuid))
+            {
+                var scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
+                if (!string.IsNullOrEmpty(scenePath))
+                {
+                    // Check all loaded scenes to see if any match this path
+                    for (int i = 0; i < SceneManager.sceneCount; i++)
+                    {
+                        var loadedScene = SceneManager.GetSceneAt(i);
+                        if (loadedScene.path == scenePath)
+                            return loadedScene.isLoaded;
+                    }
+                }
+            }
+            
+            // Fallback: name-based check (for backward compatibility or if GUID is missing)
+            if (!string.IsNullOrEmpty(sceneName))
+            {
+                var scene = SceneManager.GetSceneByName(sceneName);
+                return scene.isLoaded;
+            }
+            
+            return false;
+        }
+
+        /// <summary>
         /// Performs the action associated with the '>' button on a leaf node.
         /// Returns true if the action was handled, false otherwise.
         /// </summary>
@@ -41,13 +73,14 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 var sceneObj = sceneRef.sceneObject;
                 string sceneName = sceneObj?.LastKnownScene;
-                bool sceneLoaded = !string.IsNullOrEmpty(sceneName) && SceneManager.GetSceneByName(sceneName).isLoaded;
+                string sceneGuid = sceneObj?.LastKnownSceneGuid;
+                bool sceneLoaded = IsSceneLoaded(sceneGuid, sceneName);
                 if (sceneLoaded)
                     return false; // '>' button is hidden; Enter has no action when scene is open
 
                 string assetPath = sceneObj?.LastKnownPath;
                 string gid = sceneObj?.GlobalId;
-                SceneObjectRefUtils.GoToSceneObject(gid, sceneName, assetPath);
+                SceneObjectRefUtils.GoToSceneObject(gid, sceneName, sceneGuid, assetPath);
                 return true;
             }
 
@@ -55,13 +88,15 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 var sceneComponent = sceneComponentRef.sceneComponent;
                 string sceneName = sceneComponent?.LastKnownScene;
-                bool sceneLoaded = !string.IsNullOrEmpty(sceneName) && SceneManager.GetSceneByName(sceneName).isLoaded;
+                string sceneGuid = sceneComponent?.LastKnownSceneGuid;
+                bool sceneLoaded = IsSceneLoaded(sceneGuid, sceneName);
                 if (sceneLoaded)
                     return false;
 
                 SceneComponentRefUtils.GoToSceneComponent(
                     sceneComponent?.GlobalId,
                     sceneName,
+                    sceneGuid,
                     sceneComponent?.LastKnownPath);
                 return true;
             }
