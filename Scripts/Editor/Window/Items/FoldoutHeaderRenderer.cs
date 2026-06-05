@@ -166,7 +166,7 @@ namespace SecretZauce.SecondBrain.Editor
                     }
 
                     Rect textFieldRect = new Rect(
-                        foldoutHeaderRect.x + foldoutArrowWidth,
+                        trueIndentedItemRect.x + foldoutArrowWidth,
                         foldoutHeaderRect.y,
                         foldoutHeaderRect.width - foldoutArrowWidth,
                         foldoutHeaderRect.height
@@ -255,14 +255,22 @@ namespace SecretZauce.SecondBrain.Editor
                     labelStyle = s_HiddenFoldLabelStyle;
                 }
 
-                var labelRect = new Rect(foldoutHeaderRect.x + foldoutArrowWidth, foldoutHeaderRect.y, foldoutHeaderRect.width - foldoutArrowWidth, foldoutHeaderRect.height);
+                var labelRect = new Rect(trueIndentedItemRect.x + foldoutArrowWidth, foldoutHeaderRect.y, foldoutHeaderRect.width - foldoutArrowWidth, foldoutHeaderRect.height);
 
                 if (node is IHasEmoji hasEmoji2 && !string.IsNullOrEmpty(hasEmoji2.EmojiIcon) && BrowserSettings.ShowIconsPerType)
                 {
-                    GUIContent content = EmojiIconUtils.IsEditorIcon(hasEmoji2.EmojiIcon)
-                        ? EmojiIconUtils.BuildLabelContent(name, hasEmoji2.EmojiIcon, icon)
-                        : new GUIContent(hasEmoji2.EmojiIcon + " " + name);
-                    EditorGUI.LabelField(labelRect, content, labelStyle);
+                    if (EmojiIconUtils.IsEditorIcon(hasEmoji2.EmojiIcon))
+                    {
+                        Rect computedTextRect;
+                        if (!EmojiIconUtils.TryDrawEditorIconLabel(labelRect, hasEmoji2.EmojiIcon, labelStyle, name, out computedTextRect))
+                        {
+                            EditorGUI.LabelField(labelRect, new GUIContent(name, BrowserSettings.ShowIconsPerType ? icon : null), labelStyle);
+                        }
+                    }
+                    else
+                    {
+                        EditorGUI.LabelField(labelRect, new GUIContent(hasEmoji2.EmojiIcon + " " + name), labelStyle);
+                    }
                 }
                 else
                 {
@@ -272,15 +280,29 @@ namespace SecretZauce.SecondBrain.Editor
                 return currentFold;
             }
 
-            if (node is IHasEmoji hasEmoji && !string.IsNullOrEmpty(hasEmoji.EmojiIcon) && BrowserSettings.ShowIconsPerType)
-            {
-                // For editor icons: show as image alongside the name.
-                // For regular emoji: keep the emoji in the text (no image override) to match original behaviour.
-                GUIContent content = EmojiIconUtils.IsEditorIcon(hasEmoji.EmojiIcon)
-                    ? EmojiIconUtils.BuildLabelContent(name, hasEmoji.EmojiIcon, icon)
-                    : new GUIContent(hasEmoji.EmojiIcon + " " + name);
-                return EditorGUI.Foldout(foldoutHeaderRect, currentFold, content, false, workingFoldStyle);
-            }
+                if (node is IHasEmoji hasEmoji && !string.IsNullOrEmpty(hasEmoji.EmojiIcon) && BrowserSettings.ShowIconsPerType)
+                {
+                    if (EmojiIconUtils.IsEditorIcon(hasEmoji.EmojiIcon))
+                    {
+                        // Draw only the icon and compute its width so we can add left padding to the Foldout style
+                        Rect iconRect;
+                        float iconWidth;
+                        var iconLabelRect = new Rect(trueIndentedItemRect.x + foldoutArrowWidth, foldoutHeaderRect.y, foldoutHeaderRect.width - foldoutArrowWidth, foldoutHeaderRect.height);
+                        if (EmojiIconUtils.TryDrawEditorIcon(iconLabelRect, hasEmoji.EmojiIcon, workingFoldStyle, out iconRect, out iconWidth))
+                        {
+                            GUIStyle paddedStyle = new GUIStyle(workingFoldStyle);
+                            int pad = Mathf.CeilToInt(iconWidth + 4f);
+                            if (paddedStyle.padding == null) paddedStyle.padding = new RectOffset();
+                            paddedStyle.padding.left += pad;
+
+                            return EditorGUI.Foldout(foldoutHeaderRect, currentFold, new GUIContent(name), false, paddedStyle);
+                        }
+                    }
+                    else
+                    {
+                        return EditorGUI.Foldout(foldoutHeaderRect, currentFold, new GUIContent(hasEmoji.EmojiIcon + " " + name), false, workingFoldStyle);
+                    }
+                }
 
             return EditorGUI.Foldout(foldoutHeaderRect, currentFold,
                 new GUIContent(name, BrowserSettings.ShowIconsPerType ? icon : null), false, workingFoldStyle);

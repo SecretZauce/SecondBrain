@@ -232,8 +232,10 @@ namespace SecretZauce.SecondBrain.Editor
             var nextRect = new Rect(labelRect.x - 4f, arrowY, arrowSize, arrowSize);
             GUI.Label(nextRect, new GUIContent(s_BreadcrumbIcon));
             adjustedLabelRect = labelRect;
-            adjustedLabelRect.x     += 14f;
-            adjustedLabelRect.width -= 14f;
+            // Reduce left padding between breadcrumb arrow and the following icon/text
+            const float breadcrumbInset = 8f; // reduced from previous 14f
+            adjustedLabelRect.x     += breadcrumbInset;
+            adjustedLabelRect.width -= breadcrumbInset;
         }
 
         void DrawTargetLabel(Rect labelRect, BrowserWindow window, IStructure root,
@@ -255,11 +257,44 @@ namespace SecretZauce.SecondBrain.Editor
             else
             {
                 // Reuse cached bold label style (no alloc)
-                float nameWidth  = s_BoldLabelStyle.CalcSize(headerLabelContent).x;
-                float textPadding = 4f;
-                Rect textRect = new Rect(labelRect.x, labelRect.y,
-                    Mathf.Min(nameWidth + textPadding, labelRect.width), labelRect.height);
-                EditorGUI.LabelField(textRect, headerLabelContent, s_BoldLabelStyle);
+                // If header has an editor icon, draw it scaled and then draw text to avoid icon appearing larger than emoji.
+                bool drewManualHeader = false;
+                // Default textRect covers the label area; specific branches will narrow it.
+                Rect textRect = new Rect(labelRect.x, labelRect.y, labelRect.width, labelRect.height);
+                if (treeView.Root is IHasEmoji headerEmoji && !string.IsNullOrEmpty(headerEmoji.EmojiIcon) && EmojiIconUtils.IsEditorIcon(headerEmoji.EmojiIcon))
+                {
+                    // Compute a tight used width so the resulting textRect matches the actual drawn text width.
+                    string path = EmojiIconUtils.GetIconPath(headerEmoji.EmojiIcon);
+                    var rawTex = !string.IsNullOrEmpty(path) ? EditorGUIUtility.IconContent(path).image : null;
+                    if (rawTex != null)
+                    {
+                        float imgW = rawTex.width;
+                        float imgH = rawTex.height;
+                        float targetLineHeight = s_BoldLabelStyle.lineHeight > 0f ? s_BoldLabelStyle.lineHeight : labelRect.height * 0.75f;
+                        float drawH = Mathf.Min(targetLineHeight, labelRect.height * 0.85f);
+                        float aspect = imgH > 0f ? (imgW / imgH) : 1f;
+                        float drawW = drawH * aspect;
+
+                        float nameWidth  = s_BoldLabelStyle.CalcSize(new GUIContent(rootName)).x;
+                        float textPadding = 4f;
+                        float usedWidth = Mathf.Min(nameWidth + textPadding + drawW + 4f, labelRect.width);
+                        var tightLabelRect = new Rect(labelRect.x, labelRect.y, usedWidth, labelRect.height);
+
+                        if (EmojiIconUtils.TryDrawEditorIconLabel(tightLabelRect, headerEmoji.EmojiIcon, s_BoldLabelStyle, rootName, out textRect))
+                        {
+                            drewManualHeader = true;
+                        }
+                    }
+                }
+
+                if (!drewManualHeader)
+                {
+                    float nameWidth  = s_BoldLabelStyle.CalcSize(headerLabelContent).x;
+                    float textPadding = 4f;
+                    textRect = new Rect(labelRect.x, labelRect.y,
+                        Mathf.Min(nameWidth + textPadding, labelRect.width), labelRect.height);
+                    EditorGUI.LabelField(textRect, headerLabelContent, s_BoldLabelStyle);
+                }
 
                 float desiredPencilX  = textRect.xMax + 4f;
                 float rightLimitForPencil = toggleRect.x - 8f;

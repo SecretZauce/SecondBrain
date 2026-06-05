@@ -454,11 +454,29 @@ namespace SecretZauce.SecondBrain.Editor
 #endif
 
                 // Draw the (possibly appended) label. Clamp width so it doesn't overlap controls.
-                Vector2 labelSizeForDraw = s_ItemStyle.CalcSize(labelContent);
                 float availableWidth = Math.Max(0f, arrowRect.x - 20f - trueIndentedItemRect.x); // space between indent and controls
-                float drawLabelWidth = Math.Min(labelSizeForDraw.x, availableWidth);
-                var labelRect = new Rect(trueIndentedItemRect.x, rowRect.y, drawLabelWidth, rowRect.height);
-                GUI.Label(labelRect, labelContent, s_ItemStyle);
+
+                // If this row uses an editor icon (stored emoji value with editor-icon path), attempt to draw
+                // icon + text using the shared helper. Fall back to the default GUI.Label when the helper
+                // cannot draw (for example when the icon texture cannot be found).
+                bool drewManual = false;
+                if (node is IHasEmoji hasEmoji2 && !string.IsNullOrEmpty(hasEmoji2.EmojiIcon) && BrowserSettings.ShowIconsPerType && EmojiIconUtils.IsEditorIcon(hasEmoji2.EmojiIcon))
+                {
+                    var labelRectForHelper = new Rect(trueIndentedItemRect.x, rowRect.y, availableWidth, rowRect.height);
+                    Rect computedTextRect;
+                    if (EmojiIconUtils.TryDrawEditorIconLabel(labelRectForHelper, hasEmoji2.EmojiIcon, s_ItemStyle, labelContent.text, out computedTextRect))
+                    {
+                        drewManual = true;
+                    }
+                }
+
+                if (!drewManual)
+                {
+                    Vector2 labelSizeForDraw = s_ItemStyle.CalcSize(labelContent);
+                    float drawLabelWidth = Math.Min(labelSizeForDraw.x, availableWidth);
+                    var labelRect = new Rect(trueIndentedItemRect.x, rowRect.y, drawLabelWidth, rowRect.height);
+                    GUI.Label(labelRect, labelContent, s_ItemStyle);
+                }
 
                 // Reset fontStyle on the cached style so the next leaf row starts clean.
                 s_ItemStyle.fontStyle = FontStyle.Normal;
