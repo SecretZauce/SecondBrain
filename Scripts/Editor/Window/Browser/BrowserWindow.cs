@@ -2054,6 +2054,16 @@ namespace SecretZauce.SecondBrain.Editor
         /// Moves all currently selected items to the specified target Base, removing them from
         /// their current parent in the active Base.
         /// </summary>
+        public void RemoveMissingAtPath(int[] path)
+        {
+            Controller?.RemoveMissingAtPath(path, treeView);
+        }
+
+        public void CleanMissingChildren(Object parent)
+        {
+            Controller?.CleanMissingChildren(parent, treeView);
+        }
+
         public void MoveSelectedItemsToBase(Base targetBase)
         {
             if (targetBase == null)

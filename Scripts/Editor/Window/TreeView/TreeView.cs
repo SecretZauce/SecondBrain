@@ -253,12 +253,15 @@ namespace SecretZauce.SecondBrain.Editor
             if (searchChanged && IsSearching())
                 ExpandAll();
 
+            // Count non-null for "has real content" checks; totalColCount drives the draw loop
+            // so null (missing) slots are also rendered as MISSING rows.
             int colCount = drawContext.Collections.Count(c => c != null);
+            int totalColCount = drawContext.Collections.Count;
 
             header.Draw(window);
             EditorGUIUtils.DrawSeparator();
 
-            if (colCount > 0 || (ghostSession != null && ReferenceEquals(ghostSession.Parent, Root as Object)))
+            if (colCount > 0 || totalColCount > 0 || (ghostSession != null && ReferenceEquals(ghostSession.Parent, Root as Object)))
             {
                 // Detect Unity DragAndDrop at scroll view level for immediate visual feedback
                 Event e = Event.current;
@@ -565,7 +568,7 @@ namespace SecretZauce.SecondBrain.Editor
 
 
             scrollPosition = GUILayout.BeginScrollView(scrollPosition);
-            for (int i = 0; i < colCount; i++)
+            for (int i = 0; i < totalColCount; i++)
             {
                 var collection = drawContext.Collections[i] as Object;
                 int[] path = new int[] { i };
@@ -809,7 +812,11 @@ namespace SecretZauce.SecondBrain.Editor
         void DrawNode(int[] path, Object node, Color? inheritedColor = null, ColorDisplayStyle inheritedColorStyle = ColorDisplayStyle.FontColor, bool inheritedHideFoldout = false, bool inheritedForceExpand = false)
         {
             if (node == null)
+            {
+                // Don't hide missing entries when searching — they are always shown.
+                DrawMissingNode(path);
                 return;
+            }
 
             // Only filter by search if searching - hide nodes with no matching descendants
             if (searchBar.IsSearching && !NodeOrDescendantsMatch(node))
@@ -1052,6 +1059,87 @@ namespace SecretZauce.SecondBrain.Editor
                         Debug.LogException(ex);
                     }
                 });
+        }
+
+        // ── Missing / null item row ───────────────────────────────────────────────
+
+        static GUIStyle s_MissingLabelStyle;
+        static GUIStyle s_MissingXStyle;
+        static bool s_MissingStylesProSkin;
+
+        static void EnsureMissingStyles()
+        {
+            bool ps = EditorGUIUtility.isProSkin;
+            if (s_MissingLabelStyle != null && s_MissingStylesProSkin == ps) return;
+            s_MissingStylesProSkin = ps;
+
+            s_MissingLabelStyle = new GUIStyle(EditorStyles.label)
+            {
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleLeft,
+                normal    = { textColor = new Color(0.85f, 0.2f, 0.2f, 1f) }
+            };
+
+            s_MissingXStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize  = 11,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal    = { textColor = new Color(0.85f, 0.3f, 0.3f, 0.85f) },
+                hover     = { textColor = new Color(1f, 0.2f, 0.2f, 1f) }
+            };
+        }
+
+        void DrawMissingNode(int[] path)
+        {
+            EnsureMissingStyles();
+
+            float rowHeight = BrowserSettings.GetItemRowHeight();
+            Rect rowRect = EditorGUILayout.GetControlRect(false, rowHeight, GUILayout.ExpandWidth(true));
+
+            // Reddish row tint
+            EditorGUI.DrawRect(rowRect, new Color(0.75f, 0.1f, 0.1f, 0.12f));
+
+            // X button on the right (same position convention as FoldoutHeaderRenderer's + button)
+            const float btnSize = 14f;
+            const float btnPad  = 3f;
+            Rect xRect = new Rect(rowRect.xMax - btnSize - btnPad,
+                                   rowRect.y + (rowRect.height - btnSize) * 0.5f,
+                                   btnSize, btnSize);
+
+            // "MISSING" label, indented to match real rows
+            Rect indented = EditorGUI.IndentedRect(rowRect);
+            indented.x    += 13f;
+            indented.width  = Mathf.Max(0f, xRect.x - indented.x - 4f);
+
+            // Keep styles hot because skin can change
+            s_MissingLabelStyle.fontSize = BrowserSettings.GetItemFontSize() > 0
+                ? BrowserSettings.GetItemFontSize() : s_MissingLabelStyle.fontSize;
+
+            GUI.Label(indented, "MISSING", s_MissingLabelStyle);
+
+            // X button — removes this null entry from its parent
+            bool xHovered = Event.current != null && xRect.Contains(Event.current.mousePosition);
+            Color xColor  = xHovered ? new Color(1f, 0.2f, 0.2f, 1f) : new Color(0.85f, 0.3f, 0.3f, 0.85f);
+            s_MissingXStyle.normal.textColor = xColor;
+            if (GUI.Button(xRect, "✕", s_MissingXStyle))
+            {
+                OwnerWindow?.RemoveMissingAtPath(path);
+                Event.current?.Use();
+                return;
+            }
+
+            // Right-click context menu on the MISSING row
+            if (Event.current != null && Event.current.type == EventType.ContextClick
+                && rowRect.Contains(Event.current.mousePosition))
+            {
+                var menu = new GenericMenu();
+                int[] capturedPath = path;
+                menu.AddItem(new GUIContent("Remove Missing Entry"), false,
+                    () => OwnerWindow?.RemoveMissingAtPath(capturedPath));
+                menu.ShowAsContext();
+                Event.current.Use();
+            }
         }
 
         // ── Ghost Creation (ForceNamingOnCreate) ──────────────────────────────────

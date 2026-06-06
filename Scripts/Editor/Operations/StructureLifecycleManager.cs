@@ -1561,6 +1561,119 @@ namespace SecretZauce.SecondBrain.Editor
             SubAssetRefreshUtils.RegisterAffectedAsset(parent as Object);
         }
         
+        // ──────────────────────────────────────────────────────────────────────────────
+        // Missing / null entry cleanup
+        // ──────────────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Removes the null/missing entry at <paramref name="path"/> from its parent's children list.
+        /// Uses index-based removal because Unity fake-null objects cannot be removed with
+        /// List.Remove(null).
+        /// </summary>
+        public void RemoveMissingAtPath(int[] path, TreeView treeView)
+        {
+            if (path == null || path.Length == 0) return;
+
+            List<IStructure> collections = null;
+            if (Root is { ChildrenObjects: not null })
+                collections = Root.ChildrenObjects.OfType<IStructure>().ToList();
+
+            IStructure parent;
+            int childIndex;
+
+            if (path.Length == 1)
+            {
+                parent = Root;
+                childIndex = path[0];
+            }
+            else
+            {
+                int[] parentPath = path[..^1];
+                parent = collections != null
+                    ? StructureUtils.GetNodeAtPath(parentPath, collections) as IStructure
+                    : null;
+                childIndex = path[^1];
+            }
+
+            if (parent == null) return;
+
+            Undo.IncrementCurrentGroup();
+            int undoGroup = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName("Remove Missing Entry");
+
+            var foldoutSnapshot = treeView?.GetFoldoutSnapshot();
+
+            Undo.RegisterCompleteObjectUndo(parent as Object, "Remove Missing Entry");
+            RemoveAtIndex(parent, childIndex);
+            EditorUtility.SetDirty(parent as Object);
+            AssetDatabase.SaveAssets();
+            SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(parent as Object));
+
+            int[] newSelection = path.Length > 1 ? path[..^1] : System.Array.Empty<int>();
+            OnSelectionRequested?.Invoke(newSelection);
+            OnStructureChanged?.Invoke();
+            if (foldoutSnapshot != null) OnFoldoutStateRestoreRequested?.Invoke(foldoutSnapshot);
+
+            Undo.CollapseUndoOperations(undoGroup);
+        }
+
+        /// <summary>
+        /// Removes all null/missing entries from <paramref name="parent"/>'s children list.
+        /// </summary>
+        public void CleanMissingChildren(Object parent, TreeView treeView)
+        {
+            if (parent == null) return;
+            if (parent is not IStructure parentStruct) return;
+
+            var children = parentStruct.ChildrenObjects;
+            if (children == null || !children.Any(c => c == null)) return;
+
+            Undo.IncrementCurrentGroup();
+            int undoGroup = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName("Clean Up Missing Items");
+
+            var foldoutSnapshot = treeView?.GetFoldoutSnapshot();
+
+            Undo.RegisterCompleteObjectUndo(parent, "Clean Up Missing Items");
+
+            // Iterate backwards so index removal doesn't shift remaining indices.
+            for (int i = children.Count - 1; i >= 0; i--)
+            {
+                if (children[i] == null)
+                    RemoveAtIndex(parentStruct, i);
+            }
+
+            EditorUtility.SetDirty(parent);
+            AssetDatabase.SaveAssets();
+            SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(parent));
+
+            OnStructureChanged?.Invoke();
+            if (foldoutSnapshot != null) OnFoldoutStateRestoreRequested?.Invoke(foldoutSnapshot);
+
+            Undo.CollapseUndoOperations(undoGroup);
+        }
+
+        /// <summary>
+        /// Removes the child at <paramref name="index"/> from <paramref name="structure"/>'s
+        /// underlying typed list. Uses direct index removal to handle Unity fake-null references
+        /// that IStructure.RemoveChild cannot find via object equality.
+        /// </summary>
+        static void RemoveAtIndex(IStructure structure, int index)
+        {
+            switch (structure)
+            {
+                case Container c when index >= 0 && index < c.children.Count:
+                    c.children.RemoveAt(index);
+                    break;
+                case Base b when index >= 0 && index < b.Children.Count:
+                    b.Children.RemoveAt(index);
+                    break;
+                case Motherbase m when index >= 0 && index < m.Children.Count:
+                    m.Children.RemoveAt(index);
+                    break;
+            }
+        }
+
         /// <summary>
         /// Gets the parent structure at the given path
         /// </summary>

@@ -162,6 +162,20 @@ namespace SecretZauce.SecondBrain.Editor
                 });
             }
 
+            // ── Group 7: Clean up missing children ───────────────────────────────
+            if (isIStructure && obj is IStructure structForClean)
+            {
+                var childObjects = structForClean.ChildrenObjects;
+                if (childObjects != null && childObjects.Any(c => c == null))
+                {
+                    menu.AddSeparator("");
+                    menu.AddItem(new GUIContent("Clean Up Missing Items"), false, () =>
+                    {
+                        window.CleanMissingChildren(obj);
+                    });
+                }
+            }
+
             if (menu.GetItemCount() > 0)
             {
                 menu.ShowAsContext();
