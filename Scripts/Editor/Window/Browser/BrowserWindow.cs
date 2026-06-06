@@ -1397,6 +1397,52 @@ namespace SecretZauce.SecondBrain.Editor
             var allPaths = selectionState.GetAllPaths();
             var pathArray = selectionState.GetPrimaryPath();
 
+#if SECOND_BRAIN_PRO
+            // Popup (QuickBrowse) mode: intercept Enter while the search bar has keyboard focus.
+            // SearchBar.Draw runs later in the same frame and would consume the event via its
+            // preInterceptReturn block — we must act here before that happens.
+            if (isPopupMode && treeView.IsSearchBarFocused() &&
+                Event.current.type == EventType.KeyDown &&
+                !Event.current.control && !Event.current.command &&
+                (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
+            {
+                int[] targetPath = (treeView.DragInput?.HasHover == true)
+                    ? treeView.DragInput.HoveredPath
+                    : pathArray;
+
+                if (targetPath != null)
+                {
+                    var targetObj = treeView.GetObjectAtPath(targetPath);
+                    if (targetObj != null)
+                    {
+                        Event.current.Use();
+
+                        // Base: navigate into it (keep popup open)
+                        if (targetObj is Base popupBase)
+                        {
+                            SetTarget(popupBase);
+                            Repaint();
+                            return;
+                        }
+
+                        // Scene / Prefab / ActionItem: fire the leaf enter action
+                        if (LeafNodeActionHelper.HasEnterAction(targetObj))
+                        {
+                            bool ok = LeafNodeActionHelper.TryEnterLeafNode(targetObj, Controller);
+                            Repaint();
+                            if (ok) TryCloseIfPopup();
+                            return;
+                        }
+
+                        // SceneComponentRef, notes, etc.: open QuickPeek and close popup
+                        OpenPropertyEditorFor(targetPath, this);
+                        TryCloseIfPopup();
+                        return;
+                    }
+                }
+            }
+#endif
+
             // Delegate decision-making to TreeView's key input handler
             var keyResult = treeView.ProcessGlobalKeyEvent(allPaths, ref pathArray);
 
@@ -1455,6 +1501,15 @@ namespace SecretZauce.SecondBrain.Editor
                         Close();
                     }
                 }
+                return;
+            }
+
+            // Handle Enter on a leaf that has no dedicated enter action (e.g. loaded SceneComponentRef)
+            if (keyResult.OpenPropertyEditorRequested && keyResult.OpenPropertyEditorTargetPath != null)
+            {
+                OpenPropertyEditorForPath(keyResult.OpenPropertyEditorTargetPath);
+                Event.current.Use();
+                Repaint();
                 return;
             }
 
@@ -2033,6 +2088,32 @@ namespace SecretZauce.SecondBrain.Editor
                     }
                 };
             }
+        }
+
+        void OpenPropertyEditorForPath(int[] path)
+        {
+            if (path == null) return;
+            var obj = treeView.GetObjectAtPath(path);
+            if (obj == null) return;
+
+            Object toOpen = obj;
+            if (obj is SceneObjectRef sceneRef)
+            {
+                var go = SceneObjectMap.Resolve(sceneRef.sceneObject?.GlobalId);
+                if (go != null) toOpen = go;
+            }
+            else if (obj is SceneComponentRef sceneComponentRef)
+            {
+                var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent?.GlobalId);
+                if (component != null) toOpen = component;
+            }
+
+            var capturedToOpen = toOpen;
+            EditorApplication.delayCall += () =>
+            {
+                try { EditorUtility.OpenPropertyEditor(capturedToOpen); }
+                catch (Exception ex) { Debug.LogWarning($"Failed to open property editor: {ex.Message}"); }
+            };
         }
 
         public void BeginRenamingSelectedItem()

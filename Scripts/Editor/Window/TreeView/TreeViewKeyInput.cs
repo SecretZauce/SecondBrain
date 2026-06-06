@@ -122,6 +122,18 @@ namespace SecretZauce.SecondBrain.Editor
                         Event.current.Use();
                         return result;
                     }
+
+                    // Non-popup browser: Enter on a leaf that has no dedicated enter action
+                    // (e.g. a loaded SceneComponentRef/SceneObjectRef) → open its property editor.
+                    if (!isContainer && targetObj != null && !treeView.OwnerWindow.IsPopup)
+                    {
+                        result.Handled = true;
+                        result.OpenPropertyEditorRequested = true;
+                        result.OpenPropertyEditorTargetPath = targetPath;
+                        result.NeedsRepaint = true;
+                        Event.current.Use();
+                        return result;
+                    }
                     // If it's a container, do NOT return - let execution continue to ProcessInputs
                     // which will handle KeyCode.Return for foldout expansion
                 }
