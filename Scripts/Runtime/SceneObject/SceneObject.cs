@@ -11,11 +11,13 @@ namespace SecretZauce.SecondBrain
         [SerializeField] string lastKnownScene;
         [SerializeField] string lastKnownSceneGuid;
         [SerializeField] string lastKnownPath;
+        [SerializeField] bool wasTrackedDuringPlayMode;
 
         public string GlobalId => globalId;
         public string LastKnownName => lastKnownName;
         public string LastKnownScene => lastKnownScene;
         public string LastKnownSceneGuid => lastKnownSceneGuid;
         public string LastKnownPath => lastKnownPath;
+        public bool WasTrackedDuringPlayMode => wasTrackedDuringPlayMode;
     }
 }

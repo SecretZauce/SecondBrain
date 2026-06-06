@@ -196,11 +196,39 @@ namespace SecretZauce.SecondBrain.Editor
                 
                 if (sceneLoaded)
                 {
-                    // When the scene is loaded, resolve the GO to check whether it is disabled.
+                    // When the scene is loaded, resolve the GO to check its state.
                     var resolvedGo = SceneObjectMap.Resolve(gid);
+                    bool isMissing = resolvedGo == null;
                     bool isInactiveInHierarchy = resolvedGo != null && !resolvedGo.activeInHierarchy;
 
-                    if (isInactiveInHierarchy)
+                    if (isMissing)
+                    {
+                        bool wasPlayMode = sceneObj?.WasTrackedDuringPlayMode ?? false;
+                        if (wasPlayMode && !EditorApplication.isPlaying)
+                        {
+                            // Ref was created during Play mode; object no longer exists in Edit mode.
+                            string playLabel = string.IsNullOrEmpty(sceneName)
+                                ? displayName
+                                : $"{displayName} (Was in Play Mode of {sceneName})";
+                            s_ItemStyle.normal.textColor = isProSkin
+                                ? new Color(0.5f, 0.5f, 0.5f, 0.5f)
+                                : new Color(0.3f, 0.3f, 0.3f, 0.8f);
+                            var prevGuiColor = GUI.color;
+                            GUI.color = new Color(prevGuiColor.r, prevGuiColor.g, prevGuiColor.b, prevGuiColor.a * 0.6f);
+                            DrawLabelWithTempWidth(new GUIContent(playLabel, BrowserSettings.ShowIconsPerType ? icon : null), s_ItemStyle);
+                            GUI.color = prevGuiColor;
+                        }
+                        else
+                        {
+                            // Target GameObject was deleted in the active scene.
+                            string missingLabel = $"⚠ {displayName} (Missing)";
+                            s_ItemStyle.normal.textColor = isProSkin
+                                ? new Color(1f, 0.45f, 0.1f, 1f)
+                                : new Color(0.85f, 0.3f, 0f, 1f);
+                            DrawLabelWithTempWidth(new GUIContent(missingLabel, BrowserSettings.ShowIconsPerType ? icon : null), s_ItemStyle);
+                        }
+                    }
+                    else if (isInactiveInHierarchy)
                     {
                         // GameObject is disabled: gray-out similar to the unloaded-scene look.
                         if (fontColor.HasValue)
@@ -281,9 +309,37 @@ namespace SecretZauce.SecondBrain.Editor
                 if (sceneLoaded)
                 {
                     var resolvedComponent = SceneObjectMap.ResolveComponent(gid);
+                    bool isMissing = resolvedComponent == null;
                     bool isDisabled = resolvedComponent is Behaviour behaviour && !behaviour.enabled;
 
-                    if (isDisabled)
+                    if (isMissing)
+                    {
+                        bool wasPlayMode = sceneComponent?.WasTrackedDuringPlayMode ?? false;
+                        if (wasPlayMode && !EditorApplication.isPlaying)
+                        {
+                            // Ref was created during Play mode; component no longer exists in Edit mode.
+                            string playLabel = string.IsNullOrEmpty(sceneName)
+                                ? displayName
+                                : $"{displayName} (Was in Play Mode of {sceneName})";
+                            s_ItemStyle.normal.textColor = isProSkin
+                                ? new Color(0.5f, 0.5f, 0.5f, 0.5f)
+                                : new Color(0.3f, 0.3f, 0.3f, 0.8f);
+                            var prevGuiColor = GUI.color;
+                            GUI.color = new Color(prevGuiColor.r, prevGuiColor.g, prevGuiColor.b, prevGuiColor.a * 0.6f);
+                            DrawLabelWithTempWidth(new GUIContent(playLabel, BrowserSettings.ShowIconsPerType ? icon : null), s_ItemStyle);
+                            GUI.color = prevGuiColor;
+                        }
+                        else
+                        {
+                            // Target component/GameObject was deleted in the active scene.
+                            string missingLabel = $"⚠ {displayName} (Missing)";
+                            s_ItemStyle.normal.textColor = isProSkin
+                                ? new Color(1f, 0.45f, 0.1f, 1f)
+                                : new Color(0.85f, 0.3f, 0f, 1f);
+                            DrawLabelWithTempWidth(new GUIContent(missingLabel, BrowserSettings.ShowIconsPerType ? icon : null), s_ItemStyle);
+                        }
+                    }
+                    else if (isDisabled)
                     {
                         if (fontColor.HasValue)
                         {

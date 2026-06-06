@@ -13,6 +13,7 @@ namespace SecretZauce.SecondBrain
         [SerializeField] string lastKnownGameObjectName;
         [SerializeField] string lastKnownComponentType;
         [SerializeField] string lastKnownComponentTypeName;
+        [SerializeField] bool wasTrackedDuringPlayMode;
 
         public string GlobalId => globalId;
         public string LastKnownScene => lastKnownScene;
@@ -21,5 +22,6 @@ namespace SecretZauce.SecondBrain
         public string LastKnownGameObjectName => lastKnownGameObjectName;
         public string LastKnownComponentType => lastKnownComponentType;
         public string LastKnownComponentTypeName => lastKnownComponentTypeName;
+        public bool WasTrackedDuringPlayMode => wasTrackedDuringPlayMode;
     }
 }
