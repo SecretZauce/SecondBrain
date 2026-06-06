@@ -22,11 +22,32 @@ namespace SecretZauce.SecondBrain.Editor
             OpenDefaultOrHome();
         }
 
-        // Shortcut: Shift+Q — open Default Base if assigned, otherwise open Home
-        [Shortcut("Second Brain/Open Home Window", KeyCode.Q, ShortcutModifiers.Shift)]
+        // Shortcut: Ctrl+Shift+Q (Win) / Option+Shift+Q (Mac) — open new floating window each time
+#if UNITY_EDITOR_OSX
+        [Shortcut("Second Brain/Open New Window", KeyCode.Q, ShortcutModifiers.Shift | ShortcutModifiers.Alt)]
+#else
+        [Shortcut("Second Brain/Open New Window", KeyCode.Q, ShortcutModifiers.Shift | ShortcutModifiers.Control)]
+#endif
         static void OpenWindow()
         {
-            OpenDefaultOrHome();
+            try
+            {
+                var newWindow = CreateInstance<SecondBrainWindow>();
+                newWindow.ShowUtility();
+                newWindow.Focus();
+                var mother = Motherbase.Home;
+                if (mother != null && mother.DefaultBase != null)
+                {
+                    EditorApplication.delayCall += () =>
+                    {
+                        try { newWindow.SetTarget(mother.DefaultBase); } catch { }
+                    };
+                }
+            }
+            catch
+            {
+                BrowserWindow.OpenWindow<SecondBrainWindow>();
+            }
         }
 
         static void OpenDefaultOrHome()
@@ -43,7 +64,6 @@ namespace SecretZauce.SecondBrain.Editor
             }
             catch
             {
-                // fallback: ensure window opens
                 BrowserWindow.OpenWindow<SecondBrainWindow>();
             }
         }

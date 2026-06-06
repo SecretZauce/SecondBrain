@@ -28,6 +28,7 @@ namespace SecretZauce.SecondBrain.Editor
         static Texture    s_ForwardIcon;
         static Texture    s_CloseIcon;
         static bool       s_SettingsIconProSkin;
+        static GUIStyle   s_HintStyle;
 
 #if !SECOND_BRAIN_PRO
         static GUIStyle _upgradeLinkStyle;
@@ -90,6 +91,17 @@ namespace SecretZauce.SecondBrain.Editor
             EditorGUI.BeginDisabledGroup(blocked);
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Height(toolbarHeight));
             
+            if (ownerWindow.IsPopup)
+            {
+                s_HintStyle ??= new GUIStyle(EditorStyles.miniLabel)
+                {
+                    normal = { textColor = new Color(0.5f, 0.5f, 0.5f) },
+                    alignment = TextAnchor.MiddleLeft,
+                    padding = new RectOffset(4, 4, 0, 0),
+                };
+                GUILayout.Label("Press ESC twice to close", s_HintStyle);
+            }
+
             GUILayout.FlexibleSpace();
 
             var visible = ownerWindow.ShowDetailPanel;
