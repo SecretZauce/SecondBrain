@@ -37,14 +37,16 @@ namespace SecretZauce.SecondBrain.Editor
         public enum DropPosition
         {
             None,
-            Before, // Insert before the target
-            Inside, // Add as child of target
-            After // Insert after the target
+            Before,   // Insert before the target
+            Inside,   // Add as child of target
+            After,    // Insert after the target
+            RootAfterAll // Drop into empty space below all items → moves/wraps to depth-0
         }
 
         public bool IsDragging => isDragging;
         public bool IsExternalDrag => isExternalDrag;
         public bool IsPotentialDrag => isPotentialDrag;
+        public DropPosition CurrentDropPosition => dropPosition;
         /// <summary>True when the current external drag contains GameObjects from scenes that have never been saved.</summary>
         public bool HasUnsavedSceneObjects => hasUnsavedSceneObjects;
 
@@ -105,12 +107,24 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
+        /// Signals that the mouse is over empty space below all rows — drop will move/wrap items to depth-0.
+        /// Uses an empty (non-null) array as a sentinel so EndDrag can distinguish from "no target".
+        /// </summary>
+        public void SetRootLevelDrop()
+        {
+            dropTargetPath = Array.Empty<int>();
+            dropPosition = DropPosition.RootAfterAll;
+        }
+
+        /// <summary>
         /// Checks if we currently have a valid drop target
         /// </summary>
         public bool HasValidDropTarget()
         {
             if (hasUnsavedSceneObjects)
                 return false;
+            if (dropPosition == DropPosition.RootAfterAll)
+                return true;
             return dropTargetPath != null && dropPosition != DropPosition.None;
         }
 
@@ -312,34 +326,35 @@ namespace SecretZauce.SecondBrain.Editor
             if (draggedItemsOut == null || draggedItemsOut.Count == 0)
                 wasValid = false;
 
-            // Final validation using current collections/root: ensure target parent can accept the first item
+            // Final validation using current collections/root: ensure target parent can accept the first item.
+            // RootAfterAll is validated by DropItemsAtRootLevel — skip type-check here.
             if (!wasValid)
                 return false;
-            
-            try
+
+            if (dropPositionOut != DropPosition.RootAfterAll)
             {
-                var targetParent = GetTargetParentForDrop(dropTargetPathOut, dropPositionOut);
-                if (targetParent == null)
+                try
                 {
-                    wasValid = false;
-                }
-                else
-                {
-                    // Validate type compatibility for the first item
-                    if (draggedItemsOut.Count > 0)
+                    var targetParent = GetTargetParentForDrop(dropTargetPathOut, dropPositionOut);
+                    if (targetParent == null)
                     {
-                        bool canAccept = targetParent.CanAcceptChild(draggedItemsOut[0]);
-                        if (!canAccept)
+                        wasValid = false;
+                    }
+                    else
+                    {
+                        if (draggedItemsOut.Count > 0)
                         {
-                            wasValid = false;
+                            bool canAccept = targetParent.CanAcceptChild(draggedItemsOut[0]);
+                            if (!canAccept)
+                                wasValid = false;
                         }
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                wasValid = false;
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    wasValid = false;
+                }
             }
 
             // Do NOT clear internal state here. Let the caller cancel the drag (so callers have control and
@@ -446,6 +461,16 @@ namespace SecretZauce.SecondBrain.Editor
                     EditorGUI.DrawRect(borderRect, indicatorColor);
                     break;
             }
+        }
+
+        /// <summary>
+        /// Draws the drop indicator for RootAfterAll: a blue line at the given Y position.
+        /// </summary>
+        public void DrawRootLevelDropIndicator(float indicatorY, float startX, float width)
+        {
+            if (!isDragging || dropPosition != DropPosition.RootAfterAll) return;
+            Color indicatorColor = new Color(0.3f, 0.6f, 1f, 0.8f);
+            EditorGUI.DrawRect(new Rect(startX, indicatorY - 1, width, 2), indicatorColor);
         }
 
         /// <summary>

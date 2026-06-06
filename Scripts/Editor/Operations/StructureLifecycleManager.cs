@@ -1093,6 +1093,137 @@ namespace SecretZauce.SecondBrain.Editor
          }
         
         /// <summary>
+        /// Handles a drop onto empty space below all items (RootAfterAll).
+        /// Containers are moved to depth-0; leaf items are wrapped in a new Container at depth-0.
+        /// All sub-steps are collapsed into a single undo group.
+        /// </summary>
+        public void DropItemsAtRootLevel(
+            List<int[]> draggedPaths,
+            List<Object> draggedItems,
+            List<IStructure> collections,
+            TreeView treeView,
+            SelectionStateSO selectionState)
+        {
+            if (draggedItems == null || draggedItems.Count == 0 || Root == null) return;
+
+            SubAssetRefreshUtils.ClearAffectedAssets();
+            Undo.IncrementCurrentGroup();
+            int undoGroup = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName("Drop at Root Level");
+
+            var foldoutSnapshot = treeView?.GetFoldoutSnapshot();
+            Undo.RegisterCompleteObjectUndo(selectionState, "Drop at Root Level");
+
+            // Separate containers (IStructure) from leaf items
+            var containerPairs = new List<(int[] path, Object item)>();
+            var leafPairs = new List<(int[] path, Object item)>();
+            for (int i = 0; i < draggedItems.Count; i++)
+            {
+                if (draggedItems[i] is IStructure)
+                    containerPairs.Add((draggedPaths[i], draggedItems[i]));
+                else
+                    leafPairs.Add((draggedPaths[i], draggedItems[i]));
+            }
+
+            // Remove all dragged items from current parents (deepest-first to avoid index shifting)
+            var removedParents = new HashSet<IStructure>();
+            var allPairs = containerPairs.Concat(leafPairs)
+                .OrderByDescending(t => t.path.Length)
+                .ThenByDescending(t => string.Join(",", t.path))
+                .ToList();
+
+            foreach (var (path, item) in allPairs)
+            {
+                var oldParent = GetParentAtPath(path, collections);
+                if (oldParent == null) continue;
+                if (removedParents.Add(oldParent))
+                    Undo.RegisterCompleteObjectUndo(oldParent as Object, "Drop at Root Level");
+                oldParent.RemoveChild(item);
+                EditorUtility.SetDirty(oldParent as Object);
+            }
+
+            // Record Root BEFORE any additions so undo restores the pre-operation state.
+            // This single recording covers both the container re-adds and any new wrapper container.
+            Undo.RegisterCompleteObjectUndo(Root as Object, "Drop at Root Level");
+
+            // Re-add containers to Root at the end (preserve original tree order)
+            foreach (var (_, item) in containerPairs.OrderBy(t => string.Join(",", t.path)))
+            {
+                var r = Root.AddChild(item, -1);
+                if (r != AddChildResult.Success)
+                    window.ShowNotification(new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(r)));
+            }
+
+            // Wrap leaf items in a new Container at root.
+            // ChildCreationUtils.CreateNewChild invokes FinalizeNewChild inside the callback,
+            // which handles sub-asset embedding, unique naming, and AddChild to Root.
+            Object newContainerObj = null;
+            if (leafPairs.Count > 0)
+            {
+                ChildCreationUtils.CreateNewChild(Root as Object, (newChild) =>
+                {
+                    try
+                    {
+                        FinalizeNewChild(Root as Object, newChild, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"DropItemsAtRootLevel: failed to create wrapper container: {ex}");
+                        return;
+                    }
+
+                    if (newChild is not IStructure newChildStruct) return;
+                    newContainerObj = newChild;
+
+                    // Add leaves to the new container (in original tree order)
+                    Undo.RegisterCompleteObjectUndo(newChild, "Drop at Root Level");
+                    foreach (var (_, leaf) in leafPairs.OrderBy(t => string.Join(",", t.path)))
+                    {
+                        var r = newChildStruct.AddChild(leaf, -1);
+                        if (r != AddChildResult.Success)
+                            window.ShowNotification(new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(r)));
+                    }
+                    EditorUtility.SetDirty(newChild);
+                });
+            }
+
+            EditorUtility.SetDirty(Root as Object);
+            AssetDatabase.SaveAssets();
+
+            foreach (var op in removedParents)
+            {
+                if (op == null) continue;
+                SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(op as Object));
+            }
+            SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(Root as Object));
+
+            List<IStructure> freshCollections = null;
+            if (Root is { ChildrenObjects: not null })
+                freshCollections = Root.ChildrenObjects.OfType<IStructure>().ToList();
+
+            OnStructureChanged?.Invoke();
+            if (foldoutSnapshot != null)
+                OnFoldoutStateRestoreRequested?.Invoke(foldoutSnapshot);
+
+            selectionState.ClearSelection(window);
+            var resolveCollections = freshCollections ?? collections;
+
+            foreach (var (_, item) in containerPairs)
+            {
+                var p = StructureUtils.FindPathToChild(resolveCollections, item);
+                if (p != null) { selectionState.AddToSelection(window, p); OnExpansionRequested?.Invoke(p); }
+            }
+            if (newContainerObj != null)
+            {
+                var p = StructureUtils.FindPathToChild(resolveCollections, newContainerObj);
+                if (p != null) { selectionState.AddToSelection(window, p); OnExpansionRequested?.Invoke(p); }
+            }
+
+            EditorUtility.SetDirty(selectionState);
+            Undo.CollapseUndoOperations(undoGroup);
+        }
+
+        /// <summary>
         /// Adds external Unity Objects (from Project tab) to the specified drop position.
         /// Supports Before, After, and Inside positioning.
         /// </summary>

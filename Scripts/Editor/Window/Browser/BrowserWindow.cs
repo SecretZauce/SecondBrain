@@ -1060,6 +1060,30 @@ namespace SecretZauce.SecondBrain.Editor
                         Repaint();
                         return true;
                     }
+                    else if ((DragAndDropManager.DropPosition)dragResult.DropPosition == DragAndDropManager.DropPosition.RootAfterAll)
+                    {
+                        // Drop into empty space → move containers to depth-0, wrap leaves in new Container
+                        Controller.DropItemsAtRootLevel(
+                            dragResult.DraggedPaths,
+                            dragResult.DraggedItems,
+                            collections,
+                            treeView,
+                            selectionState);
+
+                        EditorApplication.delayCall += () =>
+                        {
+                            treeView.CancelDrag();
+                            RefreshSerializedDatabase();
+                            if (Controller.LastFoldoutSnapshot != null)
+                                treeView.SetFoldoutSnapshot(Controller.LastFoldoutSnapshot);
+                            Repaint();
+                        };
+
+                        originalDragManager.CancelDrag();
+                        Event.current.Use();
+                        Repaint();
+                        return true;
+                    }
                     else
                     {
                         // Internal drop - reparent items
@@ -1128,17 +1152,30 @@ namespace SecretZauce.SecondBrain.Editor
                     out var dropTargetPath,
                     out var dropPosition))
             {
-                // Valid drop - perform reparenting
-                // Save reference to current drag manager so we can cancel it even if controller causes a UI refresh
                 var originalDragManager = treeView.DragDropManager;
-                Controller.ReparentItems(
-                    draggedPaths,
-                    draggedItems,
-                    dropTargetPath,
-                    dropPosition,
-                    collections,
-                    treeView,
-                    selectionState);
+
+                if (dropPosition == DragAndDropManager.DropPosition.RootAfterAll)
+                {
+                    // Drop into empty space → move containers to depth-0, wrap leaves in new Container
+                    Controller.DropItemsAtRootLevel(
+                        draggedPaths,
+                        draggedItems,
+                        collections,
+                        treeView,
+                        selectionState);
+                }
+                else
+                {
+                    // Valid drop - perform reparenting
+                    Controller.ReparentItems(
+                        draggedPaths,
+                        draggedItems,
+                        dropTargetPath,
+                        dropPosition,
+                        collections,
+                        treeView,
+                        selectionState);
+                }
 
                 // NOTE: Do NOT force immediate controller.Initialize()/RefreshSerializedDatabase() here -
                 // Lifecycle events from the lifecycle manager will already trigger a refresh and foldout restore.

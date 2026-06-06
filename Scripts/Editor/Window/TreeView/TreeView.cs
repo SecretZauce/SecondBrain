@@ -145,6 +145,7 @@ namespace SecretZauce.SecondBrain.Editor
         Rect _scrollViewRect;
 
         static GUIContent s_PeekInfoIcon;
+        static GUIContent s_PeekBlockedIcon;
 
         // MouseMove throttle: only repaint when the cursor enters a different row slot
         int _lastHoveredRowSlot = -1;
@@ -585,10 +586,21 @@ namespace SecretZauce.SecondBrain.Editor
 
             // Draw drop indicator inside scroll view so it scrolls with content
             // ONLY draw if we have a valid drop target
-            if (DragDropManager.IsDragging && DragDropManager.HasValidDropTarget() && DragInput.HasHover)
+            if (DragDropManager.IsDragging && DragDropManager.HasValidDropTarget())
             {
-                // Use the stored indented x for drop indicator (matches label indent)
-                DragDropManager.DrawDropIndicator(DragInput.HoveredRect, DragInput.HoveredIndentX);
+                if (DragInput.HasHover)
+                {
+                    // Use the stored indented x for drop indicator (matches label indent)
+                    DragDropManager.DrawDropIndicator(DragInput.HoveredRect, DragInput.HoveredIndentX);
+                }
+                else if (DragDropManager.CurrentDropPosition == DragAndDropManager.DropPosition.RootAfterAll)
+                {
+                    // Draw indicator below the last row, flush with depth-0 indent
+                    float indicatorY = DragInput.LastRowBottomY;
+                    float startX = _scrollViewRect.width > 0f ? 0f : 0f;
+                    float width = _scrollViewRect.width > 0f ? _scrollViewRect.width - 13f : 200f;
+                    DragDropManager.DrawRootLevelDropIndicator(indicatorY, startX, width);
+                }
             }
 
             GUILayout.EndScrollView();
@@ -615,9 +627,14 @@ namespace SecretZauce.SecondBrain.Editor
 
         void DrawPeekZoneColumnOverlay()
         {
-            if (Event.current == null || Event.current.type != EventType.Repaint) return;
-            if (!IsQuickPeekAvailable()) return;
-            if (_scrollViewRect.width <= 0f) return;
+            if (Event.current == null || Event.current.type != EventType.Repaint) 
+                return;
+            
+            if (!IsQuickPeekAvailable())
+                return;
+            
+            if (_scrollViewRect.width <= 0f) 
+                return;
 
             float pw = TreeViewDragInput.QuickPeekZoneWidth;
             
@@ -639,33 +656,43 @@ namespace SecretZauce.SecondBrain.Editor
             }
             
             float scrollbarOffset = hasVerticalScrollbar ? scrollbarWidth : 0f;
-            
-            // Draw the peek zone overlay, adjusted for scrollbar
-            float peekZoneX = _scrollViewRect.xMax - pw - scrollbarOffset;
-            EditorGUI.DrawRect(new Rect(peekZoneX, _scrollViewRect.y, pw, _scrollViewRect.height), new Color(0f, 0f, 0f, 0.1f));
-
-            DrawPeekColumnIcon(pw, scrollbarOffset);
-        }
-
-        void DrawPeekColumnIcon(float pw, float scrollbarOffset)
-        {
             var side = DragInput.QuickPeekHoveredSide;
-            if (side == QuickPeekSide.None) return;
+            if (side == QuickPeekSide.None) 
+                return;
 
             var hoveredPath = DragInput.QuickPeekHoveredPath;
-            if (hoveredPath == null) return;
-            if (OwnerWindow == null || !OwnerWindow.IsQuickPeekOpenForPath(hoveredPath)) 
+            if (hoveredPath == null) 
                 return;
-
+           
             var obj = GetObjectAtPath(hoveredPath);
-            if (obj is Base)
-                return;
             if (side == QuickPeekSide.Left && obj is IStructure)
                 return;
+            
+            if (s_PeekBlockedIcon == null)
+                s_PeekBlockedIcon = new GUIContent(IconUtils.Load("block"));
+            
+            if (!OwnerWindow.IsQuickPeekOpenForPath(hoveredPath))
+            {
+                DrawPeekIcon(s_PeekBlockedIcon, pw, scrollbarOffset, side);
+                return;
+            }
+            
+            if (obj is Base)
+            {
+                DrawPeekIcon(s_PeekBlockedIcon, pw, scrollbarOffset, side);
+                return;
+            }
 
             if (s_PeekInfoIcon == null)
                 s_PeekInfoIcon = EditorGUIUtility.IconContent("console.infoicon");
-            if (s_PeekInfoIcon == null || s_PeekInfoIcon.image == null) return;
+           
+            DrawPeekIcon(s_PeekInfoIcon, pw, scrollbarOffset, side);
+        }
+
+        void DrawPeekIcon(GUIContent content, float pw, float scrollbarOffset, QuickPeekSide side)
+        {
+            if (content == null || content.image == null) 
+                return;
 
             const float iconSize = 14f;
 
@@ -680,7 +707,7 @@ namespace SecretZauce.SecondBrain.Editor
 
             Color prev = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, 0.85f);
-            GUI.DrawTexture(new Rect(iconGuiX, iconGuiY, iconSize, iconSize), s_PeekInfoIcon.image, ScaleMode.ScaleToFit);
+            GUI.DrawTexture(new Rect(iconGuiX, iconGuiY, iconSize, iconSize), content.image, ScaleMode.ScaleToFit);
             GUI.color = prev;
         }
 

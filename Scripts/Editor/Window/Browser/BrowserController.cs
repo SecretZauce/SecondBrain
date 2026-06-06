@@ -511,6 +511,21 @@ namespace SecretZauce.SecondBrain.Editor
             LifecycleManager.CreateContainerWithExternalItems(items, treeView, selectionStateSO);
         }
 
+        /// <summary>
+        /// Handles a drop onto empty space below all items (RootAfterAll).
+        /// Containers are moved to depth-0; leaves are wrapped in a new Container at depth-0.
+        /// </summary>
+        public void DropItemsAtRootLevel(
+            List<int[]> itemPaths,
+            List<Object> items,
+            List<IStructure> collections,
+            TreeView treeView,
+            SelectionStateSO selectionStateSO)
+        {
+            CaptureFoldoutSnapshot(treeView);
+            LifecycleManager.DropItemsAtRootLevel(itemPaths, items, collections, treeView, selectionStateSO);
+        }
+
         public void DeleteSelectedItems(TreeView treeView)
         {
             if (selectionState == null) EnsureSelectionStateSO();

@@ -21,6 +21,10 @@ namespace SecretZauce.SecondBrain.Editor
         float hoveredIndentX;
         int[] potentialDragStartPath;
 
+        // Bottom Y of the last row rendered this frame (scroll-view local space).
+        // Used to detect when the mouse is in empty space below all rows.
+        float lastRowBottomY;
+
         // Quick Peek zone state — only set when mouse is in left/right edge zones
         int[] quickPeekHoveredPath;
         Rect quickPeekHoveredScreenRect;
@@ -47,6 +51,7 @@ namespace SecretZauce.SecondBrain.Editor
             hoveredIsIStructure = false;
             hoveredIsExpanded = false;
             hoveredIndentX = 0f;
+            lastRowBottomY = 0f;
             quickPeekHoveredPath = null;
             quickPeekHoveredScreenRect = new Rect();
             quickPeekHoveredSide = QuickPeekSide.None;
@@ -59,6 +64,8 @@ namespace SecretZauce.SecondBrain.Editor
         public float HoveredIndentX => hoveredIndentX;
         // Expose the hovered path so callers can query the hovered item
         public int[] HoveredPath => hoveredPath;
+        /// <summary>Bottom Y (scroll-view local) of the last row drawn this frame. Used to place the root-level drop indicator.</summary>
+        public float LastRowBottomY => lastRowBottomY;
 
         // Quick Peek zone state — only populated when mouse is in a left/right edge zone
         public int[] QuickPeekHoveredPath => quickPeekHoveredPath;
@@ -74,6 +81,10 @@ namespace SecretZauce.SecondBrain.Editor
             Event e = Event.current;
             if (e == null)
                 return;
+
+            // Track the bottom of every rendered row so we know where "empty space" starts.
+            if (rect.yMax > lastRowBottomY)
+                lastRowBottomY = rect.yMax;
 
             // Track hover state for the row when the mouse is over it (works even when not dragging).
             // This enables keyboard shortcuts that operate on the hovered item (e.g., Q to open property editor).
@@ -293,13 +304,27 @@ namespace SecretZauce.SecondBrain.Editor
             }
             else
             {
-                // No valid hover target - update with null to clear dropPosition, but still update mouse position
-                dragDropManager.UpdateDrag(e.mousePosition, null, new Rect(), false, false);
+                // When mouse is below all rendered rows and we're doing an internal drag,
+                // treat it as a root-level drop (move/wrap items to depth 0).
+                bool isRootSpaceDrop = !dragDropManager.IsExternalDrag
+                    && dragDropManager.IsDragging
+                    && lastRowBottomY > 0f
+                    && e.mousePosition.y > lastRowBottomY;
 
-                // Set visual mode to Rejected when no hover target during external drag update
-                if (dragDropManager.IsExternalDrag && e.type == EventType.DragUpdated)
+                if (isRootSpaceDrop)
                 {
-                    DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+                    dragDropManager.SetRootLevelDrop();
+                }
+                else
+                {
+                    // No valid hover target - update with null to clear dropPosition, but still update mouse position
+                    dragDropManager.UpdateDrag(e.mousePosition, null, new Rect(), false, false);
+
+                    // Set visual mode to Rejected when no hover target during external drag update
+                    if (dragDropManager.IsExternalDrag && e.type == EventType.DragUpdated)
+                    {
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+                    }
                 }
             }
         }
