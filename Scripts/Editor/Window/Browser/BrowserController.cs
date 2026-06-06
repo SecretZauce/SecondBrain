@@ -814,6 +814,16 @@ namespace SecretZauce.SecondBrain.Editor
             OnStructureChanged?.Invoke();
         }
 
+        public void RemoveMissingAtPath(int[] path, TreeView treeView)
+        {
+            LifecycleManager.RemoveMissingAtPath(path, treeView);
+        }
+
+        public void CleanMissingChildren(Object parent, TreeView treeView)
+        {
+            LifecycleManager.CleanMissingChildren(parent, treeView);
+        }
+
         // Implement IDisposable explicitly so callers may rely on Dispose removing event listeners
         void IDisposable.Dispose()
         {
