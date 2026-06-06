@@ -423,6 +423,7 @@ namespace SecretZauce.SecondBrain.Editor
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
             BrowserSettings.OnSettingsChanged += OnBrowserSettingsChanged;
             SelectionStateSO.OnSelectionChangedInternally += OnSelectionChangedInternally;
+            ProfileManager.OnActiveProfileChanged += OnActiveProfileChanged;
 
             detailPanel = new ItemDetailPanel();
             detailPanel.SetScrollPosition(rightScroll);
@@ -436,6 +437,7 @@ namespace SecretZauce.SecondBrain.Editor
         void DeinitializeControllerAndState()
         {
             SelectionStateSO.OnSelectionChangedInternally -= OnSelectionChangedInternally;
+            ProfileManager.OnActiveProfileChanged -= OnActiveProfileChanged;
             EditorApplication.hierarchyChanged -= OnHierarchyChanged;
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
             BrowserSettings.OnSettingsChanged -= OnBrowserSettingsChanged;
@@ -580,6 +582,21 @@ namespace SecretZauce.SecondBrain.Editor
         void OnBrowserSettingsChanged()
         {
             Repaint();
+        }
+
+        void OnActiveProfileChanged()
+        {
+            try
+            {
+                // Reset navigation target since we're switching to a different Profile
+                targetRoot = null;
+                ReinitializeForRootChange();
+                Repaint();
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         void OnUndoRedoPerformed()
@@ -1757,7 +1774,7 @@ namespace SecretZauce.SecondBrain.Editor
 #if SECOND_BRAIN_PRO
                 try
                 {
-                    var mother = Motherbase.Home;
+                    var mother = Profile.Active;
                     if (mother != null && mother.DefaultBase == baseTarget)
                     {
                         tags.Add(new BaseTag

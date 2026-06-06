@@ -16,18 +16,6 @@ namespace SecretZauce.SecondBrain.Editor
         ExtraLarge = 4,
     }
 
-    /// <summary>
-    /// Where Motherbase.asset (and all Base sub-assets) are stored on disk.
-    /// <see cref="EditorResources"/> places them under Assets/Resources/Editor/,
-    /// which Unity excludes from player builds.
-    /// </summary>
-    public enum DataStorageLocation
-    {
-        /// <summary>Assets/Resources/Editor/ — editor-only, excluded from player builds.</summary>
-        EditorResources = 0,
-        /// <summary>Assets/Resources/ — included in player builds (original behaviour).</summary>
-        Resources = 1,
-    }
 
     /// <summary>
     /// Determines what happens when the user double-clicks a TreeView item.
@@ -62,8 +50,6 @@ namespace SecretZauce.SecondBrain.Editor
         const string KeyDoubleClickAction = "Browser_DoubleClickAction_v1";
         const string KeyItemSize = "Browser_ItemSize_v1";
         const string KeyItemFontSize = "Browser_ItemFontSize_v1";
-        // Must match the constant in Motherbase.cs so both read the same EditorPrefs entry.
-        const string KeyStorageLocation = "Browser_StorageLocation_v1";
         const string KeyExpandAllOnEnterBase = "Browser_ExpandAllOnEnterBase_v1";
 
         public const int MinItemFontSize = 9;
@@ -189,22 +175,7 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Where Motherbase.asset and all Base sub-assets are stored on disk.
-        /// Changing this does not move existing assets; use the Settings window move button.
-        /// </summary>
-        public static DataStorageLocation StorageLocation
-        {
-            get => (DataStorageLocation)EditorPrefs.GetInt(KeyStorageLocation, (int)DataStorageLocation.EditorResources);
-            set
-            {
-                if (StorageLocation == value) return;
-                EditorPrefs.SetInt(KeyStorageLocation, (int)value);
-                OnSettingsChanged?.Invoke();
-            }
-        }
-
-        /// <summary>
-        /// When true, the Scene Linking feature is globally enabled:
+        /// When true, all containers in a Base are expanded
         /// opening a scene will auto-open SecondBrainWindow windows for linked Bases.
         /// </summary>
         public static bool EnableSceneLinking

@@ -1,4 +1,3 @@
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -24,7 +23,6 @@ namespace SecretZauce.SecondBrain.Editor
         const string PrefConfirmation = "SettingsWindow_Confirmation";
         const string PrefNewContainer = "SettingsWindow_NewContainer";
         const string PrefSceneLinking = "SettingsWindow_SceneLinking";
-        const string PrefDataStorage = "SettingsWindow_DataStorage";
 
         // Foldout states (persisted to EditorPrefs)
         bool interactionFoldout = true;
@@ -32,7 +30,6 @@ namespace SecretZauce.SecondBrain.Editor
         bool confirmationFoldout = true;
         bool newContainerFoldout = true;
         bool sceneLinkingFoldout = true;
-        bool dataStorageFoldout = true;
 
         // Scroll position for the settings content
         Vector2 scrollPos;
@@ -82,7 +79,6 @@ namespace SecretZauce.SecondBrain.Editor
             try { confirmationFoldout = EditorPrefs.GetInt(PrefConfirmation, 1) == 1; } catch { confirmationFoldout = true; }
             try { newContainerFoldout = EditorPrefs.GetInt(PrefNewContainer, 1) == 1; } catch { newContainerFoldout = true; }
             try { sceneLinkingFoldout = EditorPrefs.GetInt(PrefSceneLinking, 1) == 1; } catch { sceneLinkingFoldout = true; }
-            try { dataStorageFoldout = EditorPrefs.GetInt(PrefDataStorage, 1) == 1; } catch { dataStorageFoldout = true; }
         }
 
         void OnDisable()
@@ -96,7 +92,6 @@ namespace SecretZauce.SecondBrain.Editor
             try { EditorPrefs.SetInt(PrefConfirmation, confirmationFoldout ? 1 : 0); } catch { }
             try { EditorPrefs.SetInt(PrefNewContainer, newContainerFoldout ? 1 : 0); } catch { }
             try { EditorPrefs.SetInt(PrefSceneLinking, sceneLinkingFoldout ? 1 : 0); } catch { }
-            try { EditorPrefs.SetInt(PrefDataStorage, dataStorageFoldout ? 1 : 0); } catch { }
         }
 
         void OnGUI()
@@ -104,8 +99,6 @@ namespace SecretZauce.SecondBrain.Editor
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
             EditorGUI.BeginChangeCheck();
 
-            // ── Data Storage ───────────────────────────────────────────────────
-            var storageLocation = BrowserSettings.StorageLocation;
 
             // ── Interaction ────────────────────────────────────────────────────
             // Local copies of settings so we can still apply changes from
@@ -208,50 +201,6 @@ namespace SecretZauce.SecondBrain.Editor
                     quickPeekLayout);
 #endif
 
-                EditorGUI.indentLevel--;
-            }
-            EditorGUILayout.Space(6);
-
-            // ── Data Storage ───────────────────────────────────────────────────
-            if (DrawCollapsibleHeader(ref dataStorageFoldout, "Data Storage", PrefDataStorage))
-            {
-                EditorGUI.indentLevel++;
-                storageLocation = (DataStorageLocation)EditorGUILayout.EnumPopup(
-                    new GUIContent("Storage Location",
-                        "Where Motherbase.asset (and all Base sub-assets) are saved on disk.\n\n" +
-                        "• Resources — Assets/Resources/: included in player builds.\n" +
-                        "• EditorResources — Assets/Resources/Editor/: excluded from player builds."),
-                    storageLocation);
-
-                // Show the current on-disk path and a move button when the asset lives
-                // in a different folder than the configured preference.
-                string configuredFolder = GetFolderForLocation(storageLocation);
-                var mb = Motherbase.Home;
-                string currentPath = mb != null ? AssetDatabase.GetAssetPath(mb) : null;
-                string currentFolder = !string.IsNullOrEmpty(currentPath)
-                    ? Path.GetDirectoryName(currentPath)?.Replace("\\", "/")
-                    : null;
-
-                if (!string.IsNullOrEmpty(currentPath))
-                {
-                    EditorGUILayout.LabelField(
-                        new GUIContent("Current path", "Full project-relative path of Motherbase.asset."),
-                        new GUIContent(currentPath, currentPath),
-                        EditorStyles.miniLabel);
-                }
-
-                bool needsMove = !string.IsNullOrEmpty(currentFolder) &&
-                                 !string.Equals(currentFolder, configuredFolder, System.StringComparison.OrdinalIgnoreCase);
-
-                if (needsMove)
-                {
-                    EditorGUILayout.HelpBox(
-                        $"Asset is in '{currentFolder}' but setting points to '{configuredFolder}'.",
-                        MessageType.Warning);
-
-                    if (GUILayout.Button($"Move to {configuredFolder}"))
-                        MoveMotherbaseAsset(configuredFolder);
-                }
 
                 EditorGUI.indentLevel--;
             }
@@ -297,7 +246,6 @@ namespace SecretZauce.SecondBrain.Editor
                 BrowserSettings.DefaultColorStyle = colorStyle;
                 BrowserSettings.DefaultColorFoldoutOnly = foldoutOnly;
                 BrowserSettings.DefaultExpandOption = expandOption;
-                BrowserSettings.StorageLocation = storageLocation;
 #if SECOND_BRAIN_PRO
                 BrowserSettings.DefaultQuickPeekLayout = quickPeekLayout;
                 BrowserSettings.EnableSceneLinking = enableSceneLinking;
@@ -308,45 +256,6 @@ namespace SecretZauce.SecondBrain.Editor
             EditorGUILayout.EndScrollView();
         }
 
-        static string GetFolderForLocation(DataStorageLocation loc) =>
-            loc == DataStorageLocation.EditorResources
-                ? "Assets/Resources/Editor"
-                : "Assets/Resources";
-
-        void MoveMotherbaseAsset(string targetFolder)
-        {
-            var mb = Motherbase.Home;
-            if (mb == null) return;
-
-            string currentPath = AssetDatabase.GetAssetPath(mb);
-            if (string.IsNullOrEmpty(currentPath)) return;
-
-            string fileName = Path.GetFileName(currentPath);
-            string newPath  = targetFolder + "/" + fileName;
-            if (string.Equals(currentPath, newPath, System.StringComparison.OrdinalIgnoreCase)) return;
-
-            // Ensure the target folder hierarchy exists.
-            string[] parts = targetFolder.Split('/');
-            string current = parts[0];
-            for (int i = 1; i < parts.Length; i++)
-            {
-                string next = current + "/" + parts[i];
-                if (!AssetDatabase.IsValidFolder(next))
-                    AssetDatabase.CreateFolder(current, parts[i]);
-                current = next;
-            }
-
-            string error = AssetDatabase.MoveAsset(currentPath, newPath);
-            if (!string.IsNullOrEmpty(error))
-            {
-                EditorUtility.DisplayDialog("Move Failed", $"Could not move Motherbase.asset:\n{error}", "OK");
-                return;
-            }
-
-            AssetDatabase.SaveAssets();
-            Motherbase.InvalidateCache();
-            Repaint();
-        }
 
         // Draw a collapsible section header that visually matches the
         // foldout-style headers used in QuickPeekWindow (bold foldout text with

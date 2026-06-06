@@ -1333,7 +1333,7 @@ namespace SecretZauce.SecondBrain.Editor
                     // target parent, block it and skip adding — surface notification after validation.
                     try
                     {
-                        // Only block structure assets (Motherbase/Container/IStructure) that belong to a different file.
+                        // Only block structure assets (Profile/Container/IStructure) that belong to a different file.
                         if (item is IStructure && AssetUtils.IsInDifferentAsset(item, targetParent as Object))
                         {
                             blockedEmbedded = true;
@@ -1668,8 +1668,8 @@ namespace SecretZauce.SecondBrain.Editor
                 case Base b when index >= 0 && index < b.Children.Count:
                     b.Children.RemoveAt(index);
                     break;
-                case Motherbase m when index >= 0 && index < m.Children.Count:
-                    m.Children.RemoveAt(index);
+                case Profile p when index >= 0 && index < p.Children.Count:
+                    p.Children.RemoveAt(index);
                     break;
             }
         }

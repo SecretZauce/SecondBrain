@@ -62,7 +62,7 @@ namespace SecretZauce.SecondBrain
         bool RemoveChild(Object child);
         bool CanAcceptChild(Object child);
 
-        IStructure GetRoot() => Motherbase.Home;
+        IStructure GetRoot() => Profile.Active;
 
         /// <summary>
         /// Checks if the given object exists anywhere in the tree rooted at node.

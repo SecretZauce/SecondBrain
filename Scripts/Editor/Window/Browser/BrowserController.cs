@@ -464,8 +464,8 @@ namespace SecretZauce.SecondBrain.Editor
             SelectionStateSO selectionStateSO)
         {
 #if !SECOND_BRAIN_PRO
-            // Block dragging Base assets into Motherbase when it already has a child (free limit).
-            var mb = Motherbase.Home;
+            // Block dragging Base assets into Profile when it already has a child (free limit).
+            var mb = Profile.Active;
             if (mb != null && mb.Children.Count >= 1 && items != null && items.Exists(i => i is Base))
             {
                 ProFeatureDialog.Show("Multiple Bases");
@@ -800,7 +800,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (baseObj == null) return;
             try
             {
-                var mother = Motherbase.Home;
+                var mother = Profile.Active;
                 if (mother == null) return;
                 Undo.RecordObject(mother, "Clear Default Base");
                 if (mother.DefaultBase == baseObj)
@@ -837,7 +837,7 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         static bool IsSecondBaseBlocked(Object parent)
         {
-            if (parent is Motherbase mb && mb.Children.Count >= 1)
+            if (parent is Profile mb && mb.Children.Count >= 1)
             {
                 ProFeatureDialog.Show("Multiple Bases");
                 return true;

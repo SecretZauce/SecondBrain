@@ -16,8 +16,8 @@ namespace SecretZauce.SecondBrain.Editor
 
         static InitializationFlow()
         {
-            // Ensure the Motherbase asset exists, then run the state machine after domain reload settles.
-            Motherbase.LoadInstance();
+            // Ensure the Profile asset exists, then run the state machine after domain reload settles.
+            Profile.LoadActiveProfile();
             EditorApplication.delayCall += RunInitializationFlow;
         }
 
@@ -25,15 +25,15 @@ namespace SecretZauce.SecondBrain.Editor
 
         static void RunInitializationFlow()
         {
-            var motherbase = Motherbase.Home;
-            if (motherbase == null)
+            var profile = Profile.Active;
+            if (profile == null)
                 return;
 
-            var state = motherbase.InitializationState;
-            if (state == MotherbaseInitializationState.InitializationCompleted)
+            var state = profile.InitializationState;
+            if (state == ProfileInitializationState.InitializationCompleted)
             {
                 CleanupStaleProDefine();
-                CleanStaleNullReferences(motherbase);
+                CleanStaleNullReferences(profile);
                 return;
             }
 
@@ -42,16 +42,16 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 switch (state)
                 {
-                    case MotherbaseInitializationState.Uninitialized:
-                        InitializeFreeVersion(motherbase, progressId);
+                    case ProfileInitializationState.Uninitialized:
+                        InitializeFreeVersion(profile, progressId);
                         break;
 
-                    case MotherbaseInitializationState.FreeVersionInitialized:
-                        CheckForProVersion(motherbase, progressId);
+                    case ProfileInitializationState.FreeVersionInitialized:
+                        CheckForProVersion(profile, progressId);
                         break;
 
-                    case MotherbaseInitializationState.ProVersionInitialized:
-                        CompleteProInitialization(motherbase, progressId);
+                    case ProfileInitializationState.ProVersionInitialized:
+                        CompleteProInitialization(profile, progressId);
                         break;
                 }
             }
@@ -64,26 +64,26 @@ namespace SecretZauce.SecondBrain.Editor
 
         // ── Phase methods ─────────────────────────────────────────────────────────
 
-        static void InitializeFreeVersion(Motherbase motherbase, int progressId)
+        static void InitializeFreeVersion(Profile profile, int progressId)
         {
             Progress.Report(progressId, 0.1f, "Setting up workspace...");
             Debug.Log("[SecondBrain] First-time setup started.");
 
-            if (motherbase.Children.Count == 0)
+            if (profile.Children.Count == 0)
             {
                 Progress.Report(progressId, 0.25f, "Creating default workspace...");
-                CreateDefaultBase(motherbase);
+                CreateDefaultBase(profile);
                 Debug.Log("[SecondBrain] Created default workspace 'My Workspace'.");
             }
 
-            motherbase.InitializationState = MotherbaseInitializationState.FreeVersionInitialized;
+            profile.InitializationState = ProfileInitializationState.FreeVersionInitialized;
             AssetDatabase.SaveAssets();
 
             Progress.Report(progressId, 0.5f, "Checking for Pro version...");
-            CheckForProVersion(motherbase, progressId);
+            CheckForProVersion(profile, progressId);
         }
 
-        static void CheckForProVersion(Motherbase motherbase, int progressId)
+        static void CheckForProVersion(Profile profile, int progressId)
         {
             Progress.Report(progressId, 0.65f, "Scanning for Pro assembly...");
             Debug.Log("[SecondBrain] Checking for Pro assembly...");
@@ -93,7 +93,7 @@ namespace SecretZauce.SecondBrain.Editor
                 Progress.Report(progressId, 0.85f, "Pro detected — enabling...");
                 Debug.Log("[SecondBrain] Pro assembly detected. Enabling SECOND_BRAIN_PRO — editor will recompile.");
 
-                motherbase.InitializationState = MotherbaseInitializationState.ProVersionInitialized;
+                profile.InitializationState = ProfileInitializationState.ProVersionInitialized;
                 AssetDatabase.SaveAssets();
                 Progress.Finish(progressId, Progress.Status.Succeeded);
                 ProLicenseUtils.AddProDefine();
@@ -103,19 +103,19 @@ namespace SecretZauce.SecondBrain.Editor
                 Progress.Report(progressId, 0.9f, "Free version ready.");
                 Debug.Log("[SecondBrain] Free version setup complete.");
 
-                motherbase.InitializationState = MotherbaseInitializationState.InitializationCompleted;
+                profile.InitializationState = ProfileInitializationState.InitializationCompleted;
                 AssetDatabase.SaveAssets();
                 Progress.Finish(progressId, Progress.Status.Succeeded);
                 EditorApplication.delayCall += InstallerWindow.Open;
             }
         }
 
-        static void CompleteProInitialization(Motherbase motherbase, int progressId)
+        static void CompleteProInitialization(Profile profile, int progressId)
         {
             Progress.Report(progressId, 0.4f, "Activating Pro features...");
             Debug.Log("[SecondBrain] Pro initialization complete — finalizing.");
 
-            motherbase.InitializationState = MotherbaseInitializationState.InitializationCompleted;
+            profile.InitializationState = ProfileInitializationState.InitializationCompleted;
             AssetDatabase.SaveAssets();
 
             Progress.Report(progressId, 0.9f, "Opening SecondBrain...");
@@ -127,23 +127,23 @@ namespace SecretZauce.SecondBrain.Editor
 
         // ── Helpers ───────────────────────────────────────────────────────────────
 
-        static void CreateDefaultBase(Motherbase motherbase)
+        static void CreateDefaultBase(Profile profile)
         {
-            var motherbasePath = AssetDatabase.GetAssetPath(motherbase);
-            if (string.IsNullOrEmpty(motherbasePath))
+            var profilePath = AssetDatabase.GetAssetPath(profile);
+            if (string.IsNullOrEmpty(profilePath))
                 return;
 
             var defaultBase = ScriptableObject.CreateInstance<Base>();
             defaultBase.name = "My Workspace";
-            AssetDatabase.AddObjectToAsset(defaultBase, motherbasePath);
+            AssetDatabase.AddObjectToAsset(defaultBase, profilePath);
 
-            if (motherbase is IStructure motherbaseStruct)
-                motherbaseStruct.AddChild(defaultBase);
+            if (profile is IStructure profileStruct)
+                profileStruct.AddChild(defaultBase);
 
-            motherbase.DefaultBase = defaultBase;
-            EditorUtility.SetDirty(motherbase);
+            profile.DefaultBase = defaultBase;
+            EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();
-            SubAssetRefreshUtils.ImportAndRegister(motherbasePath);
+            SubAssetRefreshUtils.ImportAndRegister(profilePath);
         }
 
         static bool IsProAssemblyPresent()
@@ -165,20 +165,20 @@ namespace SecretZauce.SecondBrain.Editor
             }
         }
 
-        // Walk the full Motherbase tree, strip null child references, then delete any
+        // Walk the full Profile tree, strip null child references, then delete any
         // ScriptableObject sub-assets that are embedded in the host files but no longer
         // referenced by any node in the tree.  Runs silently on every domain reload.
-        static void CleanStaleNullReferences(Motherbase motherbase)
+        static void CleanStaleNullReferences(Profile profile)
         {
-            if (motherbase == null) return;
+            if (profile == null) return;
 
-            bool nullsRemoved   = CleanNullsRecursive(motherbase);
-            bool orphansRemoved = CleanOrphanedSubAssets(motherbase);
+            bool nullsRemoved   = CleanNullsRecursive(profile);
+            bool orphansRemoved = CleanOrphanedSubAssets(profile);
 
             if (nullsRemoved || orphansRemoved)
             {
                 AssetDatabase.SaveAssets();
-                Debug.Log("[SecondBrain] Cleaned stale data from the Motherbase tree.");
+                Debug.Log("[SecondBrain] Cleaned stale data from the Profile tree.");
             }
         }
 
@@ -191,9 +191,9 @@ namespace SecretZauce.SecondBrain.Editor
             // Index-based removal so Unity fake-null objects are found correctly.
             switch (node)
             {
-                case Motherbase m:
-                    for (int i = m.Children.Count - 1; i >= 0; i--)
-                        if (m.Children[i] == null) { m.Children.RemoveAt(i); removed = true; }
+                case Profile p:
+                    for (int i = p.Children.Count - 1; i >= 0; i--)
+                        if (p.Children[i] == null) { p.Children.RemoveAt(i); removed = true; }
                     break;
                 case Base b:
                     for (int i = b.Children.Count - 1; i >= 0; i--)
@@ -223,19 +223,19 @@ namespace SecretZauce.SecondBrain.Editor
         // Delete ScriptableObject sub-assets embedded in the SecondBrain host files that
         // are no longer reachable from any node in the live tree.
         // Returns true when at least one orphan was removed.
-        static bool CleanOrphanedSubAssets(Motherbase motherbase)
+        static bool CleanOrphanedSubAssets(Profile profile)
         {
-            if (motherbase == null) return false;
+            if (profile == null) return false;
 
             // Build the referenced-ID set and the set of host .asset paths in one pass.
             var referencedIds = new HashSet<int>();
             var hostPaths     = new HashSet<string>();
-            CollectReferencedIds(motherbase as IStructure, referencedIds, hostPaths);
+            CollectReferencedIds(profile as IStructure, referencedIds, hostPaths);
 
-            // Always include the Motherbase file itself even when it has no children yet.
-            string motherbasePath = AssetDatabase.GetAssetPath(motherbase);
-            if (!string.IsNullOrEmpty(motherbasePath))
-                hostPaths.Add(motherbasePath);
+            // Always include the Profile file itself even when it has no children yet.
+            string profilePath = AssetDatabase.GetAssetPath(profile);
+            if (!string.IsNullOrEmpty(profilePath))
+                hostPaths.Add(profilePath);
 
             if (hostPaths.Count == 0) return false;
 
@@ -294,66 +294,63 @@ namespace SecretZauce.SecondBrain.Editor
 
 #if SECOND_BRAIN_DEV
         // ── DEV simulation menu items ─────────────────────────────────────────────
-        // Each item sets the state and immediately runs that phase with its own
-        // progress item so the developer can observe output in the Console.
-
         static int StartDevProgress(string phase) =>
             Progress.Start($"{ProgressTitle} DEV", $"Simulating: {phase}");
 
         [MenuItem("Tools/Second Brain/DEV ─ Init/Simulate: Uninitialized Phase")]
         static void Dev_SimulateUninitialized()
         {
-            var mb = Motherbase.Home;
-            if (mb == null) return;
-            mb.InitializationState = MotherbaseInitializationState.Uninitialized;
+            var p = Profile.Active;
+            if (p == null) return;
+            p.InitializationState = ProfileInitializationState.Uninitialized;
             AssetDatabase.SaveAssets();
             Debug.Log("[SecondBrain DEV] State → Uninitialized — running phase now.");
             int id = StartDevProgress("Uninitialized");
-            try   { InitializeFreeVersion(mb, id); }
+            try   { InitializeFreeVersion(p, id); }
             catch { Progress.Finish(id, Progress.Status.Failed); throw; }
         }
 
         [MenuItem("Tools/Second Brain/DEV ─ Init/Simulate: Check for Pro Phase")]
         static void Dev_SimulateFreeInitialized()
         {
-            var mb = Motherbase.Home;
-            if (mb == null) return;
-            mb.InitializationState = MotherbaseInitializationState.FreeVersionInitialized;
+            var p = Profile.Active;
+            if (p == null) return;
+            p.InitializationState = ProfileInitializationState.FreeVersionInitialized;
             AssetDatabase.SaveAssets();
             Debug.Log("[SecondBrain DEV] State → FreeVersionInitialized — running phase now.");
             int id = StartDevProgress("Check for Pro");
-            try   { CheckForProVersion(mb, id); }
+            try   { CheckForProVersion(p, id); }
             catch { Progress.Finish(id, Progress.Status.Failed); throw; }
         }
 
         [MenuItem("Tools/Second Brain/DEV ─ Init/Simulate: Complete Pro Phase")]
         static void Dev_SimulateProInitialized()
         {
-            var mb = Motherbase.Home;
-            if (mb == null) return;
-            mb.InitializationState = MotherbaseInitializationState.ProVersionInitialized;
+            var p = Profile.Active;
+            if (p == null) return;
+            p.InitializationState = ProfileInitializationState.ProVersionInitialized;
             AssetDatabase.SaveAssets();
             Debug.Log("[SecondBrain DEV] State → ProVersionInitialized — running phase now.");
             int id = StartDevProgress("Complete Pro");
-            try   { CompleteProInitialization(mb, id); }
+            try   { CompleteProInitialization(p, id); }
             catch { Progress.Finish(id, Progress.Status.Failed); throw; }
         }
 
         [MenuItem("Tools/Second Brain/DEV ─ Init/Run from Current State")]
         static void Dev_RunFromCurrentState()
         {
-            var mb = Motherbase.Home;
-            if (mb == null) return;
-            Debug.Log($"[SecondBrain DEV] Running init flow from state: {mb.InitializationState}");
+            var p = Profile.Active;
+            if (p == null) return;
+            Debug.Log($"[SecondBrain DEV] Running init flow from state: {p.InitializationState}");
             RunInitializationFlow();
         }
 
         [MenuItem("Tools/Second Brain/DEV ─ Init/Reset State to Uninitialized (next reload)")]
         static void Dev_ResetStateOnly()
         {
-            var mb = Motherbase.Home;
-            if (mb == null) return;
-            mb.InitializationState = MotherbaseInitializationState.Uninitialized;
+            var p = Profile.Active;
+            if (p == null) return;
+            p.InitializationState = ProfileInitializationState.Uninitialized;
             AssetDatabase.SaveAssets();
             Debug.Log("[SecondBrain DEV] Init state reset to Uninitialized — will trigger on next domain reload.");
         }

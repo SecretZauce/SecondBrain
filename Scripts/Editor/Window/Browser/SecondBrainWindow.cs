@@ -6,8 +6,8 @@ namespace SecretZauce.SecondBrain.Editor
 {
     public class SecondBrainWindow : BrowserWindow
     {
-        protected override IStructure HomeRoot => Motherbase.Home;
-        
+        protected override IStructure HomeRoot => Profile.Active;
+
         // Menu item: open Home (no default-base navigation)
         [MenuItem("Window/Second Brain (Home)")]
         static void OpenHomeMenu()
@@ -46,12 +46,12 @@ namespace SecretZauce.SecondBrain.Editor
                 var newWindow = CreateInstance<SecondBrainWindow>();
                 newWindow.Show();
                 newWindow.Focus();
-                var mother = Motherbase.Home;
-                if (mother != null && mother.DefaultBase != null)
+                var profile = Profile.Active;
+                if (profile != null && profile.DefaultBase != null)
                 {
                     EditorApplication.delayCall += () =>
                     {
-                        try { newWindow.SetTarget(mother.DefaultBase); } catch { }
+                        try { newWindow.SetTarget(profile.DefaultBase); } catch { }
                     };
                 }
             }
@@ -65,12 +65,12 @@ namespace SecretZauce.SecondBrain.Editor
         {
             try
             {
-                var mother = Motherbase.Home;
+                var profile = Profile.Active;
                 BrowserWindow.OpenWindow<SecondBrainWindow>();
                 var wnd = EditorWindow.GetWindow<SecondBrainWindow>();
-                if (mother != null && mother.DefaultBase != null)
+                if (profile != null && profile.DefaultBase != null)
                 {
-                    try { wnd.SetTarget(mother.DefaultBase); } catch { }
+                    try { wnd.SetTarget(profile.DefaultBase); } catch { }
                 }
             }
             catch

@@ -5,12 +5,12 @@ using UnityEngine;
 namespace SecretZauce.SecondBrain.Editor
 {
     /// <summary>
-    /// Custom inspector for <see cref="Motherbase"/>.
+    /// Custom inspector for <see cref="Profile"/>.
     /// Free mode  : base list is read-only; a HelpBox advertises PRO.
     /// PRO mode   : full default inspector.
     /// </summary>
-    [CustomEditor(typeof(Motherbase))]
-    internal class MotherbaseInspector : UnityEditor.Editor
+    [CustomEditor(typeof(Profile))]
+    internal class ProfileInspector : UnityEditor.Editor
     {
         SerializedProperty baseListProp;
         ReorderableList readOnlyList;
@@ -69,5 +69,3 @@ namespace SecretZauce.SecondBrain.Editor
         }
     }
 }
-
-

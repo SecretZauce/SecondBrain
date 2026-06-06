@@ -91,7 +91,7 @@ namespace SecretZauce.SecondBrain.Editor
             // and other Bases exist to move to
             if (isIStructure && window.Root is Base currentBase)
             {
-                var motherbase = Motherbase.Home;
+                var motherbase = Profile.Active;
                 if (motherbase?.Children != null)
                 {
                     var otherBases = motherbase.Children

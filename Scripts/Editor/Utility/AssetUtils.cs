@@ -79,7 +79,7 @@ namespace SecretZauce.SecondBrain.Editor
         /// <summary>
         /// Returns true when the provided object (any asset or sub-asset) lives in a different
         /// .asset file than the provided target parent object. This is a broader check used
-        /// to detect structure assets (e.g. Motherbase/Container instances) that are stored
+        /// to detect structure assets (e.g. Profile/Container instances) that are stored
         /// in other asset files and should not be added as children of the target parent.
         /// </summary>
         public static bool IsInDifferentAsset(Object obj, Object targetParent)

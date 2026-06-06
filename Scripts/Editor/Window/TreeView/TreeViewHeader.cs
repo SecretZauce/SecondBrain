@@ -63,6 +63,11 @@ namespace SecretZauce.SecondBrain.Editor
         static GUIStyle s_HamStyle;
         static GUIStyle s_HeaderPlusStyle;
         static GUIStyle s_ToggleStyle;
+#if SECOND_BRAIN_PRO
+        static GUIStyle s_ProfileDropdownStyle;
+        static GUIStyle s_LocationButtonStyle;
+        static GUIStyle s_LocationButtonActiveStyle;
+#endif
 
         static void EnsureHeaderStyles()
         {
@@ -112,6 +117,30 @@ namespace SecretZauce.SecondBrain.Editor
                 alignment = TextAnchor.MiddleCenter,
                 padding   = new RectOffset(1, 1, 1, 1),
             };
+
+#if SECOND_BRAIN_PRO
+            s_ProfileDropdownStyle = new GUIStyle(EditorStyles.miniButton)
+            {
+                alignment  = TextAnchor.MiddleLeft,
+                fontStyle  = FontStyle.Normal,
+                fontSize   = 11,
+                padding    = new RectOffset(6, 14, 1, 1),
+                fixedHeight = 0,
+            };
+
+            s_LocationButtonStyle = new GUIStyle(EditorStyles.miniButtonMid)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize  = 10,
+                padding   = new RectOffset(4, 4, 1, 1),
+                fixedHeight = 0,
+            };
+
+            s_LocationButtonActiveStyle = new GUIStyle(s_LocationButtonStyle);
+            s_LocationButtonActiveStyle.normal.textColor =
+                EditorGUIUtility.isProSkin ? new Color(0.4f, 0.8f, 1f) : new Color(0.1f, 0.4f, 0.85f);
+            s_LocationButtonActiveStyle.fontStyle = FontStyle.Bold;
+#endif
 
             s_HeaderStylesValid = true;
         }
@@ -212,6 +241,13 @@ namespace SecretZauce.SecondBrain.Editor
                 DrawBreadcrumbArrow(labelRect, out labelRect);
                 DrawTargetLabel(labelRect, window, root, pencilWidth, toggleRect, dragDropManager, renamer);
             }
+#if SECOND_BRAIN_PRO
+            else
+            {
+                // At home with Pro: draw profile dropdown + location toggle in the label area
+                DrawProfileDropdownAndLocation(labelRect, headerRect, window, interactive);
+            }
+#endif
 
             // Base settings (hamburger + default star) — only when header shows a Base
             if (showingBaseTarget)
@@ -222,6 +258,129 @@ namespace SecretZauce.SecondBrain.Editor
             // Collapse/expand foldout and + button
             DrawFoldoutAndPlus(toggleRect, plusRect, window, root, showingBaseTarget, interactive);
         }
+
+        // ── Profile dropdown (Pro only — shown when at home) ───────────────────
+
+#if SECOND_BRAIN_PRO
+        void DrawProfileDropdownAndLocation(Rect labelRect, Rect headerRect, BrowserWindow window, bool interactive)
+        {
+            var activeProfile = Profile.Active;
+            string profileName = activeProfile != null ? activeProfile.name : "—";
+
+            // ── Profile dropdown button ────────────────────────────────────────
+            const float dropdownWidth = 120f;
+            const float locationWidth = 52f; // "Editor" or "Build" + separator
+            const float gap = 4f;
+
+            float dropdownX = labelRect.x;
+            float dropdownH = Mathf.Max(14f, headerRect.height - 4f);
+            float dropdownY = (headerRect.height - dropdownH) * 0.5f;
+
+            Rect dropdownRect  = new Rect(dropdownX, dropdownY, dropdownWidth, dropdownH);
+            Rect locationRect  = new Rect(dropdownX + dropdownWidth + gap, dropdownY, locationWidth, dropdownH);
+
+            EditorGUI.BeginDisabledGroup(!interactive);
+
+            // Dropdown button
+            GUIContent dropdownContent = new GUIContent(profileName, "Switch Profile");
+            if (GUI.Button(dropdownRect, dropdownContent, s_ProfileDropdownStyle ?? EditorStyles.miniButton))
+            {
+                ShowProfileMenu(dropdownRect, window);
+                Event.current?.Use();
+            }
+
+            // Location toggle: "Editor" | "Build"
+            DataStorageLocation currentLoc = ProfileManager.GetProfileLocation(activeProfile);
+            bool isEditor = currentLoc == DataStorageLocation.EditorResources;
+
+            Rect editorBtnRect = new Rect(locationRect.x, locationRect.y, locationWidth * 0.5f, locationRect.height);
+            Rect buildBtnRect  = new Rect(locationRect.x + locationWidth * 0.5f, locationRect.y, locationWidth * 0.5f, locationRect.height);
+
+            GUIStyle editorStyle = isEditor  ? (s_LocationButtonActiveStyle ?? EditorStyles.miniButtonLeft)
+                                             : (s_LocationButtonStyle       ?? EditorStyles.miniButtonLeft);
+            GUIStyle buildStyle  = !isEditor ? (s_LocationButtonActiveStyle ?? EditorStyles.miniButtonRight)
+                                             : (s_LocationButtonStyle       ?? EditorStyles.miniButtonRight);
+
+            if (GUI.Button(editorBtnRect, new GUIContent("Editor", "Editor-Only — stored in Assets/Resources/Editor/, excluded from builds"), editorStyle))
+            {
+                if (!isEditor)
+                    TrySwitchProfileLocation(activeProfile, DataStorageLocation.EditorResources, window);
+                Event.current?.Use();
+            }
+
+            if (GUI.Button(buildBtnRect, new GUIContent("Build", "In-Build — stored in Assets/Resources/, included in builds"), buildStyle))
+            {
+                if (isEditor)
+                    TrySwitchProfileLocation(activeProfile, DataStorageLocation.Resources, window);
+                Event.current?.Use();
+            }
+
+            EditorGUI.EndDisabledGroup();
+        }
+
+        void ShowProfileMenu(Rect buttonRect, BrowserWindow window)
+        {
+            var menu    = new GenericMenu();
+            var all     = ProfileManager.GetAllProfiles();
+            var current = Profile.Active;
+
+            foreach (var p in all)
+            {
+                if (p == null) continue;
+                bool isCurrent = ReferenceEquals(p, current);
+                var captured = p;
+                string loc   = ProfileManager.GetLocationLabel(ProfileManager.GetProfileLocation(p));
+                menu.AddItem(new GUIContent($"{p.name}  [{loc}]"), isCurrent, () =>
+                {
+                    if (!isCurrent)
+                    {
+                        ProfileManager.SetActiveProfile(captured);
+                        window?.Repaint();
+                    }
+                });
+            }
+
+            menu.AddSeparator("");
+
+            menu.AddItem(new GUIContent("New Editor-Only Profile…"), false, () =>
+            {
+                string name = ProfileNameDialog.Show("New Editor-Only Profile", "Profile");
+                if (string.IsNullOrEmpty(name)) return;
+                var newProfile = ProfileManager.CreateNewProfile(DataStorageLocation.EditorResources, name);
+                if (newProfile != null)
+                {
+                    ProfileManager.SetActiveProfile(newProfile);
+                    window?.Repaint();
+                }
+            });
+
+            menu.AddItem(new GUIContent("New In-Build Profile…"), false, () =>
+            {
+                string name = ProfileNameDialog.Show("New In-Build Profile", "Profile");
+                if (string.IsNullOrEmpty(name)) return;
+                var newProfile = ProfileManager.CreateNewProfile(DataStorageLocation.Resources, name);
+                if (newProfile != null)
+                {
+                    ProfileManager.SetActiveProfile(newProfile);
+                    window?.Repaint();
+                }
+            });
+
+            // Adjust rect to screen coordinates for popup placement
+            Rect screenRect = GUIUtility.GUIToScreenRect(
+                new Rect(treeView.OwnerWindow?.position.x ?? 0 + buttonRect.x,
+                         treeView.OwnerWindow?.position.y ?? 0 + buttonRect.y + buttonRect.height,
+                         buttonRect.width, 0));
+            menu.DropDown(buttonRect);
+        }
+
+        void TrySwitchProfileLocation(Profile profile, DataStorageLocation newLoc, BrowserWindow window)
+        {
+            bool moved = ProfileManager.MoveProfileToLocation(profile, newLoc);
+            if (moved)
+                window?.Repaint();
+        }
+#endif
 
         void DrawBreadcrumbArrow(Rect labelRect, out Rect adjustedLabelRect)
         {
@@ -335,7 +494,7 @@ namespace SecretZauce.SecondBrain.Editor
             float defaultSize = 16f;
             Rect defaultRect = new Rect(hamburgerRect.x - 4 - defaultSize, 0, defaultSize, headerRect.height);
 
-            var  mother    = Motherbase.Home;
+            var  mother    = Profile.Active;
             bool isDefault = mother != null && mother.DefaultBase == baseObj;
 
             bool  defaultHover = defaultRect.Contains(Event.current.mousePosition);
@@ -421,7 +580,7 @@ namespace SecretZauce.SecondBrain.Editor
             {
 #if !SECOND_BRAIN_PRO
                 // In free mode, block creating a second Base and show a PRO upgrade notice.
-                if (!showingBaseTarget && Motherbase.Home.Children.Count >= 1)
+                if (!showingBaseTarget && Profile.Active.Children.Count >= 1)
                 {
                     ProFeatureDialog.Show("Multiple Bases");
                     Event.current?.Use();
