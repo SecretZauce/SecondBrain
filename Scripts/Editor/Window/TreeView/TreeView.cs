@@ -253,15 +253,13 @@ namespace SecretZauce.SecondBrain.Editor
             if (searchChanged && IsSearching())
                 ExpandAll();
 
-            // Count non-null for "has real content" checks; totalColCount drives the draw loop
-            // so null (missing) slots are also rendered as MISSING rows.
-            int colCount = drawContext.Collections.Count(c => c != null);
-            int totalColCount = drawContext.Collections.Count;
+            // Include null (missing) slots in the count so MISSING rows are drawn.
+            int colCount = drawContext.Collections.Count;
 
             header.Draw(window);
             EditorGUIUtils.DrawSeparator();
 
-            if (colCount > 0 || totalColCount > 0 || (ghostSession != null && ReferenceEquals(ghostSession.Parent, Root as Object)))
+            if (colCount > 0 || (ghostSession != null && ReferenceEquals(ghostSession.Parent, Root as Object)))
             {
                 // Detect Unity DragAndDrop at scroll view level for immediate visual feedback
                 Event e = Event.current;
@@ -292,7 +290,7 @@ namespace SecretZauce.SecondBrain.Editor
                     }
                 }
 
-                DrawScrollViewContent(drawContext, colCount);
+                DrawScrollViewContent(drawContext);
 
                 // If the search bar requested navigation away (DownArrow pressed while focused),
                 // consume the request now that visiblePaths has been populated and select the
@@ -582,7 +580,7 @@ namespace SecretZauce.SecondBrain.Editor
             return false;
         }
 
-        void DrawScrollViewContent(DrawContext drawContext, int colCount)
+        void DrawScrollViewContent(DrawContext drawContext)
         {
             // Scroll view for collections
             // Clear previous hover state so TreeViewDragInput can recompute hover for this frame
@@ -590,7 +588,8 @@ namespace SecretZauce.SecondBrain.Editor
 
 
             scrollPosition = GUILayout.BeginScrollView(scrollPosition);
-            for (int i = 0; i < totalColCount; i++)
+            int totalItems = drawContext.Collections.Count;
+            for (int i = 0; i < totalItems; i++)
             {
                 var collection = drawContext.Collections[i] as Object;
                 int[] path = new int[] { i };

@@ -1,4 +1,5 @@
 using System;
+using SecretZauce.SecondBrain;
 using UnityEditor;
 using UnityEngine;
 
@@ -29,6 +30,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (state == MotherbaseInitializationState.InitializationCompleted)
             {
                 CleanupStaleProDefine();
+                CleanStaleNullReferences(motherbase);
                 return;
             }
 
@@ -158,6 +160,57 @@ namespace SecretZauce.SecondBrain.Editor
                 Debug.LogWarning("[SecondBrain] Pro assembly not found but SECOND_BRAIN_PRO define is active — removing stale define.");
                 ProLicenseUtils.RemoveProDefine();
             }
+        }
+
+        // Walk the full Motherbase tree and strip any null/missing child references.
+        // Runs silently on every domain reload so accumulated stale entries don't build up.
+        static void CleanStaleNullReferences(Motherbase motherbase)
+        {
+            if (motherbase == null) return;
+            bool anyCleaned = CleanNullsRecursive(motherbase);
+            if (anyCleaned)
+            {
+                AssetDatabase.SaveAssets();
+                Debug.Log("[SecondBrain] Removed stale null references from the Motherbase tree.");
+            }
+        }
+
+        // Returns true when at least one null entry was removed from this node or any descendant.
+        static bool CleanNullsRecursive(IStructure node)
+        {
+            if (node == null) return false;
+            bool removed = false;
+
+            // Index-based removal so Unity fake-null objects are found correctly.
+            switch (node)
+            {
+                case Motherbase m:
+                    for (int i = m.Children.Count - 1; i >= 0; i--)
+                        if (m.Children[i] == null) { m.Children.RemoveAt(i); removed = true; }
+                    break;
+                case Base b:
+                    for (int i = b.Children.Count - 1; i >= 0; i--)
+                        if (b.Children[i] == null) { b.Children.RemoveAt(i); removed = true; }
+                    break;
+                case Container c:
+                    for (int i = c.children.Count - 1; i >= 0; i--)
+                        if (c.children[i] == null) { c.children.RemoveAt(i); removed = true; }
+                    break;
+            }
+
+            if (removed && node is UnityEngine.Object obj)
+                EditorUtility.SetDirty(obj);
+
+            // Recurse into remaining children.
+            var children = node.ChildrenObjects;
+            if (children != null)
+            {
+                foreach (var child in children)
+                    if (child is IStructure childStruct)
+                        removed |= CleanNullsRecursive(childStruct);
+            }
+
+            return removed;
         }
 
 #if SECOND_BRAIN_DEV
