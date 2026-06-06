@@ -243,6 +243,7 @@ namespace SecretZauce.SecondBrain.Editor
             foreach (var path in hostPaths)
             {
                 if (string.IsNullOrEmpty(path)) continue;
+                if (!path.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)) continue;
 
                 Object[] allAtPath;
                 try { allAtPath = AssetDatabase.LoadAllAssetsAtPath(path); }
@@ -275,7 +276,7 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 ids.Add(obj.GetInstanceID());
                 string p = AssetDatabase.GetAssetPath(obj);
-                if (!string.IsNullOrEmpty(p)) paths.Add(p);
+                if (!string.IsNullOrEmpty(p) && p.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)) paths.Add(p);
             }
 
             var children = node.ChildrenObjects;
@@ -285,7 +286,7 @@ namespace SecretZauce.SecondBrain.Editor
                 if (child == null) continue;
                 ids.Add(child.GetInstanceID());
                 string cp = AssetDatabase.GetAssetPath(child);
-                if (!string.IsNullOrEmpty(cp)) paths.Add(cp);
+                if (!string.IsNullOrEmpty(cp) && cp.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)) paths.Add(cp);
                 if (child is IStructure childStruct)
                     CollectReferencedIds(childStruct, ids, paths);
             }
