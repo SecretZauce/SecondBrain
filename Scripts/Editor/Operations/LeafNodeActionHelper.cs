@@ -164,15 +164,15 @@ namespace SecretZauce.SecondBrain.Editor
             if (node is SceneObjectRef sor)
             {
                 string sceneName = sor.sceneObject?.LastKnownScene;
-                bool sceneLoaded = !string.IsNullOrEmpty(sceneName) && SceneManager.GetSceneByName(sceneName).isLoaded;
-                return !sceneLoaded;
+                string sceneGuid  = sor.sceneObject?.LastKnownSceneGuid;
+                return !IsSceneLoaded(sceneGuid, sceneName);
             }
 
             if (node is SceneComponentRef scr)
             {
                 string sceneName = scr.sceneComponent?.LastKnownScene;
-                bool sceneLoaded = !string.IsNullOrEmpty(sceneName) && SceneManager.GetSceneByName(sceneName).isLoaded;
-                return !sceneLoaded;
+                string sceneGuid  = scr.sceneComponent?.LastKnownSceneGuid;
+                return !IsSceneLoaded(sceneGuid, sceneName);
             }
 
             // Check for URL TextAsset
