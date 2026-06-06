@@ -1557,7 +1557,10 @@ namespace SecretZauce.SecondBrain.Editor
             if (OwnerWindow.IsPopup)
             {
                 OwnerWindow.OpenPropertyEditorFor(path, OwnerWindow);
-                OwnerWindow.TryCloseIfPopup();
+                // Defer close: TryActivateItem is called during DrawMainContent(), so calling
+                // Close() synchronously nulls serializedDatabase before OnGUI() line 739 runs.
+                var win = OwnerWindow;
+                EditorApplication.delayCall += () => { try { win?.TryCloseIfPopup(); } catch { } };
                 return;
             }
 #endif
