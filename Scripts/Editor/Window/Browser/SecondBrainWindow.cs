@@ -22,6 +22,17 @@ namespace SecretZauce.SecondBrain.Editor
             OpenDefaultOrHome();
         }
 
+        // Shortcut: Option+Q (Mac) / Alt+Q (Win) — focus existing window, or open one if none exists
+        [Shortcut("Second Brain/Focus Window", KeyCode.Q, ShortcutModifiers.Alt)]
+        static void FocusWindow()
+        {
+            var existing = Resources.FindObjectsOfTypeAll<SecondBrainWindow>();
+            if (existing != null && existing.Length > 0)
+                existing[0].Focus();
+            else
+                BrowserWindow.OpenWindow<SecondBrainWindow>();
+        }
+
         // Shortcut: Ctrl+Shift+Q (Win) / Option+Shift+Q (Mac) — open new floating window each time
 #if UNITY_EDITOR_OSX
         [Shortcut("Second Brain/Open New Window", KeyCode.Q, ShortcutModifiers.Shift | ShortcutModifiers.Alt)]
