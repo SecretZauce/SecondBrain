@@ -736,7 +736,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (TryProcessDragAndDrop())
                 return;
 
-            if (serializedDatabase.hasModifiedProperties)
+            if (serializedDatabase != null && serializedDatabase.hasModifiedProperties)
             {
                 serializedDatabase.ApplyModifiedProperties();
                 RefreshSerializedDatabase();

@@ -241,8 +241,7 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 GUIUtility.keyboardControl = 0;
                 skipDrawNextFrame = true;
-                if (IsSearching)
-                    requestActivateFirstMatch = true;
+                requestActivateFirstMatch = true;
                 return false;
             }
 

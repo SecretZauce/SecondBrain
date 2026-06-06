@@ -322,15 +322,26 @@ namespace SecretZauce.SecondBrain.Editor
                         }
                     }
 
-                    // Activate the first direct match when Enter is pressed while the search bar is focused
+                    // Activate the first direct match (or current selection) when Enter is pressed while the search bar is focused
                     if (searchBar != null && searchBar.ConsumeActivateFirstMatchRequest())
                     {
-                        var firstMatch = FindFirstDirectMatch();
-                        if (firstMatch != null)
+                        int[] pathToActivate = null;
+                        if (IsSearching())
                         {
-                            Context.RaiseOnItemSelected(firstMatch, false, false);
-                            TryActivateItem(firstMatch);
+                            var firstMatch = FindFirstDirectMatch();
+                            if (firstMatch != null)
+                            {
+                                Context.RaiseOnItemSelected(firstMatch, false, false);
+                                pathToActivate = firstMatch;
+                            }
                         }
+                        else if (Context?.SelectedPaths?.Count > 0)
+                        {
+                            // Not searching: activate the currently selected item
+                            pathToActivate = Context.SelectedPaths[0];
+                        }
+                        if (pathToActivate != null)
+                            TryActivateItem(pathToActivate);
                     }
                 }
                 catch

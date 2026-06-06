@@ -264,11 +264,15 @@ namespace SecretZauce.SecondBrain.Editor
 
             var key = Event.current.keyCode;
 #if SECOND_BRAIN_PRO
-            if (treeView.OwnerWindow.IsPopup && (key is KeyCode.Return or  KeyCode.KeypadEnter))
+            if (treeView.OwnerWindow.IsPopup && (key is KeyCode.Return or KeyCode.KeypadEnter))
             {
                 var window = treeView.OwnerWindow;
                 window.OpenPropertyEditorFor(selectedPath, window);
-                window.TryCloseIfPopup();
+                Event.current.Use();
+                // Defer close so serializedDatabase stays valid through the rest of OnGUI
+                var win = window;
+                EditorApplication.delayCall += () => { try { win?.TryCloseIfPopup(); } catch { } };
+                needsRepaint = true;
                 return true;
             }
 #endif
