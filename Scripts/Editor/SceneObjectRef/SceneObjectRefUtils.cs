@@ -78,6 +78,10 @@ namespace SecretZauce.SecondBrain.Editor
                 var lastKnownPathProp = sceneObjProp.FindPropertyRelative("lastKnownPath");
                 if (lastKnownPathProp != null)
                     lastKnownPathProp.stringValue = GetGameObjectPath(go);
+
+                var wasTrackedDuringPlayModeProp = sceneObjProp.FindPropertyRelative("wasTrackedDuringPlayMode");
+                if (wasTrackedDuringPlayModeProp != null)
+                    wasTrackedDuringPlayModeProp.boolValue = EditorApplication.isPlaying;
             }
 
             so.ApplyModifiedProperties();

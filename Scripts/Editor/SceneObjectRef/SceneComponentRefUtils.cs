@@ -50,6 +50,10 @@ namespace SecretZauce.SecondBrain.Editor
                 var lastKnownComponentTypeNameProp = sceneComponentProp.FindPropertyRelative("lastKnownComponentTypeName");
                 if (lastKnownComponentTypeNameProp != null)
                     lastKnownComponentTypeNameProp.stringValue = component.GetType().Name;
+
+                var wasTrackedDuringPlayModeProp = sceneComponentProp.FindPropertyRelative("wasTrackedDuringPlayMode");
+                if (wasTrackedDuringPlayModeProp != null)
+                    wasTrackedDuringPlayModeProp.boolValue = EditorApplication.isPlaying;
             }
 
             so.ApplyModifiedProperties();
