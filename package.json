@@ -1,6 +1,6 @@
 ﻿{
   "name": "com.secretzauce.secondbrain",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "displayName": "SecondBrain",
   "description": "A second hierarchy window for anything in Unity. Organize assets, prefabs, scenes, and GameObjects in a custom window for faster access and better productivity.",
   "type": "tool",
