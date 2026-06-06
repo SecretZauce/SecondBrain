@@ -11,16 +11,15 @@ namespace SecretZauce.SecondBrain
     /// to group your actions into nested sub-menus inside the Action Item Selector popup
     /// (e.g. "Editor/Play Mode" will nest the item under an "Editor > Play Mode" sub-menu).
     /// </summary>
-    public abstract class ActionItem : ScriptableObject, IHasEditorIcon
+    public abstract class ActionItem : ScriptableObject, IHasCustomIcon
     {
         public virtual string DefaultName => GetType().Name;
 
         /// <summary>
-        /// Provide a default editor icon name for ActionItems so the TreeView can
-        /// render a different icon on the left side. By default we use Unity's
-        /// built-in play button icon 
+        /// Project icon name loaded via IconUtils (Resources/Icons/). Override to
+        /// provide a custom icon for this ActionItem subclass.
         /// </summary>
-        public virtual string EditorIcon => "d_Animation Icon";
+        public virtual string CustomIcon => "action";
 
         /// <summary>
         /// Optional grouping path shown in the ActionItemSelector popup.

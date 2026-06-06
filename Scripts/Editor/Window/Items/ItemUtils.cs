@@ -12,8 +12,9 @@ namespace SecretZauce.SecondBrain.Editor
         // Avoid calling EditorGUIUtility.IconContent / ObjectContent on every repaint
         // per row.  Caches are keyed by type (or editor-icon name) and are cleared
         // whenever BrowserSettings change (e.g. ShowIconsPerType toggle).
-        static readonly Dictionary<System.Type, Texture>   s_IconByType       = new Dictionary<System.Type, Texture>();
-        static readonly Dictionary<string, Texture>         s_EditorIconByName = new Dictionary<string, Texture>();
+        static readonly Dictionary<System.Type, Texture>   s_IconByType        = new Dictionary<System.Type, Texture>();
+        static readonly Dictionary<string, Texture>         s_EditorIconByName  = new Dictionary<string, Texture>();
+        static readonly Dictionary<string, Texture>         s_CustomIconByName  = new Dictionary<string, Texture>();
         static bool s_IconCacheSubscribed;
 
         static void EnsureIconCacheSubscription()
@@ -24,6 +25,7 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 s_IconByType.Clear();
                 s_EditorIconByName.Clear();
+                s_CustomIconByName.Clear();
             };
         }
 
@@ -46,9 +48,22 @@ namespace SecretZauce.SecondBrain.Editor
                 return EditorGUIUtility.ObjectContent(component, componentType ?? typeof(Component)).image;
             }
 
-            // Prefer any explicit EditorIcon provided by the node (IHasEditorIcon) so types
-            // can opt-in to a specific editor icon string. This is important for ActionItem
-            // subclasses that override the EditorIcon property.
+            // Prefer project-asset icons (IHasCustomIcon) loaded via IconUtils, then fall
+            // back to Unity built-in editor icons (IHasEditorIcon) for other node types.
+            if (node is IHasCustomIcon customIconOwner)
+            {
+                if (!string.IsNullOrEmpty(customIconOwner.CustomIcon))
+                {
+                    if (!s_CustomIconByName.TryGetValue(customIconOwner.CustomIcon, out var cachedCustomTex))
+                    {
+                        cachedCustomTex = IconUtils.Load(customIconOwner.CustomIcon);
+                        s_CustomIconByName[customIconOwner.CustomIcon] = cachedCustomTex;
+                    }
+                    return cachedCustomTex;
+                }
+                // fall through when CustomIcon is empty
+            }
+
             if (node is IHasEditorIcon editorIconOwner)
             {
                 if (!string.IsNullOrEmpty(editorIconOwner.EditorIcon))
