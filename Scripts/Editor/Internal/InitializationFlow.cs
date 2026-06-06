@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using SecretZauce.SecondBrain;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace SecretZauce.SecondBrain.Editor
 {
@@ -162,16 +165,20 @@ namespace SecretZauce.SecondBrain.Editor
             }
         }
 
-        // Walk the full Motherbase tree and strip any null/missing child references.
-        // Runs silently on every domain reload so accumulated stale entries don't build up.
+        // Walk the full Motherbase tree, strip null child references, then delete any
+        // ScriptableObject sub-assets that are embedded in the host files but no longer
+        // referenced by any node in the tree.  Runs silently on every domain reload.
         static void CleanStaleNullReferences(Motherbase motherbase)
         {
             if (motherbase == null) return;
-            bool anyCleaned = CleanNullsRecursive(motherbase);
-            if (anyCleaned)
+
+            bool nullsRemoved   = CleanNullsRecursive(motherbase);
+            bool orphansRemoved = CleanOrphanedSubAssets(motherbase);
+
+            if (nullsRemoved || orphansRemoved)
             {
                 AssetDatabase.SaveAssets();
-                Debug.Log("[SecondBrain] Removed stale null references from the Motherbase tree.");
+                Debug.Log("[SecondBrain] Cleaned stale data from the Motherbase tree.");
             }
         }
 
@@ -211,6 +218,77 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             return removed;
+        }
+
+        // Delete ScriptableObject sub-assets embedded in the SecondBrain host files that
+        // are no longer reachable from any node in the live tree.
+        // Returns true when at least one orphan was removed.
+        static bool CleanOrphanedSubAssets(Motherbase motherbase)
+        {
+            if (motherbase == null) return false;
+
+            // Build the referenced-ID set and the set of host .asset paths in one pass.
+            var referencedIds = new HashSet<int>();
+            var hostPaths     = new HashSet<string>();
+            CollectReferencedIds(motherbase as IStructure, referencedIds, hostPaths);
+
+            // Always include the Motherbase file itself even when it has no children yet.
+            string motherbasePath = AssetDatabase.GetAssetPath(motherbase);
+            if (!string.IsNullOrEmpty(motherbasePath))
+                hostPaths.Add(motherbasePath);
+
+            if (hostPaths.Count == 0) return false;
+
+            bool anyRemoved = false;
+            foreach (var path in hostPaths)
+            {
+                if (string.IsNullOrEmpty(path)) continue;
+
+                Object[] allAtPath;
+                try { allAtPath = AssetDatabase.LoadAllAssetsAtPath(path); }
+                catch { continue; }
+                if (allAtPath == null) continue;
+
+                foreach (var asset in allAtPath)
+                {
+                    if (asset == null) continue;
+                    if (!AssetDatabase.IsSubAsset(asset)) continue;
+                    if (asset is not ScriptableObject) continue;
+                    if (referencedIds.Contains(asset.GetInstanceID())) continue;
+
+                    Debug.Log($"[SecondBrain] Removing orphaned sub-asset '{asset.name}' ({asset.GetType().Name}) from {Path.GetFileName(path)}");
+                    AssetDatabase.RemoveObjectFromAsset(asset);
+                    Object.DestroyImmediate(asset, true);
+                    anyRemoved = true;
+                }
+            }
+
+            return anyRemoved;
+        }
+
+        // Recursively adds instance IDs of all live tree nodes to <paramref name="ids"/>
+        // and the .asset file path of each node to <paramref name="paths"/>.
+        static void CollectReferencedIds(IStructure node, HashSet<int> ids, HashSet<string> paths)
+        {
+            if (node == null) return;
+            if (node is Object obj)
+            {
+                ids.Add(obj.GetInstanceID());
+                string p = AssetDatabase.GetAssetPath(obj);
+                if (!string.IsNullOrEmpty(p)) paths.Add(p);
+            }
+
+            var children = node.ChildrenObjects;
+            if (children == null) return;
+            foreach (var child in children)
+            {
+                if (child == null) continue;
+                ids.Add(child.GetInstanceID());
+                string cp = AssetDatabase.GetAssetPath(child);
+                if (!string.IsNullOrEmpty(cp)) paths.Add(cp);
+                if (child is IStructure childStruct)
+                    CollectReferencedIds(childStruct, ids, paths);
+            }
         }
 
 #if SECOND_BRAIN_DEV
