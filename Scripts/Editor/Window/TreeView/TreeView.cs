@@ -815,6 +815,36 @@ namespace SecretZauce.SecondBrain.Editor
             if (searchBar.IsSearching && !NodeOrDescendantsMatch(node))
                 return;
 
+            // Flat search mode: when Containers are excluded from the filter, skip the
+            // container header row entirely and recurse into children at the same indent
+            // level so all results appear flat (no indented parent containers).
+            if (searchBar.IsSearching && node is IStructure flatStruct && node is not Base
+                && !SearchFilterPopup.PassesFilter(node))
+            {
+                if (flatStruct.ChildrenObjects != null)
+                {
+                    int flatChildDepth = path.Length + 1;
+                    int[] flatChildBuf = System.Buffers.ArrayPool<int>.Shared.Rent(flatChildDepth);
+                    path.CopyTo(flatChildBuf, 0);
+                    try
+                    {
+                        for (int i = 0; i < flatStruct.ChildrenObjects.Count; i++)
+                        {
+                            flatChildBuf[path.Length] = i;
+                            int[] flatChildPath = new int[flatChildDepth];
+                            Array.Copy(flatChildBuf, flatChildPath, flatChildDepth);
+                            DrawNode(flatChildPath, flatStruct.ChildrenObjects[i],
+                                inheritedColor, inheritedColorStyle, inheritedHideFoldout, inheritedForceExpand);
+                        }
+                    }
+                    finally
+                    {
+                        System.Buffers.ArrayPool<int>.Shared.Return(flatChildBuf);
+                    }
+                }
+                return;
+            }
+
             // Track this path as visible
             visiblePaths.Add(path);
 

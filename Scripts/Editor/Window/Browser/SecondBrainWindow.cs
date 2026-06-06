@@ -33,7 +33,7 @@ namespace SecretZauce.SecondBrain.Editor
             try
             {
                 var newWindow = CreateInstance<SecondBrainWindow>();
-                newWindow.ShowUtility();
+                newWindow.Show();
                 newWindow.Focus();
                 var mother = Motherbase.Home;
                 if (mother != null && mother.DefaultBase != null)
