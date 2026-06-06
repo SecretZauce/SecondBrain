@@ -197,7 +197,7 @@ namespace SecretZauce.SecondBrain.Editor
             Rect toggleRect = new Rect(plusRect.x - toggleWidth, 2, toggleWidth, headerRect.height - 4);
 
             // Home button (cached icon)
-            bool homeInteractive = !(window?.IsAtHome() ?? true) && !dragDropManager.IsDragging && !renamer.IsRenamingAny;
+            bool homeInteractive = !(window?.IsAtHome() ?? true) && !dragDropManager.IsDragging && !renamer.IsRenamingAny && !treeView.HasGhostSession && !isRenamingHeader;
             EditorGUI.BeginDisabledGroup(!homeInteractive);
             if (GUI.Button(iconRect, new GUIContent(s_HomeIcon, "Go to Home"), GUIStyle.none))
             {
@@ -303,7 +303,7 @@ namespace SecretZauce.SecondBrain.Editor
 
                 Rect pencilRect = new Rect(desiredPencilX, 2, pencilWidth, labelRect.height - 4);
 
-                bool pencilInteractive = !dragDropManager.IsDragging && !renamer.IsRenamingAny;
+                bool pencilInteractive = !dragDropManager.IsDragging && !renamer.IsRenamingAny && !treeView.HasGhostSession && !isRenamingHeader;
                 bool pencilHover       = pencilRect.Contains(Event.current.mousePosition);
 
                 EditorGUI.BeginDisabledGroup(!pencilInteractive);

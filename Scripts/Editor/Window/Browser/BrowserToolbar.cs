@@ -72,17 +72,22 @@ namespace SecretZauce.SecondBrain.Editor
                 s_NextContent  = new GUIContent(s_ForwardIcon ?? (Texture)EditorGUIUtility.IconContent("d_tab_next@2x").image, "Go Forward");
             }
 
+            var tv = ownerWindow.TreeView;
+            bool blocked = tv != null && (tv.HasGhostSession || tv.Renamer.IsRenamingAny || tv.IsRenamingHeader);
+
             // Draw navigation and toolbar
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-            GUI.enabled = ownerWindow.Controller.UndoHelper.CanGoBack;
+            EditorGUI.BeginDisabledGroup(blocked || !ownerWindow.Controller.UndoHelper.CanGoBack);
             if (GUILayout.Button(s_PrevContent, EditorStyles.toolbarButton, GUILayout.Width(24)))
                 ownerWindow.Controller.UndoHelper.GoBack(ownerWindow.Controller);
-            GUI.enabled = ownerWindow.Controller.UndoHelper.CanGoForward;
+            EditorGUI.EndDisabledGroup();
+            EditorGUI.BeginDisabledGroup(blocked || !ownerWindow.Controller.UndoHelper.CanGoForward);
             if (GUILayout.Button(s_NextContent, EditorStyles.toolbarButton, GUILayout.Width(24)))
                 ownerWindow.Controller.UndoHelper.GoForward(ownerWindow.Controller);
-            GUI.enabled = true;
+            EditorGUI.EndDisabledGroup();
             float toolbarHeight = EditorGUIUtility.singleLineHeight + 6f;
+            EditorGUI.BeginDisabledGroup(blocked);
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Height(toolbarHeight));
             
             GUILayout.FlexibleSpace();
@@ -147,7 +152,7 @@ namespace SecretZauce.SecondBrain.Editor
             switch (settingsEvent.GetTypeForControl(settingsControlId))
             {
                 case EventType.MouseDown:
-                    if (settingsEvent.button == 0 && settingsRect.Contains(settingsEvent.mousePosition))
+                    if (!blocked && settingsEvent.button == 0 && settingsRect.Contains(settingsEvent.mousePosition))
                     {
                         ShowSettings(settingsRect);
                         settingsEvent.Use();
@@ -165,6 +170,7 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             EditorGUILayout.EndHorizontal();
+            EditorGUI.EndDisabledGroup(); // blocked group for inner horizontal
         }
 
         void ShowSettings(Rect btnRect)
