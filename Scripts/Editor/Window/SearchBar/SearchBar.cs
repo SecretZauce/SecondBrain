@@ -21,6 +21,8 @@ namespace SecretZauce.SecondBrain.Editor
         static GUIStyle s_CancelButtonStyle;
         static bool     s_StyleCacheProSkin;
         static float    s_StyleCacheLineHeight;
+        static Texture  s_FilterIcon;
+        static bool     s_FilterIconProSkin;
 
         static void EnsureSearchStyles()
         {
@@ -40,6 +42,14 @@ namespace SecretZauce.SecondBrain.Editor
                 padding     = new RectOffset(baseStyle.padding.left, baseStyle.padding.right, 4, 4),
             };
             s_CancelButtonStyle = GUI.skin.FindStyle("ToolbarSearchCancelButton") ?? GUI.skin.button;
+        }
+
+        static void EnsureFilterIcon()
+        {
+            bool ps = EditorGUIUtility.isProSkin;
+            if (s_FilterIcon != null && s_FilterIconProSkin == ps) return;
+            s_FilterIconProSkin = ps;
+            s_FilterIcon = IconUtils.Load("filter");
         }
 
         // ── Internal keyword helpers ──────────────────────────────────────────
@@ -75,7 +85,10 @@ namespace SecretZauce.SecondBrain.Editor
                 skipDrawNextFrame = false;
                 GUILayoutUtility.GetRect(1, searchBarHeight, GUILayout.ExpandWidth(true));
                 if (!string.IsNullOrEmpty(searchKeyword))
-                    GUILayoutUtility.GetRect(20, searchBarHeight);
+                {
+                    GUILayoutUtility.GetRect(20, searchBarHeight); // filter button
+                    GUILayoutUtility.GetRect(20, searchBarHeight); // clear button
+                }
                 GUILayout.EndHorizontal();
                 GUILayout.Space(4);
                 return previousKeyword != searchKeyword;
@@ -123,9 +136,28 @@ namespace SecretZauce.SecondBrain.Editor
             if (newKeyword != searchKeyword)
                 SetKeyword(newKeyword);
 
-            // Clear button
+            // Filter and clear buttons (shown only while searching)
             if (!string.IsNullOrEmpty(searchKeyword))
             {
+                EnsureFilterIcon();
+
+                // Filter button — tinted blue when a non-trivial subset is active
+                bool filterActive = SearchFilterPopup.IsFilterActive;
+                Color prevBg = GUI.backgroundColor;
+                if (filterActive)
+                    GUI.backgroundColor = new Color(0.45f, 0.72f, 1f, 1f);
+
+                var filterContent = s_FilterIcon != null
+                    ? new GUIContent(s_FilterIcon, "Filter search results by type")
+                    : new GUIContent("≡", "Filter search results by type");
+
+                Rect filterBtnRect = GUILayoutUtility.GetRect(20, searchBarHeight, GUILayout.Width(20));
+                if (GUI.Button(filterBtnRect, filterContent, s_CancelButtonStyle))
+                    SearchFilterPopup.TogglePopup(GUIUtility.GUIToScreenRect(filterBtnRect));
+
+                GUI.backgroundColor = prevBg;
+
+                // Clear button
                 if (GUILayout.Button("×", s_CancelButtonStyle, GUILayout.Width(20),
                         GUILayout.Height(searchBarHeight)))
                 {
@@ -199,6 +231,11 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (!IsSearching)
                 return true;
+
+            // Type filter: excluded types never count as direct matches.
+            // Containers that own matching children will still appear via NodeOrDescendantsMatch.
+            if (!SearchFilterPopup.PassesFilter(target))
+                return false;
 
             // Use the cached lowercased keyword — no ToLowerInvariant alloc per row
             return ISearchable.MatchesSearch(target, searchKeywordLower);
