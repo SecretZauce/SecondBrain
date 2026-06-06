@@ -147,15 +147,26 @@ namespace SecretZauce.SecondBrain.Editor
                 if (filterActive)
                     GUI.backgroundColor = new Color(0.45f, 0.72f, 1f, 1f);
 
-                var filterContent = s_FilterIcon != null
-                    ? new GUIContent(s_FilterIcon, "Filter search results by type")
-                    : new GUIContent("≡", "Filter search results by type");
-
                 Rect filterBtnRect = GUILayoutUtility.GetRect(20, searchBarHeight, GUILayout.Width(20));
-                if (GUI.Button(filterBtnRect, filterContent, s_CancelButtonStyle))
+                if (GUI.Button(filterBtnRect, GUIContent.none, s_CancelButtonStyle))
                     SearchFilterPopup.TogglePopup(GUIUtility.GUIToScreenRect(filterBtnRect));
 
                 GUI.backgroundColor = prevBg;
+
+                // Draw the filter icon manually — ToolbarSearchCancelButton's own skin
+                // background swamps any image passed via GUIContent, so we draw on top.
+                if (s_FilterIcon != null && Event.current.type == EventType.Repaint)
+                {
+                    float iconSize = Mathf.Min(filterBtnRect.width, filterBtnRect.height) - 4f;
+                    Rect iconRect = new Rect(
+                        filterBtnRect.x + (filterBtnRect.width  - iconSize) * 0.5f,
+                        filterBtnRect.y + (filterBtnRect.height - iconSize) * 0.5f,
+                        iconSize, iconSize);
+                    Color prevColor = GUI.color;
+                    GUI.color = filterActive ? new Color(0.3f, 0.6f, 1f) : prevColor;
+                    GUI.DrawTexture(iconRect, s_FilterIcon, ScaleMode.ScaleToFit);
+                    GUI.color = prevColor;
+                }
 
                 // Clear button
                 if (GUILayout.Button("×", s_CancelButtonStyle, GUILayout.Width(20),
