@@ -31,6 +31,10 @@ namespace SecretZauce.SecondBrain.Editor
         // Request to navigate into a Base (popup mode: Enter on a Base at Home level)
         public bool NavigateIntoBaseRequested { get; set; }
         public int[] NavigateIntoBasePath { get; set; }
+        // Request to open the property editor for a leaf that has no dedicated Enter action
+        // (e.g. SceneComponentRef / SceneObjectRef with scene loaded, in non-popup browser).
+        public bool OpenPropertyEditorRequested { get; set; }
+        public int[] OpenPropertyEditorTargetPath { get; set; }
     }
 
     // Result of processing global drag-related events inside the tree view
