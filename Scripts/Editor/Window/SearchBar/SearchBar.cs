@@ -56,6 +56,7 @@ namespace SecretZauce.SecondBrain.Editor
         bool requestFocusTreeView = false;
         bool requestFocusSearchBar = false;
         bool requestClosePopup = false;
+        bool requestActivateFirstMatch = false;
         
         /// <summary>
         /// Draws the search bar UI.
@@ -161,6 +162,8 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     GUIUtility.keyboardControl = 0;
                     skipDrawNextFrame = true;
+                    if (IsSearching)
+                        requestActivateFirstMatch = true;
                     e.Use();
                 }
                 else if (e.type == EventType.MouseDown && !lastSearchBarRect.Contains(e.mousePosition))
@@ -238,6 +241,17 @@ namespace SecretZauce.SecondBrain.Editor
         public void RequestFocus()
         {
             requestFocusSearchBar = true;
+        }
+
+        /// <summary>
+        /// Returns true once (and clears the flag) when Enter was pressed while the search bar
+        /// was focused and a search was active — caller should activate the first match.
+        /// </summary>
+        public bool ConsumeActivateFirstMatchRequest()
+        {
+            if (!requestActivateFirstMatch) return false;
+            requestActivateFirstMatch = false;
+            return true;
         }
 
         /// <summary>
