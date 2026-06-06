@@ -85,6 +85,7 @@ namespace SecretZauce.SecondBrain.Editor
             bool preInterceptDownArrow = false;
             bool preInterceptEscape    = false;
             bool preInterceptCtrlSpace = false;
+            bool preInterceptReturn    = false;
             {
                 bool  preFocused = GUI.GetNameOfFocusedControl() == searchBarControlName;
                 Event preEvent   = Event.current;
@@ -104,6 +105,12 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         // Ctrl+Space (Windows/Linux) or Option+Space (Mac) to close popup
                         preInterceptCtrlSpace = true;
+                        preEvent.Use();
+                    }
+                    else if (preEvent.keyCode == KeyCode.Return || preEvent.keyCode == KeyCode.KeypadEnter)
+                    {
+                        // Intercept before the TextField can consume it so we can activate the first match
+                        preInterceptReturn = true;
                         preEvent.Use();
                     }
                 }
@@ -158,14 +165,6 @@ namespace SecretZauce.SecondBrain.Editor
                     skipDrawNextFrame = true;
                     e.Use();
                 }
-                else if (e.type == EventType.KeyDown && (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter))
-                {
-                    GUIUtility.keyboardControl = 0;
-                    skipDrawNextFrame = true;
-                    if (IsSearching)
-                        requestActivateFirstMatch = true;
-                    e.Use();
-                }
                 else if (e.type == EventType.MouseDown && !lastSearchBarRect.Contains(e.mousePosition))
                 {
                     GUIUtility.keyboardControl = 0;
@@ -192,6 +191,15 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 // Request popup close - BrowserWindow will check for this in popup mode
                 requestClosePopup = true;
+                return false;
+            }
+
+            if (preInterceptReturn)
+            {
+                GUIUtility.keyboardControl = 0;
+                skipDrawNextFrame = true;
+                if (IsSearching)
+                    requestActivateFirstMatch = true;
                 return false;
             }
 
