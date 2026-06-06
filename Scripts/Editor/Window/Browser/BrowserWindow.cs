@@ -1646,7 +1646,10 @@ namespace SecretZauce.SecondBrain.Editor
             if (!changed)
                 return;
 
-            GUI.FocusControl(null); // Unfocus any field
+            // Keep focus on the search bar when selection is updated silently (e.g. auto-select on search change)
+            // so the user can keep typing without having to re-click the search field.
+            if (treeView == null || !treeView.IsSearchBarFocused())
+                GUI.FocusControl(null);
             Event.current.Use();
             Repaint();
         }

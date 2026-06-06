@@ -309,6 +309,28 @@ namespace SecretZauce.SecondBrain.Editor
                             EditorApplication.delayCall += () => OwnerWindow?.Repaint();
                         }
                     }
+
+                    // Auto-select the first direct match whenever the search text changes
+                    if (searchChanged && IsSearching())
+                    {
+                        var firstMatch = FindFirstDirectMatch();
+                        if (firstMatch != null)
+                        {
+                            Context.RaiseOnItemSelected(firstMatch, false, false);
+                            EditorApplication.delayCall += () => OwnerWindow?.Repaint();
+                        }
+                    }
+
+                    // Activate the first direct match when Enter is pressed while the search bar is focused
+                    if (searchBar != null && searchBar.ConsumeActivateFirstMatchRequest())
+                    {
+                        var firstMatch = FindFirstDirectMatch();
+                        if (firstMatch != null)
+                        {
+                            Context.RaiseOnItemSelected(firstMatch, false, false);
+                            TryActivateItem(firstMatch);
+                        }
+                    }
                 }
                 catch
                 {
@@ -1411,6 +1433,49 @@ namespace SecretZauce.SecondBrain.Editor
         public bool ConsumeClosePopupRequest()
         {
             return searchBar.ConsumeClosePopupRequest();
+        }
+
+        /// <summary>
+        /// Returns the path of the first item in visiblePaths that directly matches the search
+        /// (i.e. the item's own name satisfies the predicate, not just a descendant).
+        /// Falls back to visiblePaths[0] when no direct match exists.
+        /// </summary>
+        int[] FindFirstDirectMatch()
+        {
+            if (visiblePaths == null || visiblePaths.Count == 0 || !IsSearching())
+                return null;
+
+            foreach (var path in visiblePaths)
+            {
+                var obj = GetObjectAtPath(path);
+                if (obj != null && searchBar.Matches(obj))
+                    return path;
+            }
+
+            return visiblePaths[0];
+        }
+
+        /// <summary>
+        /// Triggers the "enter" action on the item at <paramref name="path"/>, mirroring the
+        /// keyboard Enter handling in TreeViewKeyInput: opens the property editor in popup mode,
+        /// or runs the leaf-node enter action in non-popup mode.
+        /// </summary>
+        void TryActivateItem(int[] path)
+        {
+            if (path == null || OwnerWindow == null) return;
+            var targetObj = GetObjectAtPath(path);
+            if (targetObj == null) return;
+
+#if SECOND_BRAIN_PRO
+            if (OwnerWindow.IsPopup)
+            {
+                OwnerWindow.OpenPropertyEditorFor(path, OwnerWindow);
+                OwnerWindow.TryCloseIfPopup();
+                return;
+            }
+#endif
+            if (LeafNodeActionHelper.HasEnterAction(targetObj))
+                LeafNodeActionHelper.TryEnterLeafNode(targetObj, OwnerWindow.Controller);
         }
     }
 }
