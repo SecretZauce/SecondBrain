@@ -31,7 +31,7 @@ Action Items (PRO) are ScriptableObject-based scripts you drop into any Containe
 The hierarchy is simple and infinitely flexible:
 
 ```
-Motherbase  (project root — invisible)
+Profile  (project root)
   └── Base  (workspace — e.g. "Level Design", "Audio", "UI")
         └── Container  (folder — nestable to any depth)
               ├── Container
@@ -110,6 +110,7 @@ See [Styling and Settings](styling-and-settings.md).
 | Capability | Free | PRO |
 |---|---|---|
 | Browser windows | 1 | Unlimited |
+| Profiles | 1 | Unlimited |
 | Bases (workspaces) | 1 | Unlimited |
 | Move items between Bases | — | ✓ |
 | Quick Peek hover preview | — | ✓ |

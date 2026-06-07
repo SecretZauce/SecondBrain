@@ -18,8 +18,9 @@
 | **Escape** | Clear search → go home → close popup *(priority order)* |
 | **Down** *(in search bar)* | Move focus to first matching result |
 | **Enter** *(in search bar)* | Exit search mode |
-| **Ctrl+Space** *(Win/Linux)* | Toggle Quick Browse popup *(PRO)* |
-| **Option+Space** *(Mac)* | Toggle Quick Browse popup *(PRO)* |
+| **Shift+Q** | Toggle Quick Browse popup *(PRO)* |
+| **Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* | Focus existing SecondBrain window |
+| **Alt+Shift+Q** *(Win/Linux)* / **Option+Shift+Q** *(Mac)* | Open new browser window *(PRO)* |
 
 ---
 
@@ -28,6 +29,7 @@
 | Capability | Free | PRO |
 |---|---|---|
 | Browser windows | 1 | Unlimited |
+| Profiles | 1 | Unlimited |
 | Bases (workspaces) | 1 | Unlimited |
 | Move items between Bases | — | ✓ |
 | Quick Peek hover preview | — | ✓ |
@@ -49,7 +51,7 @@ The following topics appear in the codebase or feature summary but are omitted b
 | `[CreateChild]` attribute / `IHasCreateChildOption` | Developer APIs for registering custom child types in the Create Child menu |
 | `ActionItem` subclassing (`ActionPath`, `GetDetailDisplay`, `DefaultName`, `EditorIcon`) | Developer extension points for building custom Action Items |
 | Internal state files (`FocusHistorySO`, `SelectionStateSO`, `FoldoutState`) | Managed automatically under `Assets/Settings/`; delete to reset UI state if something goes wrong, not user-configurable |
-| Motherbase `initializationProgress` bitmask | Internal first-run tracking — not user-configurable |
+| `SecondBrainCore` initialization state | Internal first-run tracking stored in `SecondBrainCore.asset` — not user-configurable |
 | Sub-asset file layout | Containers are embedded sub-assets inside their Base's `.asset` file — managed automatically; do not reorganize manually |
 | `SceneObjectMap` rebuild | Internal cache rebuilt automatically on domain reload |
 | DEV build PRO toggle on the Upgrade link | Relevant only during plugin development |

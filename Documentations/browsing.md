@@ -4,7 +4,7 @@
 
 Double-click a Base (or select it and press **Return**) to navigate into it. The window title and toolbar update to show the Base name — including its emoji if one is set.
 
-Press **Escape** to return to the top-level Motherbase view.
+Press **Escape** to return to the Home view.
 
 ### Back and Forward
 
@@ -15,7 +15,7 @@ Press **Escape** to return to the top-level Motherbase view.
 | Context | What Escape does |
 |---|---|
 | Search bar is active | Clears the search field |
-| Browsing inside a Base | Returns to Motherbase |
+| Browsing inside a Base | Returns to Home |
 | Quick Browse popup open | Closes the popup |
 
 ### The Tag Bar

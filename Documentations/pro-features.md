@@ -2,6 +2,34 @@ All features on this page require the **PRO** edition of SecondBrain.
 
 ---
 
+## Profiles
+
+A **Profile** is the top-level root of the SecondBrain hierarchy — it holds all your Bases. PRO gives you unlimited profiles, letting you separate completely different project contexts (e.g. one Profile for gameplay, one for tooling, one per team member).
+
+### Switching Profiles
+
+The **profile dropdown** in the browser header shows the currently active profile. Click it to switch or create a new one.
+
+### Creating a Profile
+
+Click the profile dropdown and choose **New Editor-Only Profile…** or **New In-Build Profile…**. A name dialog appears; the new profile is created immediately and becomes the active profile.
+
+- **Editor-Only** — stored in `Assets/Resources/Editor/`; excluded from player builds.
+- **In-Build** — stored in `Assets/Resources/`; included in player builds.
+
+### Storage Location
+
+The **Editor / Build** toggle in the browser header moves the active profile's `.asset` file between the two folders. A confirmation dialog appears before moving.
+
+### Core Settings
+
+Click the ⚙ icon next to the profile dropdown to open the **SecondBrain Core** inspector. From there you can:
+
+- Set the **Default Profile** loaded in player builds (must have In-Build location).
+- Add, reorder, and delete profiles with full undo support.
+
+---
+
 ## Multiple Windows
 
 Click the **+** toolbar button to open additional browser windows. Each window tracks its own navigation history, foldout state, and selection independently.
@@ -64,9 +92,7 @@ The panel header contains a layout toggle (tab icon / foldout icon) to switch be
 
 **Setting a Default Base:**
 
-Select the Motherbase asset in the Project window and assign a Base in the **Default Base** field in the Inspector.
-
-Alternatively, navigate into the Base you want to set as default, open the [Tag Bar](browsing.md#the-tag-bar), and use the Default Base controls there.
+Navigate into the Base you want to set as default, open the [Tag Bar](browsing.md#the-tag-bar) at the bottom of the browser, and use the Default Base controls there.
 
 ---
 

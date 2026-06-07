@@ -83,7 +83,7 @@ Open via the **⚙** toolbar button.
 | Double-Click Action | Rename | What double-clicking a leaf item does: **Rename** or **Enter** |
 | Item Size | Medium | Row height — Tiny / Small / Medium / Large / Extra Large |
 | Expand All on Enter Base | Off | When enabled, all containers in a Base expand automatically when you navigate into it. Does not affect foldout state on session reopen or domain reload. |
-| Storage Location | Resources | Where `Motherbase.asset` (and all Base sub-assets) are stored. **Resources** = `Assets/Resources/` (included in player builds). **EditorResources** = `Assets/Resources/Editor/` (excluded from player builds). A **Move to …** button appears when the on-disk location does not match this setting. |
+| Storage Location *(PRO)* | Editor-Only | Per-profile storage toggle in the browser header (**Editor** / **Build**). **Build** = `Assets/Resources/` (included in player builds). **Editor** = `Assets/Resources/Editor/` (excluded from player builds). See [PRO: Profiles](pro-features.md#profiles). |
 | Enable Quick Peek *(PRO)* | On | Toggle Quick Peek hover preview globally |
 | Enable Scene Linking *(PRO)* | On | Toggle all Scene Linking auto-open / close globally |
 | Close on Scene Close *(PRO)* | Off | Auto-close the browser window when its linked scene closes |

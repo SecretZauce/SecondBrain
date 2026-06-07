@@ -1,7 +1,7 @@
-Everything in SecondBrain lives in a tree rooted at the Motherbase:
+Everything in SecondBrain lives in a tree rooted at a Profile:
 
 ```
-Motherbase  (invisible project root)
+Profile  (project root)
   └── Base  (workspace)
         └── Container  (folder)
               ├── Container  (nested, any depth)
@@ -71,4 +71,4 @@ A few things visible in the codebase are intentionally left out of this guide:
 | `[CreateChild]` attribute / `IHasCreateChildOption` | Developer APIs for registering custom child types in the Create Child menu. |
 | Sub-asset file layout | Containers are embedded sub-assets. Fully managed by SecondBrain — do not reorganize manually. |
 | `SceneObjectMap` rebuild | Internal cache rebuilt automatically on domain reload. |
-| Motherbase `initializationProgress` bitmask | Internal first-run tracking. Not user-configurable. |
+| `SecondBrainCore` initialization state | Internal first-run tracking stored in `SecondBrainCore.asset`. Not user-configurable. |

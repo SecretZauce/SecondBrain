@@ -13,13 +13,13 @@ The browser opens to the top-level view (Home). From here, double-click a Base w
 
 On first launch, SecondBrain runs a one-time initialization flow that:
 
-1. Creates `Motherbase.asset` at `Assets/Resources/Motherbase.asset` (the default location) — the root of your hierarchy.
+1. Creates a default **Profile** asset at `Assets/Resources/Editor/Default Profile.asset` — the root of your hierarchy.
 2. Creates a default **"My Workspace"** Base so you have somewhere to start immediately.
 3. Detects whether SecondBrain Pro is installed and activates it automatically if found.
 4. Opens the **Installer Window** — your starting point for links to documentation, Discord, and the GitHub changelog.
 
 > [!NOTE]
-> Do not move `Motherbase.asset` manually. Use the **Storage Location** option in **Settings (⚙)** to relocate it safely.
+> *(PRO)* Use the **Editor / Build** toggle in the browser header to move a Profile between editor-only storage (`Assets/Resources/Editor/`) and in-build storage (`Assets/Resources/`). Do not move Profile assets manually in the Project window.
 
 With **PRO**, you can create as many Bases as you need — one per scene, one per discipline, or however your project is organized.
 
