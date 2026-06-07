@@ -129,48 +129,47 @@ namespace SecretZauce.SecondBrain.Editor
             var core          = (SecondBrainCore)target;
             var validProfiles = core.Profiles.Where(p => p != null).ToList();
 
-            if (validProfiles.Count == 0)
-            {
-                using (new EditorGUI.DisabledScope(true))
-                    EditorGUILayout.Popup(
-                        new GUIContent("Default Profile", "No profiles registered yet."),
-                        0, new[] { "— none —" });
-                return;
-            }
-
-            // Show all profiles; tag editor-only ones so the user knows they won't work in builds.
-            string[] displayNames = validProfiles.Select(p =>
+            // Index 0 is always "None" (empty string → no profile loaded in builds).
+            var displayNames = new System.Collections.Generic.List<string> { "— None —" };
+            displayNames.AddRange(validProfiles.Select(p =>
             {
                 bool inBuild = Profile.GetCurrentLocation(p) == DataStorageLocation.Resources;
                 return inBuild ? p.name : $"{p.name}  [Editor Only]";
-            }).ToArray();
+            }));
 
             string currentName  = defaultProfileNameProp.stringValue;
-            int    currentIndex = validProfiles.FindIndex(p => p.name == currentName);
-            if (currentIndex < 0) currentIndex = 0;
+            // +1 offset because index 0 is "None"
+            int profileIndex = string.IsNullOrEmpty(currentName)
+                ? -1
+                : validProfiles.FindIndex(p => p.name == currentName);
+            int currentIndex = profileIndex < 0 ? 0 : profileIndex + 1;
 
             EditorGUI.BeginChangeCheck();
             int newIndex = EditorGUILayout.Popup(
                 new GUIContent("Default Profile",
                     "Profile loaded in player builds via Resources.Load. " +
+                    "'None' means no profile is loaded. " +
                     "Must have 'Build' location to be accessible at runtime."),
-                currentIndex, displayNames);
+                currentIndex, displayNames.ToArray());
             if (EditorGUI.EndChangeCheck())
-                defaultProfileNameProp.stringValue = validProfiles[newIndex].name;
+                defaultProfileNameProp.stringValue = newIndex == 0 ? "" : validProfiles[newIndex - 1].name;
 
-            // Warn if the selected profile is editor-only and offer a one-click fix.
-            var chosen = validProfiles[currentIndex];
-            if (chosen != null && Profile.GetCurrentLocation(chosen) != DataStorageLocation.Resources)
+            // Warn if a specific editor-only profile is selected and offer a one-click fix.
+            if (currentIndex > 0)
             {
-                EditorGUILayout.HelpBox(
-                    $"'{chosen.name}' is stored in Resources/Editor/ and will not be available in builds. " +
-                    "Move it to 'Build' location or choose a different profile.",
-                    MessageType.Warning);
-
-                if (GUILayout.Button("Move to Build Location", EditorStyles.miniButton))
+                var chosen = validProfiles[currentIndex - 1];
+                if (chosen != null && Profile.GetCurrentLocation(chosen) != DataStorageLocation.Resources)
                 {
-                    if (ProfileManager.MoveProfileToLocation(chosen, DataStorageLocation.Resources))
-                        Repaint();
+                    EditorGUILayout.HelpBox(
+                        $"'{chosen.name}' is stored in Resources/Editor/ and will not be available in builds. " +
+                        "Move it to 'Build' location or choose a different profile.",
+                        MessageType.Warning);
+
+                    if (GUILayout.Button("Move to Build Location", EditorStyles.miniButton))
+                    {
+                        if (ProfileManager.MoveProfileToLocation(chosen, DataStorageLocation.Resources))
+                            Repaint();
+                    }
                 }
             }
         }

@@ -84,8 +84,14 @@ namespace SecretZauce.SecondBrain
             return LoadActiveProfileEditor();
 #else
             var core = Resources.Load<SecondBrainCore>("SecondBrainCore");
-            string profileName = core != null ? core.DefaultProfileName : PROFILE_NAME;
-            return Resources.Load<Profile>(profileName);
+            if (core != null)
+            {
+                // Core exists — honour its setting. Empty means the user chose "None" → no profile in builds.
+                string name = core.DefaultProfileName;
+                return string.IsNullOrEmpty(name) ? null : Resources.Load<Profile>(name);
+            }
+            // Core asset missing → fall back to the built-in constant for backward compatibility.
+            return Resources.Load<Profile>(PROFILE_NAME);
 #endif
         }
 

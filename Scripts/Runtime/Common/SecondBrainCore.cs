@@ -35,8 +35,9 @@ namespace SecretZauce.SecondBrain
 
         [SerializeField] string defaultProfileName = "Default Profile";
 
-        public string DefaultProfileName =>
-            string.IsNullOrEmpty(defaultProfileName) ? "Default Profile" : defaultProfileName;
+        // Empty string means "no profile loaded in builds" (user explicitly chose None).
+        // Null/missing core asset falls back to the built-in constant inside Profile.LoadActiveProfile.
+        public string DefaultProfileName => defaultProfileName;
 
 #if UNITY_EDITOR
         // ── Initialization state ───────────────────────────────────────────────
