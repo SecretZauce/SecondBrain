@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SecretZauce.SecondBrain;
@@ -18,30 +17,17 @@ namespace SecretZauce.SecondBrain.Editor
         /// <summary>Fired when the active profile changes. All open BrowserWindows subscribe.</summary>
         public static event Action OnActiveProfileChanged;
 
-        static readonly string[] SearchFolders =
-        {
-            Profile.FOLDER_EDITOR_RESOURCES,
-            Profile.FOLDER_RESOURCES,
-        };
-
         // ── Discovery ──────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Returns all Profile assets found in both Resources folders.
+        /// Returns all Profile assets registered in <see cref="SecondBrainCore"/>.
+        /// Syncs the registry first to pick up any assets added outside the API.
         /// </summary>
         public static Profile[] GetAllProfiles()
         {
-            var guids = AssetDatabase.FindAssets("t:Profile", SearchFolders);
-            var results = new List<Profile>(guids.Length);
-            foreach (var g in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(g);
-                if (string.IsNullOrEmpty(path)) continue;
-                var p = AssetDatabase.LoadAssetAtPath<Profile>(path);
-                if (p != null)
-                    results.Add(p);
-            }
-            return results.ToArray();
+            var core = SecondBrainCore.Instance;
+            core.SyncProfiles();
+            return core.Profiles.ToArray();
         }
 
         // ── Active profile ─────────────────────────────────────────────────────
@@ -155,6 +141,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Bootstrap the new profile with a default workspace Base
             CreateDefaultBase(newProfile, path);
 
+            SecondBrainCore.Instance.RegisterProfile(newProfile);
             AssetDatabase.SaveAssets();
             return newProfile;
         }

@@ -22,14 +22,6 @@ namespace SecretZauce.SecondBrain
         Resources = 1,
     }
 
-    public enum ProfileInitializationState
-    {
-        Uninitialized = 0,
-        FreeVersionInitialized = 1,
-        ProVersionInitialized = 2,
-        InitializationCompleted = 3,
-    }
-
     /// <summary>
     /// Root ScriptableObject that acts as the top-level workspace container.
     /// Formerly known as Motherbase; renamed to Profile to support multi-profile switching.
@@ -43,20 +35,6 @@ namespace SecretZauce.SecondBrain
 
         public List<Base> Children => baseList;
         [SerializeField] List<Base> baseList = new List<Base>();
-        [SerializeField, HideInInspector] int initializationProgress;
-        [SerializeField, HideInInspector] ProfileInitializationState initializationState;
-
-        public ProfileInitializationState InitializationState
-        {
-            get => initializationState;
-            set
-            {
-                initializationState = value;
-#if UNITY_EDITOR
-                EditorUtility.SetDirty(this);
-#endif
-            }
-        }
 
         // Optional reference to the Default Base. When set, this Base is considered
         // the project's default and can be used by UI or startup logic.
@@ -70,31 +48,6 @@ namespace SecretZauce.SecondBrain
         {
             get => defaultBase;
             set => defaultBase = value;
-        }
-
-        /// <summary>
-        /// Returns <c>true</c> when all bits in <paramref name="stepFlag"/> are set in the
-        /// initialization progress mask (for example: 1, 2, 4, 8).
-        /// </summary>
-        public bool HasInitializationStepCompleted(int stepFlag)
-        {
-            if (stepFlag <= 0)
-                return false;
-            return (initializationProgress & stepFlag) == stepFlag;
-        }
-
-        /// <summary>
-        /// Marks one or more initialization step bits as completed.
-        /// <paramref name="stepFlag"/> should use power-of-two values (for example: 1, 2, 4, 8).
-        /// </summary>
-        public void MarkInitializationStepCompleted(int stepFlag)
-        {
-            if (stepFlag <= 0)
-                return;
-            initializationProgress |= stepFlag;
-#if UNITY_EDITOR
-            EditorUtility.SetDirty(this);
-#endif
         }
 
         public Base CreateNew(Type type)

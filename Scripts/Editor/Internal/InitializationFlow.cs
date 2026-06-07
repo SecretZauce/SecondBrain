@@ -16,8 +16,9 @@ namespace SecretZauce.SecondBrain.Editor
 
         static InitializationFlow()
         {
-            // Ensure the Profile asset exists, then run the state machine after domain reload settles.
-            Profile.LoadActiveProfile();
+            // Ensure the Profile asset exists, seed the registry, then run the state machine.
+            var activeProfile = Profile.LoadActiveProfile();
+            SecondBrainCore.Instance.RegisterProfile(activeProfile);
             EditorApplication.delayCall += RunInitializationFlow;
         }
 
@@ -29,7 +30,8 @@ namespace SecretZauce.SecondBrain.Editor
             if (profile == null)
                 return;
 
-            var state = profile.InitializationState;
+            var core = SecondBrainCore.Instance;
+            var state = core.InitializationState;
             if (state == ProfileInitializationState.InitializationCompleted)
             {
                 CleanupStaleProDefine();
@@ -43,15 +45,15 @@ namespace SecretZauce.SecondBrain.Editor
                 switch (state)
                 {
                     case ProfileInitializationState.Uninitialized:
-                        InitializeFreeVersion(profile, progressId);
+                        InitializeFreeVersion(profile, core, progressId);
                         break;
 
                     case ProfileInitializationState.FreeVersionInitialized:
-                        CheckForProVersion(profile, progressId);
+                        CheckForProVersion(core, progressId);
                         break;
 
                     case ProfileInitializationState.ProVersionInitialized:
-                        CompleteProInitialization(profile, progressId);
+                        CompleteProInitialization(core, progressId);
                         break;
                 }
             }
@@ -64,7 +66,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         // ── Phase methods ─────────────────────────────────────────────────────────
 
-        static void InitializeFreeVersion(Profile profile, int progressId)
+        static void InitializeFreeVersion(Profile profile, SecondBrainCore core, int progressId)
         {
             Progress.Report(progressId, 0.1f, "Setting up workspace...");
             Debug.Log("[SecondBrain] First-time setup started.");
@@ -76,14 +78,14 @@ namespace SecretZauce.SecondBrain.Editor
                 Debug.Log("[SecondBrain] Created default workspace 'My Workspace'.");
             }
 
-            profile.InitializationState = ProfileInitializationState.FreeVersionInitialized;
+            core.InitializationState = ProfileInitializationState.FreeVersionInitialized;
             AssetDatabase.SaveAssets();
 
             Progress.Report(progressId, 0.5f, "Checking for Pro version...");
-            CheckForProVersion(profile, progressId);
+            CheckForProVersion(core, progressId);
         }
 
-        static void CheckForProVersion(Profile profile, int progressId)
+        static void CheckForProVersion(SecondBrainCore core, int progressId)
         {
             Progress.Report(progressId, 0.65f, "Scanning for Pro assembly...");
             Debug.Log("[SecondBrain] Checking for Pro assembly...");
@@ -93,7 +95,7 @@ namespace SecretZauce.SecondBrain.Editor
                 Progress.Report(progressId, 0.85f, "Pro detected — enabling...");
                 Debug.Log("[SecondBrain] Pro assembly detected. Enabling SECOND_BRAIN_PRO — editor will recompile.");
 
-                profile.InitializationState = ProfileInitializationState.ProVersionInitialized;
+                core.InitializationState = ProfileInitializationState.ProVersionInitialized;
                 AssetDatabase.SaveAssets();
                 Progress.Finish(progressId, Progress.Status.Succeeded);
                 ProLicenseUtils.AddProDefine();
@@ -103,19 +105,19 @@ namespace SecretZauce.SecondBrain.Editor
                 Progress.Report(progressId, 0.9f, "Free version ready.");
                 Debug.Log("[SecondBrain] Free version setup complete.");
 
-                profile.InitializationState = ProfileInitializationState.InitializationCompleted;
+                core.InitializationState = ProfileInitializationState.InitializationCompleted;
                 AssetDatabase.SaveAssets();
                 Progress.Finish(progressId, Progress.Status.Succeeded);
                 EditorApplication.delayCall += InstallerWindow.Open;
             }
         }
 
-        static void CompleteProInitialization(Profile profile, int progressId)
+        static void CompleteProInitialization(SecondBrainCore core, int progressId)
         {
             Progress.Report(progressId, 0.4f, "Activating Pro features...");
             Debug.Log("[SecondBrain] Pro initialization complete — finalizing.");
 
-            profile.InitializationState = ProfileInitializationState.InitializationCompleted;
+            core.InitializationState = ProfileInitializationState.InitializationCompleted;
             AssetDatabase.SaveAssets();
 
             Progress.Report(progressId, 0.9f, "Opening SecondBrain...");
@@ -302,55 +304,51 @@ namespace SecretZauce.SecondBrain.Editor
         {
             var p = Profile.Active;
             if (p == null) return;
-            p.InitializationState = ProfileInitializationState.Uninitialized;
+            var core = SecondBrainCore.Instance;
+            core.InitializationState = ProfileInitializationState.Uninitialized;
             AssetDatabase.SaveAssets();
             Debug.Log("[SecondBrain DEV] State → Uninitialized — running phase now.");
             int id = StartDevProgress("Uninitialized");
-            try   { InitializeFreeVersion(p, id); }
+            try   { InitializeFreeVersion(p, core, id); }
             catch { Progress.Finish(id, Progress.Status.Failed); throw; }
         }
 
         [MenuItem("Tools/Second Brain/DEV ─ Init/Simulate: Check for Pro Phase")]
         static void Dev_SimulateFreeInitialized()
         {
-            var p = Profile.Active;
-            if (p == null) return;
-            p.InitializationState = ProfileInitializationState.FreeVersionInitialized;
+            var core = SecondBrainCore.Instance;
+            core.InitializationState = ProfileInitializationState.FreeVersionInitialized;
             AssetDatabase.SaveAssets();
             Debug.Log("[SecondBrain DEV] State → FreeVersionInitialized — running phase now.");
             int id = StartDevProgress("Check for Pro");
-            try   { CheckForProVersion(p, id); }
+            try   { CheckForProVersion(core, id); }
             catch { Progress.Finish(id, Progress.Status.Failed); throw; }
         }
 
         [MenuItem("Tools/Second Brain/DEV ─ Init/Simulate: Complete Pro Phase")]
         static void Dev_SimulateProInitialized()
         {
-            var p = Profile.Active;
-            if (p == null) return;
-            p.InitializationState = ProfileInitializationState.ProVersionInitialized;
+            var core = SecondBrainCore.Instance;
+            core.InitializationState = ProfileInitializationState.ProVersionInitialized;
             AssetDatabase.SaveAssets();
             Debug.Log("[SecondBrain DEV] State → ProVersionInitialized — running phase now.");
             int id = StartDevProgress("Complete Pro");
-            try   { CompleteProInitialization(p, id); }
+            try   { CompleteProInitialization(core, id); }
             catch { Progress.Finish(id, Progress.Status.Failed); throw; }
         }
 
         [MenuItem("Tools/Second Brain/DEV ─ Init/Run from Current State")]
         static void Dev_RunFromCurrentState()
         {
-            var p = Profile.Active;
-            if (p == null) return;
-            Debug.Log($"[SecondBrain DEV] Running init flow from state: {p.InitializationState}");
+            Debug.Log($"[SecondBrain DEV] Running init flow from state: {SecondBrainCore.Instance.InitializationState}");
             RunInitializationFlow();
         }
 
         [MenuItem("Tools/Second Brain/DEV ─ Init/Reset State to Uninitialized (next reload)")]
         static void Dev_ResetStateOnly()
         {
-            var p = Profile.Active;
-            if (p == null) return;
-            p.InitializationState = ProfileInitializationState.Uninitialized;
+            var core = SecondBrainCore.Instance;
+            core.InitializationState = ProfileInitializationState.Uninitialized;
             AssetDatabase.SaveAssets();
             Debug.Log("[SecondBrain DEV] Init state reset to Uninitialized — will trigger on next domain reload.");
         }
