@@ -83,7 +83,9 @@ namespace SecretZauce.SecondBrain
 #if UNITY_EDITOR
             return LoadActiveProfileEditor();
 #else
-            return Resources.Load<Profile>(PROFILE_NAME) ?? Resources.Load<Profile>(LEGACY_NAME);
+            var core = Resources.Load<SecondBrainCore>("SecondBrainCore");
+            string profileName = core != null ? core.DefaultProfileName : PROFILE_NAME;
+            return Resources.Load<Profile>(profileName);
 #endif
         }
 

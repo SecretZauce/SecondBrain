@@ -64,6 +64,7 @@ namespace SecretZauce.SecondBrain.Editor
         static GUIStyle s_HeaderPlusStyle;
         static GUIStyle s_ToggleStyle;
 #if SECOND_BRAIN_PRO
+        static Texture  s_CoreSettingsIcon;
         static GUIStyle s_ProfileDropdownStyle;
         static GUIStyle s_LocationButtonStyle;
         static GUIStyle s_LocationButtonRightStyle;
@@ -119,6 +120,8 @@ namespace SecretZauce.SecondBrain.Editor
             };
 
 #if SECOND_BRAIN_PRO
+            s_CoreSettingsIcon = IconUtils.Load("settings");
+
             s_ProfileDropdownStyle = new GUIStyle(EditorStyles.popup)
             {
                 alignment  = TextAnchor.MiddleLeft,
@@ -289,15 +292,32 @@ namespace SecretZauce.SecondBrain.Editor
             string profileName = activeProfile != null ? activeProfile.name : "—";
 
             const float dropdownWidth = 120f;
+            const float settingsBtnW  = 18f;
+            const float settingsGap   = 2f;
             float dropdownH = Mathf.Max(14f, headerRect.height - 4f);
             float dropdownY = (headerRect.height - dropdownH) * 0.5f;
-            Rect dropdownRect = new Rect(labelRect.x, dropdownY, dropdownWidth, dropdownH);
+            Rect dropdownRect  = new Rect(labelRect.x, dropdownY, dropdownWidth, dropdownH);
+            Rect settingsRect  = new Rect(dropdownRect.xMax + settingsGap, dropdownY, settingsBtnW, dropdownH);
 
             EditorGUI.BeginDisabledGroup(!interactive);
             if (GUI.Button(dropdownRect, new GUIContent(profileName, "Switch Profile"),
                     s_ProfileDropdownStyle ?? EditorStyles.popup))
             {
                 ShowProfileMenu(dropdownRect, window);
+                Event.current?.Use();
+            }
+
+            bool settingsHover = settingsRect.Contains(Event.current.mousePosition);
+            if (settingsHover && interactive)
+                EditorGUI.DrawRect(settingsRect, new Color(0.3f, 0.3f, 0.3f, 0.5f));
+
+            GUIContent settingsContent = s_CoreSettingsIcon != null
+                ? new GUIContent(s_CoreSettingsIcon, "SecondBrain Core Settings")
+                : new GUIContent("⚙", "SecondBrain Core Settings");
+
+            if (GUI.Button(settingsRect, settingsContent, s_HamStyle))
+            {
+                try { EditorUtility.OpenPropertyEditor(SecondBrainCore.Instance); } catch { }
                 Event.current?.Use();
             }
             EditorGUI.EndDisabledGroup();
