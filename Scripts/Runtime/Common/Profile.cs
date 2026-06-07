@@ -29,9 +29,7 @@ namespace SecretZauce.SecondBrain
     [MovedFrom(true, "SecretZauce.SecondBrain", "SecretZauce.SecondBrain", "Motherbase")]
     public class Profile : ScriptableObject, IStructure<Base>
     {
-        const string PROFILE_NAME = "Profile";
-        // Legacy fallback name so existing Motherbase.asset files are still found.
-        const string LEGACY_NAME = "Motherbase";
+        const string PROFILE_NAME = "Default Profile";
 
         public List<Base> Children => baseList;
         [SerializeField] List<Base> baseList = new List<Base>();
@@ -117,11 +115,6 @@ namespace SecretZauce.SecondBrain
                 // New name first
                 string prefix = folder == FOLDER_EDITOR_RESOURCES ? "Editor/" : "";
                 var asset = Resources.Load<Profile>(prefix + PROFILE_NAME);
-                if (asset != null)
-                    return asset;
-
-                // Legacy name fallback
-                asset = Resources.Load<Profile>(prefix + LEGACY_NAME);
                 if (asset != null)
                     return asset;
             }

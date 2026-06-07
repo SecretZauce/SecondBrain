@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+
 namespace SecretZauce.SecondBrain.Editor
 {
     internal class ProfileNameDialog : EditorWindow
@@ -8,19 +9,22 @@ namespace SecretZauce.SecondBrain.Editor
         bool confirmed;
         bool focusField = true;
         const string FieldControlName = "ProfileNameField";
-        static ProfileNameDialog instance;
+
+        // Written by OnDisable (while the instance is still alive) and read by Show after ShowModal returns.
+        static string s_Result;
+
         public static string Show(string title, string defaultName = "Profile")
         {
-            if (instance != null) instance.Close();
-            instance = CreateInstance<ProfileNameDialog>();
-            instance.titleContent = new GUIContent(title);
-            instance.inputName    = defaultName;
-            instance.minSize      = new Vector2(300, 90);
-            instance.maxSize      = new Vector2(400, 90);
-            instance.ShowModal();
-            string result = instance.confirmed ? instance.inputName : null;
-            return string.IsNullOrWhiteSpace(result) ? null : result.Trim();
+            s_Result = null;
+            var dlg = CreateInstance<ProfileNameDialog>();
+            dlg.titleContent = new GUIContent(title);
+            dlg.inputName    = defaultName;
+            dlg.minSize      = new Vector2(300, 90);
+            dlg.maxSize      = new Vector2(400, 90);
+            dlg.ShowModal();
+            return s_Result;
         }
+
         void OnGUI()
         {
             if (Event.current.type == EventType.KeyDown)
@@ -30,6 +34,7 @@ namespace SecretZauce.SecondBrain.Editor
                 if (Event.current.keyCode == KeyCode.Escape)
                 { Event.current.Use(); Close(); return; }
             }
+
             GUILayout.Space(10);
             GUILayout.BeginHorizontal();
             GUILayout.Space(10);
@@ -51,6 +56,11 @@ namespace SecretZauce.SecondBrain.Editor
             GUILayout.Space(10);
             GUILayout.EndHorizontal();
         }
-        void OnDisable() { instance = null; }
+
+        void OnDisable()
+        {
+            if (confirmed && !string.IsNullOrWhiteSpace(inputName))
+                s_Result = inputName.Trim();
+        }
     }
 }

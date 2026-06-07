@@ -672,6 +672,7 @@ namespace SecretZauce.SecondBrain.Editor
                 return;
 
             float pw = TreeViewDragInput.QuickPeekZoneWidth;
+            EditorGUI.DrawRect(new Rect(_scrollViewRect.xMax - pw, _scrollViewRect.y, pw, _scrollViewRect.height), new Color(0f, 0f, 0f, 0.1f));
             
             // Unity's vertical scrollbar is typically 15 pixels wide. Account for it when visible.
             // Scrollbar appears when content extends beyond viewport in either direction

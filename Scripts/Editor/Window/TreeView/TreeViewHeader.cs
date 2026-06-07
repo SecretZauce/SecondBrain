@@ -66,7 +66,7 @@ namespace SecretZauce.SecondBrain.Editor
 #if SECOND_BRAIN_PRO
         static GUIStyle s_ProfileDropdownStyle;
         static GUIStyle s_LocationButtonStyle;
-        static GUIStyle s_LocationButtonActiveStyle;
+        static GUIStyle s_LocationButtonRightStyle;
 #endif
 
         static void EnsureHeaderStyles()
@@ -119,16 +119,15 @@ namespace SecretZauce.SecondBrain.Editor
             };
 
 #if SECOND_BRAIN_PRO
-            s_ProfileDropdownStyle = new GUIStyle(EditorStyles.miniButton)
+            s_ProfileDropdownStyle = new GUIStyle(EditorStyles.popup)
             {
                 alignment  = TextAnchor.MiddleLeft,
                 fontStyle  = FontStyle.Normal,
                 fontSize   = 11,
-                padding    = new RectOffset(6, 14, 1, 1),
                 fixedHeight = 0,
             };
 
-            s_LocationButtonStyle = new GUIStyle(EditorStyles.miniButtonMid)
+            s_LocationButtonStyle = new GUIStyle(EditorStyles.miniButtonLeft)
             {
                 alignment = TextAnchor.MiddleCenter,
                 fontSize  = 10,
@@ -136,10 +135,13 @@ namespace SecretZauce.SecondBrain.Editor
                 fixedHeight = 0,
             };
 
-            s_LocationButtonActiveStyle = new GUIStyle(s_LocationButtonStyle);
-            s_LocationButtonActiveStyle.normal.textColor =
-                EditorGUIUtility.isProSkin ? new Color(0.4f, 0.8f, 1f) : new Color(0.1f, 0.4f, 0.85f);
-            s_LocationButtonActiveStyle.fontStyle = FontStyle.Bold;
+            s_LocationButtonRightStyle = new GUIStyle(EditorStyles.miniButtonRight)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize  = 10,
+                padding   = new RectOffset(4, 4, 1, 1),
+                fixedHeight = 0,
+            };
 #endif
 
             s_HeaderStylesValid = true;
@@ -214,7 +216,14 @@ namespace SecretZauce.SecondBrain.Editor
 
             // Reserve right-side space
             float hamburgerWidth = 18f;
+#if SECOND_BRAIN_PRO
+            // Each location button needs enough width for "Editor" / "Build" text.
+            const float locationBtnW = 44f;
+            const float locationTotalW = locationBtnW * 2 + 4f; // two buttons + gap before expand toggle
+            float rightReserved = showingBaseTarget ? 180f : 110f + locationTotalW;
+#else
             float rightReserved = showingBaseTarget ? 180f : 110f;
+#endif
             rightReserved += hamburgerWidth + 4f;
             float labelWidth = Mathf.Max(150, headerRect.width - rightReserved - iconSize - 6 - peekInset * 2f);
             Rect labelRect = new Rect(iconRect.xMax + 6, 0, labelWidth, headerRect.height);
@@ -222,8 +231,14 @@ namespace SecretZauce.SecondBrain.Editor
             // Pre-calc right-side positions (inset from right by peekInset to match tree rows)
             float plusWidth = 18f;
             float toggleWidth = 18f;
-            Rect plusRect   = new Rect(headerRect.width - plusWidth - peekInset, 1, plusWidth, headerRect.height - 2);
+            Rect plusRect = new Rect(headerRect.width - plusWidth - peekInset, 1, plusWidth, headerRect.height - 2);
+#if SECOND_BRAIN_PRO
+            // Expand/collapse sits immediately left of +; location buttons sit left of that when at home.
             Rect toggleRect = new Rect(plusRect.x - toggleWidth, 2, toggleWidth, headerRect.height - 4);
+            Rect locationRect = new Rect(toggleRect.x - locationBtnW * 2 - 2f, 2, locationBtnW * 2, headerRect.height - 4);
+#else
+            Rect toggleRect = new Rect(plusRect.x - toggleWidth, 2, toggleWidth, headerRect.height - 4);
+#endif
 
             // Home button (cached icon)
             bool homeInteractive = !(window?.IsAtHome() ?? true) && !dragDropManager.IsDragging && !renamer.IsRenamingAny && !treeView.HasGhostSession && !isRenamingHeader;
@@ -244,8 +259,8 @@ namespace SecretZauce.SecondBrain.Editor
 #if SECOND_BRAIN_PRO
             else
             {
-                // At home with Pro: draw profile dropdown + location toggle in the label area
-                DrawProfileDropdownAndLocation(labelRect, headerRect, window, interactive);
+                // At home with Pro: draw profile dropdown in the label area
+                DrawProfileDropdown(labelRect, headerRect, window, interactive);
             }
 #endif
 
@@ -257,64 +272,75 @@ namespace SecretZauce.SecondBrain.Editor
 
             // Collapse/expand foldout and + button
             DrawFoldoutAndPlus(toggleRect, plusRect, window, root, showingBaseTarget, interactive);
+
+#if SECOND_BRAIN_PRO
+            // Location toggle (Editor / Build) sits on the right side when at home
+            if (!showingBaseTarget)
+                DrawLocationToggle(locationRect, window, interactive);
+#endif
         }
 
         // ── Profile dropdown (Pro only — shown when at home) ───────────────────
 
 #if SECOND_BRAIN_PRO
-        void DrawProfileDropdownAndLocation(Rect labelRect, Rect headerRect, BrowserWindow window, bool interactive)
+        void DrawProfileDropdown(Rect labelRect, Rect headerRect, BrowserWindow window, bool interactive)
         {
             var activeProfile = Profile.Active;
             string profileName = activeProfile != null ? activeProfile.name : "—";
 
-            // ── Profile dropdown button ────────────────────────────────────────
             const float dropdownWidth = 120f;
-            const float locationWidth = 52f; // "Editor" or "Build" + separator
-            const float gap = 4f;
-
-            float dropdownX = labelRect.x;
             float dropdownH = Mathf.Max(14f, headerRect.height - 4f);
             float dropdownY = (headerRect.height - dropdownH) * 0.5f;
-
-            Rect dropdownRect  = new Rect(dropdownX, dropdownY, dropdownWidth, dropdownH);
-            Rect locationRect  = new Rect(dropdownX + dropdownWidth + gap, dropdownY, locationWidth, dropdownH);
+            Rect dropdownRect = new Rect(labelRect.x, dropdownY, dropdownWidth, dropdownH);
 
             EditorGUI.BeginDisabledGroup(!interactive);
-
-            // Dropdown button
-            GUIContent dropdownContent = new GUIContent(profileName, "Switch Profile");
-            if (GUI.Button(dropdownRect, dropdownContent, s_ProfileDropdownStyle ?? EditorStyles.miniButton))
+            if (GUI.Button(dropdownRect, new GUIContent(profileName, "Switch Profile"),
+                    s_ProfileDropdownStyle ?? EditorStyles.popup))
             {
                 ShowProfileMenu(dropdownRect, window);
                 Event.current?.Use();
             }
+            EditorGUI.EndDisabledGroup();
+        }
 
-            // Location toggle: "Editor" | "Build"
+        void DrawLocationToggle(Rect locationRect, BrowserWindow window, bool interactive)
+        {
+            var activeProfile = Profile.Active;
             DataStorageLocation currentLoc = ProfileManager.GetProfileLocation(activeProfile);
             bool isEditor = currentLoc == DataStorageLocation.EditorResources;
 
-            Rect editorBtnRect = new Rect(locationRect.x, locationRect.y, locationWidth * 0.5f, locationRect.height);
-            Rect buildBtnRect  = new Rect(locationRect.x + locationWidth * 0.5f, locationRect.y, locationWidth * 0.5f, locationRect.height);
+            float halfW = locationRect.width * 0.5f;
+            Rect editorBtnRect = new Rect(locationRect.x, locationRect.y, halfW, locationRect.height);
+            Rect buildBtnRect  = new Rect(locationRect.x + halfW, locationRect.y, halfW, locationRect.height);
 
-            GUIStyle editorStyle = isEditor  ? (s_LocationButtonActiveStyle ?? EditorStyles.miniButtonLeft)
-                                             : (s_LocationButtonStyle       ?? EditorStyles.miniButtonLeft);
-            GUIStyle buildStyle  = !isEditor ? (s_LocationButtonActiveStyle ?? EditorStyles.miniButtonRight)
-                                             : (s_LocationButtonStyle       ?? EditorStyles.miniButtonRight);
+            Color activeColor = EditorGUIUtility.isProSkin
+                ? new Color(0.4f, 0.85f, 1f, 1f)
+                : new Color(0.2f, 0.5f, 0.9f, 1f);
+            var prevColor = GUI.color;
 
-            if (GUI.Button(editorBtnRect, new GUIContent("Editor", "Editor-Only — stored in Assets/Resources/Editor/, excluded from builds"), editorStyle))
+            EditorGUI.BeginDisabledGroup(!interactive);
+
+            GUI.color = isEditor ? activeColor : prevColor;
+            if (GUI.Button(editorBtnRect,
+                    new GUIContent("Editor", "Editor-Only — stored in Assets/Resources/Editor/, excluded from builds"),
+                    s_LocationButtonStyle ?? EditorStyles.miniButtonLeft))
             {
                 if (!isEditor)
                     TrySwitchProfileLocation(activeProfile, DataStorageLocation.EditorResources, window);
                 Event.current?.Use();
             }
 
-            if (GUI.Button(buildBtnRect, new GUIContent("Build", "In-Build — stored in Assets/Resources/, included in builds"), buildStyle))
+            GUI.color = !isEditor ? activeColor : prevColor;
+            if (GUI.Button(buildBtnRect,
+                    new GUIContent("Build", "In-Build — stored in Assets/Resources/, included in builds"),
+                    s_LocationButtonRightStyle ?? EditorStyles.miniButtonRight))
             {
                 if (isEditor)
                     TrySwitchProfileLocation(activeProfile, DataStorageLocation.Resources, window);
                 Event.current?.Use();
             }
 
+            GUI.color = prevColor;
             EditorGUI.EndDisabledGroup();
         }
 
