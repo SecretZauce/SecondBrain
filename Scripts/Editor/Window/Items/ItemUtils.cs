@@ -13,6 +13,9 @@ namespace SecretZauce.SecondBrain.Editor
         // per row.  Caches are keyed by type (or editor-icon name) and are cleared
         // whenever BrowserSettings change (e.g. ShowIconsPerType toggle).
         static readonly Dictionary<System.Type, Texture>   s_IconByType        = new Dictionary<System.Type, Texture>();
+        // Per-instance cache for non-ScriptableObject assets (Sprite, Texture2D, Material, etc.)
+        // whose thumbnails differ per asset rather than per type.
+        static readonly Dictionary<int, Texture>            s_IconByInstance    = new Dictionary<int, Texture>();
         static readonly Dictionary<string, Texture>         s_EditorIconByName  = new Dictionary<string, Texture>();
         static readonly Dictionary<string, Texture>         s_CustomIconByName  = new Dictionary<string, Texture>();
         static bool s_IconCacheSubscribed;
@@ -24,6 +27,7 @@ namespace SecretZauce.SecondBrain.Editor
             BrowserSettings.OnSettingsChanged += static () =>
             {
                 s_IconByType.Clear();
+                s_IconByInstance.Clear();
                 s_EditorIconByName.Clear();
                 s_CustomIconByName.Clear();
             };
@@ -78,21 +82,31 @@ namespace SecretZauce.SecondBrain.Editor
                 // fall through to other logic when the EditorIcon is empty
             }
 
-            if (!s_IconByType.TryGetValue(nodeType, out var tex))
+            // ScriptableObject subclasses (Container, Base, custom nodes) have type-level icons,
+            // so cache by type. Non-ScriptableObject assets (Sprite, Texture2D, Material, etc.)
+            // have per-asset thumbnails that differ between instances, so cache by instance ID.
+            if (nodeType.IsSubclassOf(typeof(ScriptableObject)))
             {
-                // Pass the actual node so Unity can resolve custom [Icon] attributes and
-                // any per-asset icon assigned in the inspector.  The result is cached by
-                // type so the lookup only happens once per type per session; the first
-                // encountered instance determines the icon for the whole type — which is
-                // correct for ScriptableObject subclasses where icons are type-level.
-                if (string.Equals(nodeType.Name, "SceneObjectRef", StringComparison.Ordinal))
-                    tex = EditorGUIUtility.ObjectContent(null, typeof(GameObject)).image;
-                else
-                    tex = EditorGUIUtility.ObjectContent(node, nodeType).image;
-
-                s_IconByType[nodeType] = tex;
+                if (!s_IconByType.TryGetValue(nodeType, out var tex))
+                {
+                    if (string.Equals(nodeType.Name, "SceneObjectRef", StringComparison.Ordinal))
+                        tex = EditorGUIUtility.ObjectContent(null, typeof(GameObject)).image;
+                    else
+                        tex = EditorGUIUtility.ObjectContent(node, nodeType).image;
+                    s_IconByType[nodeType] = tex;
+                }
+                return tex;
             }
-            return tex;
+            else
+            {
+                int instanceId = node.GetInstanceID();
+                if (!s_IconByInstance.TryGetValue(instanceId, out var tex))
+                {
+                    tex = EditorGUIUtility.ObjectContent(node, nodeType).image;
+                    s_IconByInstance[instanceId] = tex;
+                }
+                return tex;
+            }
         }
 
         /// <summary>Returns the display name for a node, resolving SceneObjectRef to its last-known scene object name.</summary>
