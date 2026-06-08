@@ -76,7 +76,7 @@ Every item type knows what to do when you press **Return**:
 | URL text file | Open in system browser |
 | Action Item | Execute *(PRO)* |
 
-### Keyboard-First Navigation
+### Keyboard Navigation
 
 Full keyboard navigation for selection, foldout expand/collapse, rename, duplicate, delete, clipboard paste, and back/forward history. See the full [Keyboard Shortcuts](shortcuts.md) reference.
 
