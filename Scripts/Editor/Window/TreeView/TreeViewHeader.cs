@@ -70,6 +70,24 @@ namespace SecretZauce.SecondBrain.Editor
         static GUIStyle s_LocationButtonRightStyle;
 #endif
 
+        // Binary-search truncation with "…" suffix; allocates minimally per overflow.
+        static string TruncateWithEllipsis(GUIStyle style, string text, float maxWidth)
+        {
+            const string ellipsis = "…";
+            float ellipsisW = style.CalcSize(new GUIContent(ellipsis)).x;
+            if (ellipsisW >= maxWidth) return ellipsis;
+
+            var probe = new GUIContent();
+            int lo = 0, hi = text.Length;
+            while (lo < hi - 1)
+            {
+                int mid = (lo + hi) / 2;
+                probe.text = text.Substring(0, mid) + ellipsis;
+                if (style.CalcSize(probe).x <= maxWidth) lo = mid; else hi = mid;
+            }
+            return lo > 0 ? text.Substring(0, lo) + ellipsis : ellipsis;
+        }
+
         static void EnsureHeaderStyles()
         {
             bool ps = EditorGUIUtility.isProSkin;
@@ -494,11 +512,20 @@ namespace SecretZauce.SecondBrain.Editor
 
                 if (!drewManualHeader)
                 {
-                    float nameWidth  = s_BoldLabelStyle.CalcSize(headerLabelContent).x;
+                    float nameWidth   = s_BoldLabelStyle.CalcSize(headerLabelContent).x;
                     float textPadding = 4f;
+                    bool  overflows   = nameWidth + textPadding > labelRect.width;
                     textRect = new Rect(labelRect.x, labelRect.y,
                         Mathf.Min(nameWidth + textPadding, labelRect.width), labelRect.height);
-                    EditorGUI.LabelField(textRect, headerLabelContent, s_BoldLabelStyle);
+                    if (overflows)
+                    {
+                        string truncated = TruncateWithEllipsis(s_BoldLabelStyle, headerLabelContent.text, labelRect.width - textPadding);
+                        EditorGUI.LabelField(textRect, new GUIContent(truncated, rootName), s_BoldLabelStyle);
+                    }
+                    else
+                    {
+                        EditorGUI.LabelField(textRect, headerLabelContent, s_BoldLabelStyle);
+                    }
                 }
 
                 float desiredPencilX  = textRect.xMax + 4f;
