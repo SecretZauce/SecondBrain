@@ -662,36 +662,33 @@ namespace SecretZauce.SecondBrain.Editor
 
         void DrawPeekZoneColumnOverlay()
         {
-            if (Event.current == null || Event.current.type != EventType.Repaint) 
+            if (Event.current == null || Event.current.type != EventType.Repaint)
                 return;
-            
+
             if (!IsQuickPeekAvailable())
                 return;
-            
-            if (_scrollViewRect.width <= 0f) 
+
+            if (_scrollViewRect.width <= 0f)
                 return;
 
             float pw = TreeViewDragInput.QuickPeekZoneWidth;
-            EditorGUI.DrawRect(new Rect(_scrollViewRect.xMax - pw, _scrollViewRect.y, pw, _scrollViewRect.height), new Color(0f, 0f, 0f, 0.1f));
-            
-            // Unity's vertical scrollbar is typically 15 pixels wide. Account for it when visible.
-            // Scrollbar appears when content extends beyond viewport in either direction
-            const float scrollbarWidth = 15f;
-            
-            // The scrollbar is visible if we're not at the top (scrolled down) or not at max scroll
-            // For simplicity and reliability, assume scrollbar is visible if scroll position is active
-            // or if we have enough items that scrolling is likely needed
+
+            // Determine scrollbar presence before drawing so both the dark column and the
+            // info icon are positioned at the content area's right edge, not at the outer
+            // scroll-view edge that includes scrollbar space.
+            float scrollbarWidth = GUI.skin.verticalScrollbar.fixedWidth;
             bool hasVerticalScrollbar = scrollPosition.y > 0.1f;
-            
-            // Also check if we have many visible items which would require scrolling
-            if (!hasVerticalScrollbar && visiblePaths != null && visiblePaths.Count > 10)
+            if (!hasVerticalScrollbar && _scrollViewRect.height > 0f && visiblePaths != null)
             {
-                // Estimate if we need scrollbar based on item count and viewport height
                 float estimatedContentHeight = visiblePaths.Count * BrowserSettings.GetItemRowHeight();
                 hasVerticalScrollbar = estimatedContentHeight > _scrollViewRect.height;
             }
-            
             float scrollbarOffset = hasVerticalScrollbar ? scrollbarWidth : 0f;
+
+            // Draw dark column at the content area's right edge (not overlapping the scrollbar).
+            float contentRightEdge = _scrollViewRect.xMax - scrollbarOffset;
+            EditorGUI.DrawRect(new Rect(contentRightEdge - pw, _scrollViewRect.y, pw, _scrollViewRect.height), new Color(0f, 0f, 0f, 0.1f));
+
             var side = DragInput.QuickPeekHoveredSide;
             if (side == QuickPeekSide.None) 
                 return;
