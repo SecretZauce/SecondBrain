@@ -590,27 +590,30 @@ namespace SecretZauce.SecondBrain.Editor
         void DrawFoldoutAndPlus(Rect toggleRect, Rect plusRect, BrowserWindow window,
             IStructure root, bool showingBaseTarget, bool interactive)
         {
-            bool mostAreExpanded = treeView.AreMostCollectionsExpanded();
-            EditorGUI.BeginDisabledGroup(!interactive);
-            Texture foldIcon = mostAreExpanded ? s_CollapseIcon : s_ExpandIcon;
-            string  foldTip  = mostAreExpanded ? "Collapse All" : "Expand All";
-            if (foldIcon != null)
+            if (showingBaseTarget)
             {
-                if (GUI.Button(toggleRect, new GUIContent(foldIcon, foldTip), s_ToggleStyle))
+                bool mostAreExpanded = treeView.AreMostCollectionsExpanded();
+                EditorGUI.BeginDisabledGroup(!interactive);
+                Texture foldIcon = mostAreExpanded ? s_CollapseIcon : s_ExpandIcon;
+                string  foldTip  = mostAreExpanded ? "Collapse All" : "Expand All";
+                if (foldIcon != null)
                 {
-                    if (mostAreExpanded) treeView.CollapseAll(); else treeView.ExpandAll();
+                    if (GUI.Button(toggleRect, new GUIContent(foldIcon, foldTip), s_ToggleStyle))
+                    {
+                        if (mostAreExpanded) treeView.CollapseAll(); else treeView.ExpandAll();
+                    }
+                }
+                else
+                {
+                    bool newMostAreExpanded = EditorGUI.Foldout(toggleRect, mostAreExpanded,
+                        new GUIContent(string.Empty), true, EditorStyles.foldout);
+                    if (newMostAreExpanded != mostAreExpanded)
+                    {
+                        if (newMostAreExpanded) treeView.ExpandAll(); else treeView.CollapseAll();
+                    }
                 }
             }
-            else
-            {
-                bool newMostAreExpanded = EditorGUI.Foldout(toggleRect, mostAreExpanded,
-                    new GUIContent(string.Empty), true, EditorStyles.foldout);
-                if (newMostAreExpanded != mostAreExpanded)
-                {
-                    if (newMostAreExpanded) treeView.ExpandAll(); else treeView.CollapseAll();
-                }
-            }
-
+            
             // Reuse cached plus style; update hover color in-place.
             bool isHovering = plusRect.Contains(Event.current.mousePosition);
             s_HeaderPlusStyle.normal.textColor = isHovering
