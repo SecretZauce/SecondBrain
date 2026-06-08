@@ -217,6 +217,18 @@ namespace SecretZauce.SecondBrain.Editor
                 if (pathsToDrag != null && pathsToDrag.Count > 0)
                 {
                     dragDropManager.BeginDrag(pathsToDrag, ownerTreeView.Context.Collections);
+#if SECOND_BRAIN_PRO
+                    // Start Unity's external DnD during EventType.MouseDrag — the only reliable
+                    // event context for DragAndDrop.StartDrag(). This allows items to be dropped
+                    // on Scene View, Project Browser, or another BrowserWindow immediately.
+                    if (ownerTreeView.OwnerWindow != null && ProFeature.Provider != null)
+                    {
+                        var extItems = dragDropManager.GetDraggedItems();
+                        var extPaths = dragDropManager.GetDraggedPaths();
+                        if (extItems.Count > 0)
+                            ProFeature.Provider.BeginExternalDrag(ownerTreeView.OwnerWindow, extItems, extPaths);
+                    }
+#endif
                     // Set initial hover state including expanded state
                     hoveredPath = path;
                     hoveredRect = rect;
@@ -247,18 +259,27 @@ namespace SecretZauce.SecondBrain.Editor
                         // .unity files, which is how a scene drag from the Hierarchy window arrives.
                         if (HasDraggableContent())
                         {
-                            // Start external drag if not already dragging
-                            // Do not start external drag while renaming any item
+                            // Start external drag if not already dragging.
+                            // Do not start external drag while renaming any item.
+                            // Skip when DragUpdated is our own drag-out returning to the source
+                            // window — visual mode for that case is handled by BrowserWindow.
                             if (!ownerTreeView.Renamer.IsRenamingAny && !dragDropManager.IsDragging)
                             {
-                                var ctx = ownerTreeView.Context;
-                                dragDropManager.BeginExternalDrag(ctx.Collections);
-                                // Notify the user immediately when the drag contains objects from
-                                // scenes that have never been saved — the reference can't be resolved.
-                                if (dragDropManager.HasUnsavedSceneObjects)
+#if SECOND_BRAIN_PRO
+                                bool isOwnDragOut = ProFeature.Provider?.IsCrossWindowDragFromThisWindow(
+                                    ownerTreeView.OwnerWindow) == true;
+                                if (!isOwnDragOut)
+#endif
                                 {
-                                    ownerTreeView.OwnerWindow?.ShowNotification(
-                                        new GUIContent(SceneObjectRefUtils.UnsavedSceneNotification));
+                                    var ctx = ownerTreeView.Context;
+                                    dragDropManager.BeginExternalDrag(ctx.Collections);
+                                    // Notify the user immediately when the drag contains objects from
+                                    // scenes that have never been saved — the reference can't be resolved.
+                                    if (dragDropManager.HasUnsavedSceneObjects)
+                                    {
+                                        ownerTreeView.OwnerWindow?.ShowNotification(
+                                            new GUIContent(SceneObjectRefUtils.UnsavedSceneNotification));
+                                    }
                                 }
                             }
                             
@@ -391,6 +412,15 @@ namespace SecretZauce.SecondBrain.Editor
             // Handle DragExited for internal drags (window exit)
             if (e.type == EventType.DragExited && dragDropManager.IsDragging && !dragDropManager.IsExternalDrag)
             {
+#if SECOND_BRAIN_PRO
+                // Unity fires DragExited to the source window the instant DragAndDrop.StartDrag()
+                // is called — the external drag session is just starting, not ending. Skip here so
+                // the internal drag state survives; MouseLeaveWindow and the real post-drop DragExited
+                // (which fires with IsDragging=false after CancelDrag) handle the actual cleanup.
+                if (ownerTreeView.OwnerWindow != null &&
+                    ProFeature.Provider?.IsCrossWindowDragFromThisWindow(ownerTreeView.OwnerWindow) == true)
+                    return result;
+#endif
                 dragDropManager.CancelDrag();
                 result.Handled = true;
                 result.Cancelled = true;

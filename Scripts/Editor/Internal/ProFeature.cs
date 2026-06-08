@@ -50,6 +50,14 @@ namespace SecretZauce.SecondBrain.Editor
         public bool IsCrossWindowDragFromThisWindow(BrowserWindow thisWindow);
 
         /// <summary>
+        /// Returns true when a drag that originated from <paramref name="thisWindow"/> has
+        /// actually moved to at least one other window. False while the drag is still purely
+        /// within <paramref name="thisWindow"/> (i.e. it may still be an internal reparent).
+        /// Use this to guard the re-entry rejection so internal reparent drags are unaffected.
+        /// </summary>
+        public bool HasDragLeftSourceWindow(BrowserWindow thisWindow);
+
+        /// <summary>
         /// Attempts to execute a cross-window item transfer into <paramref name="dest"/>.
         /// Calls <c>DragAndDrop.AcceptDrag()</c> internally when transfer succeeds.
         /// Returns true when the transfer was handled (caller should Use the event and return).

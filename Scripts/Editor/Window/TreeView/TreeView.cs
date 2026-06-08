@@ -116,6 +116,16 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 if (DragDropManager.IsDragging && !DragDropManager.IsExternalDrag)
                 {
+#if SECOND_BRAIN_PRO
+                    // External DnD is already active from this window — let it run to completion.
+                    // DragExited in BrowserWindow.TryProcessDragAndDrop handles cleanup.
+                    if (OwnerWindow != null &&
+                        ProFeature.Provider?.IsCrossWindowDragFromThisWindow(OwnerWindow) == true)
+                    {
+                        UnsubscribeFromEditorUpdate();
+                        return;
+                    }
+#endif
                     DragDropManager.CancelDrag();
                     UnsubscribeFromEditorUpdate();
                     OwnerWindow?.Repaint();
@@ -468,9 +478,11 @@ namespace SecretZauce.SecondBrain.Editor
                 if (DragDropManager.IsDragging && !DragDropManager.IsExternalDrag)
                 {
 #if SECOND_BRAIN_PRO
-                    // Transition to Unity's external DragAndDrop so items can be dropped
-                    // on Scene View, Project Browser, or another BrowserWindow.
-                    if (OwnerWindow != null && ProFeature.Provider != null)
+                    // BeginExternalDrag is called during MouseDrag (the reliable event context).
+                    // This MouseLeaveWindow path is a fallback for edge cases where that missed
+                    // (e.g. drag started outside a row rect). Only call if not already active.
+                    if (OwnerWindow != null && ProFeature.Provider != null &&
+                        ProFeature.Provider.IsCrossWindowDragFromThisWindow(OwnerWindow) == false)
                     {
                         var dragItems = DragDropManager.GetDraggedItems();
                         var dragPaths = DragDropManager.GetDraggedPaths();
@@ -518,10 +530,17 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         if (DragDropManager.IsDragging && !DragDropManager.IsExternalDrag)
                         {
-                            DragDropManager.CancelDrag();
-                            Event.current.Use();
-                            position = scrollPosition;
-                            return true;
+#if SECOND_BRAIN_PRO
+                            // External DnD is active from this window — don't cancel here;
+                            // MouseLeaveWindow and DragExited handle the cleanup.
+                            if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(OwnerWindow) != true)
+#endif
+                            {
+                                DragDropManager.CancelDrag();
+                                Event.current.Use();
+                                position = scrollPosition;
+                                return true;
+                            }
                         }
 
                         if (DragDropManager.IsPotentialDrag)
@@ -547,10 +566,15 @@ namespace SecretZauce.SecondBrain.Editor
                         {
                             if (DragDropManager.IsDragging && !DragDropManager.IsExternalDrag)
                             {
-                                DragDropManager.CancelDrag();
-                                Event.current.Use();
-                                position = scrollPosition;
-                                return true;
+#if SECOND_BRAIN_PRO
+                                if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(OwnerWindow) != true)
+#endif
+                                {
+                                    DragDropManager.CancelDrag();
+                                    Event.current.Use();
+                                    position = scrollPosition;
+                                    return true;
+                                }
                             }
 
                             if (DragDropManager.IsPotentialDrag)

@@ -560,6 +560,11 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     if (dm.IsDragging && !dm.IsExternalDrag)
                     {
+#if SECOND_BRAIN_PRO
+                        // Unity's external DnD is active — skip cancel; DragExited handles cleanup.
+                        if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(this) == true)
+                            return;
+#endif
                         dm.CancelDrag();
                         Repaint();
                         return;
@@ -831,10 +836,15 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         if (dm.IsDragging && !dm.IsExternalDrag)
                         {
-                            dm.CancelDrag();
-                            Event.current.Use();
-                            Repaint();
-                            return true;
+#if SECOND_BRAIN_PRO
+                            if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(this) != true)
+#endif
+                            {
+                                dm.CancelDrag();
+                                Event.current.Use();
+                                Repaint();
+                                return true;
+                            }
                         }
 
                         if (dm.IsPotentialDrag)
@@ -862,10 +872,15 @@ namespace SecretZauce.SecondBrain.Editor
                         {
                             if (dm2.IsDragging && !dm2.IsExternalDrag)
                             {
-                                dm2.CancelDrag();
-                                Event.current.Use();
-                                Repaint();
-                                return true;
+#if SECOND_BRAIN_PRO
+                                if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(this) != true)
+#endif
+                                {
+                                    dm2.CancelDrag();
+                                    Event.current.Use();
+                                    Repaint();
+                                    return true;
+                                }
                             }
 
                             if (dm2.IsPotentialDrag)
@@ -887,13 +902,17 @@ namespace SecretZauce.SecondBrain.Editor
 #if SECOND_BRAIN_PRO
             // Handle DragExited so the source window can run post-drop actions
             // (e.g. "Create Prefab" dialog when a SceneObjectRef is dropped on the Project Browser).
-            if (Event.current.type == EventType.DragExited)
+            // Skip the startup DragExited that Unity fires the instant DragAndDrop.StartDrag() is
+            // called — that one fires while IsDragging is still true. The real post-drop DragExited
+            // fires after CancelDrag() clears IsDragging, so that one still reaches HandleDragExited.
+            if (Event.current.type == EventType.DragExited && !treeView.DragDropManager.IsDragging)
                 ProFeature.Provider?.HandleDragExited(this);
 
             // Reject a cross-window drag from re-entering its own source window to prevent
-            // accidental duplication (the user should use internal drag for within-window moves).
+            // accidental duplication. Only guard after the drag has actually left this window;
+            // while it hasn't left yet it may still be an internal reparent drag.
             if (Event.current.type == EventType.DragUpdated
-                && ProFeature.Provider?.IsCrossWindowDragFromThisWindow(this) == true)
+                && ProFeature.Provider?.HasDragLeftSourceWindow(this) == true)
             {
                 DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
                 return false;
