@@ -143,6 +143,11 @@ namespace SecretZauce.SecondBrain.Editor
         // Viewport rect of the scroll view, captured after EndScrollView during Repaint
         // Used to draw persistent peek zone column overlays.
         Rect _scrollViewRect;
+        // Content-area width measured from row rects drawn inside the scroll view.
+        // Unity automatically narrows this when a vertical scrollbar is present, so
+        // comparing _scrollViewRect.x + _contentAreaWidth gives the exact right edge
+        // of the content area without any scrollbar-detection heuristic.
+        float _contentAreaWidth;
 
         static GUIContent s_PeekInfoIcon;
         static GUIContent s_PeekBlockedIcon;
@@ -673,20 +678,13 @@ namespace SecretZauce.SecondBrain.Editor
 
             float pw = TreeViewDragInput.QuickPeekZoneWidth;
 
-            // Determine scrollbar presence before drawing so both the dark column and the
-            // info icon are positioned at the content area's right edge, not at the outer
-            // scroll-view edge that includes scrollbar space.
-            float scrollbarWidth = GUI.skin.verticalScrollbar.fixedWidth;
-            bool hasVerticalScrollbar = scrollPosition.y > 0.1f;
-            if (!hasVerticalScrollbar && _scrollViewRect.height > 0f && visiblePaths != null)
-            {
-                float estimatedContentHeight = visiblePaths.Count * BrowserSettings.GetItemRowHeight();
-                hasVerticalScrollbar = estimatedContentHeight > _scrollViewRect.height;
-            }
-            float scrollbarOffset = hasVerticalScrollbar ? scrollbarWidth : 0f;
+            // Row rects drawn inside the scroll view already have their xMax clamped to the
+            // content area width — Unity narrows them automatically when a scrollbar is present.
+            // Using that measured value is exact and requires no scrollbar-detection heuristic.
+            float contentRightEdge = _contentAreaWidth > 0f
+                ? _scrollViewRect.x + _contentAreaWidth
+                : _scrollViewRect.xMax;
 
-            // Draw dark column at the content area's right edge (not overlapping the scrollbar).
-            float contentRightEdge = _scrollViewRect.xMax - scrollbarOffset;
             EditorGUI.DrawRect(new Rect(contentRightEdge - pw, _scrollViewRect.y, pw, _scrollViewRect.height), new Color(0f, 0f, 0f, 0.1f));
 
             var side = DragInput.QuickPeekHoveredSide;
@@ -706,33 +704,32 @@ namespace SecretZauce.SecondBrain.Editor
             
             if (!OwnerWindow.IsQuickPeekOpenForPath(hoveredPath))
             {
-                DrawPeekIcon(s_PeekBlockedIcon, pw, scrollbarOffset, side);
+                DrawPeekIcon(s_PeekBlockedIcon, pw, contentRightEdge, side);
                 return;
             }
-            
+
             if (obj is Base)
             {
-                DrawPeekIcon(s_PeekBlockedIcon, pw, scrollbarOffset, side);
+                DrawPeekIcon(s_PeekBlockedIcon, pw, contentRightEdge, side);
                 return;
             }
 
             if (s_PeekInfoIcon == null)
                 s_PeekInfoIcon = EditorGUIUtility.IconContent("console.infoicon");
-           
-            DrawPeekIcon(s_PeekInfoIcon, pw, scrollbarOffset, side);
+
+            DrawPeekIcon(s_PeekInfoIcon, pw, contentRightEdge, side);
         }
 
-        void DrawPeekIcon(GUIContent content, float pw, float scrollbarOffset, QuickPeekSide side)
+        void DrawPeekIcon(GUIContent content, float pw, float contentRightEdge, QuickPeekSide side)
         {
-            if (content == null || content.image == null) 
+            if (content == null || content.image == null)
                 return;
 
             const float iconSize = 14f;
 
-            // Adjust icon X position for scrollbar
             float iconGuiX = (side == QuickPeekSide.Left)
                 ? _scrollViewRect.x + pw * 0.5f - iconSize * 0.5f
-                : _scrollViewRect.xMax - scrollbarOffset - pw * 0.5f - iconSize * 0.5f;
+                : contentRightEdge - pw * 0.5f - iconSize * 0.5f;
 
             Rect hoveredScreenRect = DragInput.QuickPeekHoveredScreenRect;
             if (hoveredScreenRect.width <= 0f) return;
@@ -952,6 +949,7 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             Rect rowRect = renderer.RenderFoldoutHeader(path, node, isSelected, icon, ref foldout, hideFoldoutArrow, effectiveColor, effectiveStyle);
+            _contentAreaWidth = rowRect.xMax;
             foldoutState.Set(node, foldout);
 
             // Handle click/selection (deferred) and rename via centralized helper
@@ -1051,6 +1049,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Get rect with full width for proper text field sizing
             Rect itemRect =
                 EditorGUILayout.GetControlRect(false, BrowserSettings.GetItemRowHeight(), GUILayout.ExpandWidth(true));
+            _contentAreaWidth = itemRect.xMax;
             Rect indentedItemRect = EditorGUI.IndentedRect(itemRect);
 
             // Background style: draw tinted background BEFORE selection/hover
