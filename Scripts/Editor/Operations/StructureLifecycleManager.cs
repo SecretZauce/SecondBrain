@@ -2158,6 +2158,26 @@ namespace SecretZauce.SecondBrain.Editor
                         RegisterCreationUndoRedoHandler(scriptableChild.GetInstanceID(), assetPath);
                     }
                 }
+                else if (parentObj is ScriptableObject scriptableParentForAsset && !(newChild is ScriptableObject))
+                {
+                    // Non-ScriptableObject children (e.g. TextAsset) must also be embedded as
+                    // sub-assets so they are persisted in the parent's .asset file and have a
+                    // valid asset path. Without this call GetAssetPath returns "" and the object
+                    // is lost on the next domain reload.
+                    var assetPath = AssetDatabase.GetAssetPath(scriptableParentForAsset);
+
+                    if (!string.IsNullOrEmpty(specifiedName))
+                        newChild.name = specifiedName;
+                    else if (string.IsNullOrEmpty(newChild.name))
+                        newChild.name = newChild.GetType().Name;
+
+                    if (!string.IsNullOrEmpty(assetPath))
+                    {
+                        AssetDatabase.AddObjectToAsset(newChild, assetPath);
+                        Undo.RegisterCreatedObjectUndo(newChild, "Create Child Asset");
+                        RegisterCreationUndoRedoHandler(newChild.GetInstanceID(), assetPath);
+                    }
+                }
 
                 // Apply default color settings from BrowserSettings to new containers
                 if (newChild is IHasColor colorable)
