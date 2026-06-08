@@ -165,14 +165,14 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Starts an external drag operation with Unity Objects from Project tab
+        /// Starts an external drag operation with Unity Objects from Project tab or Hierarchy window.
         /// </summary>
         public void BeginExternalDrag(List<IStructure> collections)
         {
             this.collections = collections;
             isExternalDrag = true;
             hasUnsavedSceneObjects = false;
-            draggedPaths.Clear(); // No paths for external objects
+            draggedPaths.Clear();
             draggedItems.Clear();
 
             // Get objects from Unity's DragAndDrop
@@ -190,6 +190,21 @@ namespace SecretZauce.SecondBrain.Editor
                             hasUnsavedSceneObjects = true;
                         }
                     }
+                }
+            }
+
+            // When dragging a scene header from the Hierarchy window, Unity may populate only
+            // DragAndDrop.paths with the .unity file path and leave objectReferences empty.
+            // Load the SceneAsset from the path so it flows through the normal drop pipeline.
+            if (DragAndDrop.paths != null)
+            {
+                foreach (var path in DragAndDrop.paths)
+                {
+                    if (string.IsNullOrEmpty(path) || !path.EndsWith(".unity", System.StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(path);
+                    if (sceneAsset != null && !draggedItems.Contains(sceneAsset))
+                        draggedItems.Add(sceneAsset);
                 }
             }
 

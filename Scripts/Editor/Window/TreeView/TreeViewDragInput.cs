@@ -236,15 +236,16 @@ namespace SecretZauce.SecondBrain.Editor
                 }
             }
 
-            // Handle Unity's DragAndDrop events (external assets from Project tab)
+            // Handle Unity's DragAndDrop events (external assets from Project tab or Hierarchy)
             // Only process when over this rect
             if (rect.Contains(e.mousePosition))
             {
                 switch (e.type)
                 {
                     case EventType.DragUpdated:
-                        // Check if we have draggable objects
-                        if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+                        // Check if we have draggable objects. Also checks DragAndDrop.paths for
+                        // .unity files, which is how a scene drag from the Hierarchy window arrives.
+                        if (HasDraggableContent())
                         {
                             // Start external drag if not already dragging
                             // Do not start external drag while renaming any item
@@ -327,6 +328,23 @@ namespace SecretZauce.SecondBrain.Editor
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns true when the current DragAndDrop state contains content that SecondBrain can receive.
+        /// Covers both objectReferences (Project tab drags) and .unity paths (Hierarchy scene header drags).
+        /// </summary>
+        static bool HasDraggableContent()
+        {
+            if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+                return true;
+            if (DragAndDrop.paths != null)
+            {
+                foreach (var p in DragAndDrop.paths)
+                    if (!string.IsNullOrEmpty(p) && p.EndsWith(".unity", System.StringComparison.OrdinalIgnoreCase))
+                        return true;
+            }
+            return false;
         }
 
         /// <summary>Returns which Quick Peek zone the mouse is in for a given row rect.</summary>
