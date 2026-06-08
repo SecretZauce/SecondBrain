@@ -27,8 +27,8 @@ namespace SecretZauce.SecondBrain.Editor
 
     public class EmojiTray : PickerTrayBase
     {
-        private const string EmojiResourcePath = "unity_icons_emojis";
-        private const string EditorIconResourcePath = "unity_editor_icons";
+        private const string EmojiResourcePath = "Editor/Icons/unity_icons_emojis";
+        private const string EditorIconResourcePath = "Editor/Icons/unity_editor_icons";
         private const string EmojiPrefsKey = "EmojiTray_LastUsed_Emojis";
         private const string EditorIconPrefsKey = "EmojiTray_LastUsed_EditorIcons";
         private const int MaxHistory = 30;
