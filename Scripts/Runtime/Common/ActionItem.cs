@@ -16,7 +16,7 @@ namespace SecretZauce.SecondBrain
         public virtual string DefaultName => GetType().Name;
 
         /// <summary>
-        /// Project icon name loaded via IconUtils (Resources/Icons/). Override to
+        /// Project icon name loaded via IconUtils (Resources/Editor/Icons/). Override to
         /// provide a custom icon for this ActionItem subclass.
         /// </summary>
         public virtual string CustomIcon => "action";

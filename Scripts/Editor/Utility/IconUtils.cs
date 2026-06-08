@@ -5,7 +5,7 @@ namespace SecretZauce.SecondBrain.Editor
 {
     public static class IconUtils
     {
-        const string IconsAssetPath = "Icons/";
+        const string IconsAssetPath = "Editor/Icons/";
         const string LightSuffix    = "_black";
         const string DarkSuffix     = "_white";
 
