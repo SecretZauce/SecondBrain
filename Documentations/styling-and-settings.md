@@ -12,6 +12,8 @@ Right-click → **Set Emoji Icon** opens the icon picker.
 - Clearing the icon reverts the node to its default editor icon.
 - With no node selected, clicking an icon copies it to the clipboard instead of applying it.
 
+The emoji/icon lists are loaded from JSON files at `Assets/SecretZauce/SecondBrain/Resources/Editor/Icons/`. You can edit `unity_editor_icons.json` and `unity_icons_emojis.json` to add, remove, or rename entries.
+
 ### Label Color
 
 Right-click → **Set Color** opens the color tray.
@@ -27,10 +29,10 @@ Controls how the color appears on each row:
 
 | Style | Appearance |
 |---|---|
+| Gradient | Gradient wash across the row |
 | Font Color | Tints the label text |
 | Circle Dot | Small colored circle beside the label |
 | Background | Fills the entire row background |
-| Gradient | Gradient wash across the row |
 
 **Foldout Only** restricts the color to the Container's header row and does not propagate to child rows.
 
@@ -45,16 +47,16 @@ Selecting a Base or Container and opening the Unity **Inspector** shows a dedica
 ### Container Inspector
 
 - Set emoji and color.
-- Set **Preferred Child View** (Tabs or Foldouts) — controls how children appear in [Quick Peek](pro-features.md#quick-peek) and the Container Children Inspector.
+- Set **Preferred Child View** (Foldouts or Tabs) — controls how children appear in [Quick Peek](pro-features.md#quick-peek).
 - Set **Container Expand** and **Child View Expand** — each uses the same three options:
 
 | Option | Behavior |
 |---|---|
-| Collapsed | Starts collapsed on first view |
-| Expand as Default | Starts expanded on first view |
+| Expand As Default | Starts expanded on first view |
+| Collapsed As Default | Starts collapsed on first view |
 | Always Expand | Always expands, ignoring any saved foldout state |
 
-**Container Expand** controls the container node's own expand state in the tree view. **Child View Expand** controls whether children start expanded or collapsed inside Quick Peek and the Container Children Inspector when no saved per-item foldout state exists.
+**Container Expand** controls the container node's own expand state in the tree view. **Child View Expand** controls whether children start expanded or collapsed inside Quick Peek when no saved per-item foldout state exists.
 
 - Reorder children directly in the inspector list.
 - Enable **Disable Quick Peek** to suppress hover previews for this Container and all its descendants.
@@ -76,10 +78,10 @@ Open via the **⚙** toolbar button.
 | Ask Before Remove | On | Confirmation dialog before removing an item from its parent |
 | Show Icons Per Type | On | Display type-specific icons on tree rows |
 | Force Naming On Create | On | Show inline name field before creating; disable to create with auto-name instantly |
-| Default Color Style | Font Color | Color style applied to newly created nodes |
+| Default Color Style | Gradient | Color style applied to newly created nodes |
 | Default Color Foldout Only | Off | Restrict color to foldout header by default on new nodes |
-| Container Expand | Collapsed | Initial expand/collapse state for the container node itself in the tree view |
-| Preferred Child View *(PRO)* | Foldouts | Fallback layout for Quick Peek and Container Children window — Tabs or Foldouts — used when no per-container preference has been saved |
+| Container Expand | Expand As Default | Initial expand/collapse state for the container node itself in the tree view |
+| Preferred Child View *(PRO)* | Foldouts | Fallback layout for Quick Peek — Foldouts or Tabs — used when no per-container preference has been saved |
 | Double-Click Action | Rename | What double-clicking a leaf item does: **Rename** or **Enter** |
 | Item Size | Medium | Row height — Tiny / Small / Medium / Large / Extra Large |
 | Expand All on Enter Base | Off | When enabled, all containers in a Base expand automatically when you navigate into it. Does not affect foldout state on session reopen or domain reload. |

@@ -16,6 +16,8 @@ Selection is cleared automatically when you navigate to a different node.
 
 ## Search
 
+<img alt="Real-time search filtering the tree" src="gifs/search.gif" width="600"/>
+
 Type in the search bar at the top of the toolbar to filter the tree in real time. Search is:
 - **Case-insensitive**
 - **Substring match** — matches any part of a node's name
@@ -28,3 +30,26 @@ Type in the search bar at the top of the toolbar to filter the tree in real time
 | **Escape** | Clear the search and return focus to the tree |
 
 The search text is preserved through tree refreshes during the same editor session.
+
+---
+
+## Search Filter
+
+Click the **filter button** (funnel icon) beside the search bar to open the Search Filter popup. It lets you restrict which node types appear in search results.
+
+Available filter flags:
+
+| Flag | What it includes |
+|---|---|
+| Containers | Container nodes |
+| Scene Objects | Scene Object references |
+| Scenes | Scene asset references |
+| Text Assets | Text file references |
+| Scriptable Objects | ScriptableObject asset references |
+| Prefabs | Prefab asset references |
+| Assets | All other asset references |
+| All | Everything (equivalent to all flags enabled) |
+
+The default filter includes all types **except Containers**, keeping results focused on leaf content. Toggle individual flags to narrow the search to just the types you care about.
+
+The filter button is **highlighted** when a non-default filter is active, so you can see at a glance that results are being restricted. Your filter choice is saved in EditorPrefs and persists between sessions.
