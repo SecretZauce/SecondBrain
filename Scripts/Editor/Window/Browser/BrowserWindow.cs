@@ -130,6 +130,10 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public void RefreshTree()
         {
+            // Force the controller to rebuild Collections from the live asset state before
+            // RefreshSerializedDatabase reads it. Needed when another controller mutated
+            // the root (e.g. cross-window transfer ran on the source window's controller).
+            Controller?.ForceRefreshFromRoot();
             RefreshSerializedDatabase();
             Repaint();
         }

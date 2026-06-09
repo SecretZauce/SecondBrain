@@ -100,6 +100,15 @@ namespace SecretZauce.SecondBrain.Editor
             Collections = Root.ChildrenObjects.Select(c => c as IStructure).Where(c => c != null).ToList();
         }
 
+        /// <summary>
+        /// Forces an immediate rebuild of <see cref="Collections"/> and
+        /// <see cref="SerializedDatabase"/> from the current asset state.
+        /// Call before reading Collections when the root may have been mutated
+        /// by another controller (e.g. cross-window transfer from source window).
+        /// Does NOT fire <see cref="OnStructureChanged"/>.
+        /// </summary>
+        public void ForceRefreshFromRoot() => RefreshFromRoot();
+
         void EnsureSelectionStateSO()
         {
             if (selectionState != null) 
@@ -452,6 +461,11 @@ namespace SecretZauce.SecondBrain.Editor
             // Expand the drop target so dropped items are visible after the operation
             if (dropPosition == DragAndDropManager.DropPosition.Inside)
                 ExpandDropTargetInSnapshot(targetPath, collections);
+            // Write the updated snapshot (with the expansion flag) back into the TreeView so
+            // LifecycleManager.ReparentItems reads it via GetFoldoutSnapshot() and passes it
+            // to OnFoldoutStateRestoreRequested — otherwise the expansion is silently dropped.
+            if (treeView != null && LastFoldoutSnapshot != null)
+                treeView.SetFoldoutSnapshot(LastFoldoutSnapshot);
             LifecycleManager.ReparentItems(itemPaths, items, targetPath, dropPosition, collections, treeView, selectionStateSO);
         }
 
