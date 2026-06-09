@@ -1779,7 +1779,9 @@ namespace SecretZauce.SecondBrain.Editor
                 .ToList();
 
             // Gather valid items to move
-            var itemsToMove = new List<(Object item, IStructure parent)>();
+            // Track srcPath alongside each item so we can add to dest in ascending
+            // (source) order after removal is done in descending order.
+            var itemsToMove = new List<(Object item, IStructure parent, int[] srcPath)>();
             foreach (var path in uniquePaths)
             {
                 var item = StructureUtils.GetNodeAtPath(path, collections);
@@ -1797,7 +1799,7 @@ namespace SecretZauce.SecondBrain.Editor
                     continue;
                 }
 
-                itemsToMove.Add((item, parent));
+                itemsToMove.Add((item, parent, path));
             }
 
             if (itemsToMove.Count == 0)
@@ -1811,7 +1813,7 @@ namespace SecretZauce.SecondBrain.Editor
             // so Unity can fully restore the serialized fields on undo.
             Undo.RegisterCompleteObjectUndo(targetBase, "Move Items to Base");
             var uniqueParents = new HashSet<IStructure>();
-            foreach (var (item, parent) in itemsToMove)
+            foreach (var (item, parent, _) in itemsToMove)
             {
                 if (uniqueParents.Add(parent))
                     Undo.RegisterCompleteObjectUndo(parent as Object, "Move Items to Base");
@@ -1820,7 +1822,7 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             // --- Remove items from their old parent lists ---
-            foreach (var (item, parent) in itemsToMove)
+            foreach (var (item, parent, _) in itemsToMove)
             {
                 parent.RemoveChild(item);
                 EditorUtility.SetDirty(parent as Object);
@@ -1830,12 +1832,23 @@ namespace SecretZauce.SecondBrain.Editor
             // MigrateSubAssetsRecursive returns the exact (obj, fromPath) pairs it relocated
             // so we can reverse the migration precisely on Undo.
             var allMigrated = new List<(Object obj, string fromPath)>();
-            foreach (var (item, _) in itemsToMove)
+            foreach (var (item, _, _) in itemsToMove)
                 allMigrated.AddRange(MigrateSubAssetsRecursive(item, targetBasePath));
 
-            // --- Add items to the target Base's children list ---
+            // --- Add items to the target Base's children list in ascending source-path order ---
+            // uniquePaths was sorted descending for safe removal (avoids index shifts).
+            // Appending in that same reversed order would land items at dest in reverse
+            // source order. Re-sort ascending (pre-order: ancestor before descendant,
+            // siblings by index) so items arrive at dest top-to-bottom = source order.
             var targetAsStructure = targetBase as IStructure;
-            foreach (var (item, _) in itemsToMove)
+            var srcPathCmp = Comparer<int[]>.Create((a, b) =>
+            {
+                int min = Math.Min(a.Length, b.Length);
+                for (int k = 0; k < min; k++)
+                    if (a[k] != b[k]) return a[k].CompareTo(b[k]);
+                return a.Length.CompareTo(b.Length);
+            });
+            foreach (var (item, _, _) in itemsToMove.OrderBy(x => x.srcPath, srcPathCmp))
                 targetAsStructure.AddChild(item, -1);
 
             EditorUtility.SetDirty(targetBase);
@@ -1919,7 +1932,7 @@ namespace SecretZauce.SecondBrain.Editor
                 .ToList();
 
             var targetAsStructure = targetContainer as IStructure;
-            var itemsToMove = new List<(Object item, IStructure parent)>();
+            var itemsToMove = new List<(Object item, IStructure parent, int[] srcPath)>();
             foreach (var path in uniquePaths)
             {
                 var item = StructureUtils.GetNodeAtPath(path, collections);
@@ -1931,31 +1944,38 @@ namespace SecretZauce.SecondBrain.Editor
                     window.ShowNotification(new GUIContent($"Cannot move '{item.name}': type not accepted by target Container."));
                     continue;
                 }
-                itemsToMove.Add((item, parent));
+                itemsToMove.Add((item, parent, path));
             }
 
             if (itemsToMove.Count == 0) { Undo.RevertAllInCurrentGroup(); return; }
 
             Undo.RegisterCompleteObjectUndo(targetContainer, "Move Items to Container");
             var uniqueParents = new HashSet<IStructure>();
-            foreach (var (item, parent) in itemsToMove)
+            foreach (var (item, parent, _) in itemsToMove)
             {
                 if (uniqueParents.Add(parent))
                     Undo.RegisterCompleteObjectUndo(parent as Object, "Move Items to Container");
                 RegisterUndoRecursive(item, "Move Items to Container");
             }
 
-            foreach (var (item, parent) in itemsToMove)
+            foreach (var (item, parent, _) in itemsToMove)
             {
                 parent.RemoveChild(item);
                 EditorUtility.SetDirty(parent as Object);
             }
 
             var allMigrated = new List<(Object obj, string fromPath)>();
-            foreach (var (item, _) in itemsToMove)
+            foreach (var (item, _, _) in itemsToMove)
                 allMigrated.AddRange(MigrateSubAssetsRecursive(item, targetAssetPath));
 
-            foreach (var (item, _) in itemsToMove)
+            var srcPathCmpC = Comparer<int[]>.Create((a, b) =>
+            {
+                int min = Math.Min(a.Length, b.Length);
+                for (int k = 0; k < min; k++)
+                    if (a[k] != b[k]) return a[k].CompareTo(b[k]);
+                return a.Length.CompareTo(b.Length);
+            });
+            foreach (var (item, _, _) in itemsToMove.OrderBy(x => x.srcPath, srcPathCmpC))
                 targetAsStructure.AddChild(item, -1);
 
             EditorUtility.SetDirty(targetContainer);
