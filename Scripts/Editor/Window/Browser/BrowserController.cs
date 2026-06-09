@@ -772,6 +772,17 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
+        /// Moves items to a Container in another Base's .asset file.
+        /// Used for cross-window transfer of non-Container items (leaves).
+        /// </summary>
+        public void MoveItemsToContainer(List<int[]> paths, Container targetContainer, TreeView treeView)
+        {
+            if (paths == null || paths.Count == 0 || targetContainer == null) return;
+            CaptureFoldoutSnapshot(treeView);
+            LifecycleManager.MoveItemsToContainer(paths, targetContainer, treeView);
+        }
+
+        /// <summary>
         /// Clears the linked scene GUID from the provided Base.
         /// This uses Undo.RecordObject and persists the change then refreshes the controller state.
         /// </summary>

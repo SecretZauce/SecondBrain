@@ -1714,6 +1714,9 @@ namespace SecretZauce.SecondBrain.Editor
             public string targetBasePath;
             /// <summary>Used to check its children list after undo/redo fires.</summary>
             public Base targetBase;
+            /// <summary>Set when the target is a Container (not a Base root).
+            /// The undo handler checks this parent's ChildrenObjects instead of targetBase.</summary>
+            public IStructure targetParent;
             /// <summary>Top-level items that were moved.</summary>
             public List<Object> movedItems;
             /// <summary>true after move/redo; false after undo.</summary>
@@ -1870,6 +1873,122 @@ namespace SecretZauce.SecondBrain.Editor
             Undo.CollapseUndoOperations(undoGroup);
         }
 
+        /// <summary>
+        /// Moves items at the specified paths from their current parents into a Container
+        /// in another Base's .asset file. Sub-assets are migrated to the Container's parent
+        /// .asset; parent-child relationship targets the Container, not the Base root.
+        /// Used by cross-window transfer when the drop target is (or resolves to) a Container.
+        /// Undo/Redo are fully supported.
+        /// </summary>
+        public void MoveItemsToContainer(List<int[]> paths, Container targetContainer, TreeView treeView)
+        {
+            if (paths == null || paths.Count == 0 || targetContainer == null) return;
+
+            string targetAssetPath = AssetDatabase.GetAssetPath(targetContainer);
+            if (string.IsNullOrEmpty(targetAssetPath))
+            {
+                window.ShowNotification(new GUIContent("Target Container has no asset path."));
+                return;
+            }
+
+            SubAssetRefreshUtils.ClearAffectedAssets();
+
+            Undo.IncrementCurrentGroup();
+            int undoGroup = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName("Move Items to Container");
+
+            var selectionState = window.Controller.SelectionState;
+            if (selectionState != null)
+                Undo.RegisterCompleteObjectUndo(selectionState, "Move Items to Container");
+
+            Dictionary<object, bool> foldoutSnapshot = null;
+            if (treeView != null)
+                foldoutSnapshot = treeView.GetFoldoutSnapshot();
+
+            List<IStructure> collections = null;
+            if (Root is { ChildrenObjects: not null })
+                collections = Root.ChildrenObjects.OfType<IStructure>().ToList();
+
+            if (collections == null) { Undo.RevertAllInCurrentGroup(); return; }
+
+            var uniquePaths = paths
+                .GroupBy(p => string.Join(",", p))
+                .Select(g => g.First())
+                .OrderByDescending(p => p.Length)
+                .ThenByDescending(p => string.Join(",", p))
+                .ToList();
+
+            var targetAsStructure = targetContainer as IStructure;
+            var itemsToMove = new List<(Object item, IStructure parent)>();
+            foreach (var path in uniquePaths)
+            {
+                var item = StructureUtils.GetNodeAtPath(path, collections);
+                if (item == null) continue;
+                IStructure parent = GetParentAtPath(path, collections);
+                if (parent == null) continue;
+                if (!targetAsStructure.CanAcceptChild(item))
+                {
+                    window.ShowNotification(new GUIContent($"Cannot move '{item.name}': type not accepted by target Container."));
+                    continue;
+                }
+                itemsToMove.Add((item, parent));
+            }
+
+            if (itemsToMove.Count == 0) { Undo.RevertAllInCurrentGroup(); return; }
+
+            Undo.RegisterCompleteObjectUndo(targetContainer, "Move Items to Container");
+            var uniqueParents = new HashSet<IStructure>();
+            foreach (var (item, parent) in itemsToMove)
+            {
+                if (uniqueParents.Add(parent))
+                    Undo.RegisterCompleteObjectUndo(parent as Object, "Move Items to Container");
+                RegisterUndoRecursive(item, "Move Items to Container");
+            }
+
+            foreach (var (item, parent) in itemsToMove)
+            {
+                parent.RemoveChild(item);
+                EditorUtility.SetDirty(parent as Object);
+            }
+
+            var allMigrated = new List<(Object obj, string fromPath)>();
+            foreach (var (item, _) in itemsToMove)
+                allMigrated.AddRange(MigrateSubAssetsRecursive(item, targetAssetPath));
+
+            foreach (var (item, _) in itemsToMove)
+                targetAsStructure.AddChild(item, -1);
+
+            EditorUtility.SetDirty(targetContainer);
+            AssetDatabase.SaveAssets();
+
+            foreach (var parent in uniqueParents)
+                SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(parent as Object));
+            SubAssetRefreshUtils.ImportAndRegister(targetAssetPath);
+
+            var record = new MoveOperationRecord
+            {
+                targetBase      = null,
+                targetParent    = targetContainer,
+                targetBasePath  = targetAssetPath,
+                migratedObjects = allMigrated,
+                movedItems      = itemsToMove.Select(x => x.item).ToList(),
+                isCurrentlyInTarget = true
+            };
+            RegisterMoveUndoRedoHandler(record);
+
+            OnStructureChanged?.Invoke();
+            if (foldoutSnapshot != null)
+                OnFoldoutStateRestoreRequested?.Invoke(foldoutSnapshot);
+
+            if (selectionState != null)
+            {
+                selectionState.ClearSelection(window);
+                EditorUtility.SetDirty(selectionState);
+            }
+
+            Undo.CollapseUndoOperations(undoGroup);
+        }
+
         // Tracks all live MoveUndoRedoHandler instances so they can be bulk-unregistered
         // when the lifecycle manager is disposed (window closes or reinitialises).
         readonly List<MoveUndoRedoHandler> moveHandlers = new List<MoveUndoRedoHandler>();
@@ -2000,13 +2119,15 @@ namespace SecretZauce.SecondBrain.Editor
                 }
 
                 // Auto-unregister if the target asset was deleted.
-                if (record.targetBase == null)
+                // For Container-target moves targetParent is set; for Base-target moves targetBase is set.
+                var effectiveParent = record.targetParent ?? (record.targetBase as IStructure);
+                if ((effectiveParent as Object) == null)
                 {
                     Undo.undoRedoPerformed -= OnUndoRedo;
                     return;
                 }
 
-                var targetChildren = (record.targetBase as IStructure)?.ChildrenObjects;
+                var targetChildren = effectiveParent.ChildrenObjects;
                 var validItems     = record.movedItems.Where(item => item != null).ToList();
 
                 if (validItems.Count == 0)
