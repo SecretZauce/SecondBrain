@@ -1,10 +1,10 @@
-SecondBrain is a Unity **editor tool** that turns your project's scattered notes, assets, scene objects, and automations into a single, searchable, structured workspace — without shipping a single byte to your built game.
+SecondBrain is a Unity **editor tool** that gives you a second hierarchy window for your project — organize assets, prefabs, scenes, GameObjects, and custom actions in a structured, searchable window built for faster access and better productivity. Nothing is shipped to your built game.
 
 ---
 
 ## Flexibility — Store Anything That Matters
 
-SecondBrain is not a note app. It is a universal project organizer built around Unity's asset system.
+SecondBrain is a universal project organizer built around Unity's asset system.
 
 **Drag in anything from your project:**
 
@@ -14,15 +14,12 @@ SecondBrain is not a note app. It is a universal project organizer built around 
 | Scene file | Reference + a ▶ play button to open it |
 | Text file | Reference; URLs open in your system browser on Enter |
 | GameObject from the Hierarchy | Scene Object reference — retains name even when scene is closed |
-| Component from the Hierarchy | Scene Component reference — opens in the Inspector on Enter |
-
-**Build automations alongside your content:**
-
-Action Items (PRO) are ScriptableObject-based scripts you drop into any Container like a regular asset. Run them with a single keypress — switch editor layouts, enter Play Mode, open any Unity window — all from the same place as your notes and references.
+| Component from the Inspector | Scene Component reference — opens in the Inspector on Enter |
+| Action Item *(PRO)* | ScriptableObject-based executable action — run with a single keypress |
 
 **Developers can go further:**
 
-`TypedContainer<T>` lets you create strongly-typed containers that only accept a specific asset type, and `ActionItem` is fully subclassable for custom automations.
+`TypedContainer<T>` lets you create strongly-typed containers that only accept a specific asset type, and `ActionItem` is fully subclassable for custom executable actions.
 
 ---
 
@@ -51,11 +48,15 @@ See [Data Structure](data-structure.md) and [Building Your Hierarchy](browsing.m
 
 ### Quick Peek *(PRO)*
 
-Hover over any row to see a floating preview panel without navigating away. Containers show their children in a compact layout; scene objects show their component list; any other asset shows its Inspector inline.
+<img alt="Quick Peek hover preview" src="gifs/quick-peek.gif" width="600"/>
+
+Hover over the **left or right edge** of any row to see a floating preview panel without navigating away. Containers show their children in a compact layout; scene objects show their component list; any other asset shows its Inspector inline.
 
 ### Quick Browse *(PRO)*
 
-**Ctrl+Space** (Windows / Linux) or **Option+Space** (Mac) pops the browser up as a floating window centered on the editor — from anywhere, any time. Start typing and the search bar is already focused. Press the shortcut again or click away to dismiss.
+<img alt="Quick Browse floating popup" src="gifs/quick-browse.gif" width="600"/>
+
+**Shift+Q** opens a floating browser window centered on the editor — from anywhere, any time. Start typing and the search bar is already focused. Press **Shift+Q** again or click away to dismiss.
 
 ### Scene Linking *(PRO)*
 
@@ -78,7 +79,7 @@ Every item type knows what to do when you press **Return**:
 
 ### Keyboard Navigation
 
-Full keyboard navigation for selection, foldout expand/collapse, rename, duplicate, delete, clipboard paste, and back/forward history. See the full [Keyboard Shortcuts](shortcuts.md) reference.
+Full keyboard navigation: **↑ / ↓** to move selection, **← / →** to collapse/expand containers, **Alt+← / Alt+→** to recursively collapse/expand, **Ctrl+Z / Ctrl+Shift+Z** for undo/redo, **Ctrl+R** to rename, **Ctrl+D** to duplicate, **Ctrl+Left / Ctrl+Right** for back/forward history, and more. See the full [Keyboard Shortcuts](shortcuts.md) reference.
 
 ---
 
@@ -90,12 +91,16 @@ Right-click any Container or Base to set an emoji (or any built-in Unity editor 
 
 | Style | Effect |
 |---|---|
+| Gradient | Gradient wash across the row |
 | Font Color | Tints the label text |
 | Circle Dot | Small colored circle beside the name |
 | Background | Fills the entire row |
-| Gradient | Gradient wash across the row |
 
 Multi-select several nodes and style them all at once.
+
+### Profiles *(PRO)*
+
+PRO gives you unlimited Profiles — each a completely separate hierarchy root. Use one Profile per team member for personalized workspaces, share a common Profile across the team while each person keeps their own private one alongside it, or separate entirely different project contexts. Profiles can be stored editor-only or included in player builds.
 
 ### Settings
 
@@ -112,13 +117,18 @@ See [Styling and Settings](styling-and-settings.md).
 | Browser windows | 1 | Unlimited |
 | Profiles | 1 | Unlimited |
 | Bases (workspaces) | 1 | Unlimited |
+| Scenes and Assets (drag & drop) | ✓ | ✓ |
+| Scene Object references | ✓ | ✓ |
+| Component references | ✓ | ✓ |
+| Real-time search | ✓ | ✓ |
+| Full undo / redo | ✓ | ✓ |
+| Keyboard navigation | ✓ | ✓ |
+| Core browsing, styling | ✓ | ✓ |
 | Move items between Bases | — | ✓ |
 | Quick Peek hover preview | — | ✓ |
 | Quick Browse keyboard popup | — | ✓ |
 | Scene Linking (auto-open / close) | — | ✓ |
 | Action Items | — | ✓ |
-| Container Children Inspector | — | ✓ |
-| Core browsing, search, styling, undo | ✓ | ✓ |
 
 ---
 
@@ -127,9 +137,10 @@ See [Styling and Settings](styling-and-settings.md).
 | Page | What it covers |
 |---|---|
 | [Getting Started](getting-started.md) | Opening the window, first-run orientation |
-| [Data Structure](data-structure.md) | Bases, Containers, asset types — the full hierarchy |
+| [Data Structure](data-structure.md) | Profiles, Bases, Containers, asset types — the full hierarchy |
 | [Browsing](browsing.md) | Navigation, creating items, drag & drop, enter actions, undo |
 | [Selection & Search](selection-and-search.md) | Multi-select, range select, real-time search |
 | [Styling & Settings](styling-and-settings.md) | Emoji, colors, Inspectors, all settings |
 | [PRO Features](pro-features.md) | Quick Peek, Quick Browse, Scene Linking, Action Items, Multiple Windows |
-| [Keyboard Shortcuts](shortcuts.md) | Full shortcut reference, Free vs PRO comparison |
+| [Keyboard Shortcuts](shortcuts.md) | Full shortcut reference |
+| [Upgrading to PRO](upgrading-to-pro.md) | Installing PRO and activating your license |

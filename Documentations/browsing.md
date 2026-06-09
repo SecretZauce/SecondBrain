@@ -2,7 +2,12 @@
 
 ### Entering a Base
 
-Double-click a Base (or select it and press **Return**) to navigate into it. The window title and toolbar update to show the Base name — including its emoji if one is set.
+<img alt="Entering a Base by double-clicking or clicking the arrow" src="gifs/enter-base.gif" width="600"/>
+
+Double-click a Base, click the **▶** arrow on the right side of its row, or select it and press **Return** to navigate into it. The window title and toolbar update to show the Base name — including its emoji if one is set.
+
+> [!NOTE]
+> By default, double-clicking a leaf item triggers its **Enter** action. If you prefer double-click to rename instead, change **Double-Click Action** to **Rename** in [Settings](styling-and-settings.md#settings).
 
 Press **Escape** to return to the Home view.
 
@@ -23,7 +28,7 @@ Press **Escape** to return to the Home view.
 When you are inside a Base, a tag bar appears at the bottom of the window:
 
 - **Scene link tag** — shows the linked scene filename. Click **×** to unlink. See [PRO: Scene Linking](pro-features.md#scene-linking).
-- **Default Base tag** *(PRO)* — shown when this Base is the Quick Browse default. Click **×** to clear it.
+- **Default Base tag** *(PRO)* — shown when this Base is the Quick Browse default. When set, [Quick Browse](pro-features.md#quick-browse) navigates straight to this Base on open instead of showing the Home view. Click **×** to clear it.
 
 ---
 
@@ -46,7 +51,15 @@ Press **Ctrl+V** inside the browser to paste the current clipboard text as a new
 
 ### Adding Existing Assets
 
-Drag any asset from Unity's **Project** window onto a Container or Base. Scene GameObjects are automatically wrapped in a Scene Object reference. See [Drag & Drop](#drag--drop) below for drop targeting details.
+<img alt="Dragging assets from Project, Hierarchy, and Inspector" src="gifs/drag-drop.gif" width="600"/>
+
+Drag any asset from Unity's **Project** window onto a Container or Base. You can also drag from:
+
+- **Hierarchy** — GameObjects are automatically wrapped in Scene Object references; scene names create scene references.
+- **Inspector** — drag a component header to create a Scene Component reference.
+- **Across tabs** — hover the SecondBrain tab in the dock while dragging (without needing to focus it first) and drop at the target position inside the tree.
+
+See [Drag & Drop](#drag--drop) below for drop targeting details.
 
 ---
 
@@ -63,7 +76,7 @@ Pressing **Return** (or double-clicking when **Double-Click Action** is set to *
 | Scene Asset | Open the scene; ▶ play button appears alongside |
 | Prefab | Open in Prefab Stage |
 | Text Asset (URL) | Open the URL in your system browser |
-| Action Item | Execute the automation *(PRO)* |
+| Action Item | Execute the action *(PRO)* |
 
 ---
 
@@ -108,6 +121,8 @@ All operations — create, rename, delete, duplicate, reparent, move, and naviga
 
 ### Reordering Within the Tree
 
+<img alt="Reordering items with drag and drop" src="gifs/reorder.gif" width="600"/>
+
 Drag any row to reorder it within its parent or move it into a different Container. A drop indicator shows the exact insertion point. The drag only activates after you exceed a short distance threshold, so single-click selection is not affected.
 
 Releasing outside the window or losing focus cancels the drag with no changes.
@@ -124,6 +139,14 @@ Scene GameObjects dragged from the Hierarchy are wrapped in a Scene Object refer
 
 > [!WARNING]
 > Assets from scenes that have never been saved to disk are rejected with a notification and not added.
+
+### Dragging Out *(PRO)*
+
+Items can be dragged back out of SecondBrain to other Unity windows:
+
+- **Another SecondBrain window** — drop onto a Container or between rows to move the item across windows.
+- **Scene View** — drops the asset at the cursor position in the scene.
+- **Project Browser** — a dialog lets you choose where to place the asset.
 
 ### Move to a Different Base *(PRO)*
 

@@ -24,37 +24,5 @@
 
 ---
 
-## Free vs PRO
-
-| Capability | Free | PRO |
-|---|---|---|
-| Browser windows | 1 | Unlimited |
-| Profiles | 1 | Unlimited |
-| Bases (workspaces) | 1 | Unlimited |
-| Move items between Bases | — | ✓ |
-| Quick Peek hover preview | — | ✓ |
-| Quick Browse keyboard popup | — | ✓ |
-| Scene Linking (auto-open / close) | — | ✓ |
-| Action Items | — | ✓ |
-| Container Children Inspector | — | ✓ |
-| Core browsing, search, styling, undo | ✓ | ✓ |
-
----
-
-## What This Guide Leaves Out
-
-The following topics appear in the codebase or feature summary but are omitted because they are internal implementation details or developer extension points, not end-user concerns:
-
-| Omitted topic | Why omitted |
-|---|---|
-| `TypedContainer<T>` API | Developer API for strongly-typed custom containers in code — not configurable from the editor UI |
-| `[CreateChild]` attribute / `IHasCreateChildOption` | Developer APIs for registering custom child types in the Create Child menu |
-| `ActionItem` subclassing (`ActionPath`, `GetDetailDisplay`, `DefaultName`, `EditorIcon`) | Developer extension points for building custom Action Items |
-| Internal state files (`FocusHistorySO`, `SelectionStateSO`, `FoldoutState`) | Managed automatically under `Assets/Settings/`; delete to reset UI state if something goes wrong, not user-configurable |
-| `SecondBrainCore` initialization state | Internal first-run tracking stored in `SecondBrainCore.asset` — not user-configurable |
-| Sub-asset file layout | Containers are embedded sub-assets inside their Base's `.asset` file — managed automatically; do not reorganize manually |
-| `SceneObjectMap` rebuild | Internal cache rebuilt automatically on domain reload |
-| DEV build PRO toggle on the Upgrade link | Relevant only during plugin development |
-| Quick Peek hover delay and fade timing | Fixed internal values — not configurable |
-| Quick Peek popup pixel dimensions | Implementation detail with no user-facing configuration |
-| Detail Panel (toolbar Show/Hide Details button) | Exists in code but is unfinished and not exposed in any released build |
+> [!NOTE]
+> For developer extension points and internal implementation details not covered in this guide, see the Advanced page.
