@@ -267,6 +267,12 @@ namespace SecretZauce.SecondBrain.Editor
                             Undo.RecordObject(sceneRef, "Toggle Focus On Select");
                             sceneRef.isFocusOnSelect = !isFocusOn;
                             EditorUtility.SetDirty(sceneRef);
+                            if (sceneRef.isFocusOnSelect)
+                            {
+                                var go = SceneObjectMap.Resolve(sceneRef.sceneObject?.GlobalId);
+                                if (go != null && System.Array.IndexOf(Selection.objects, go) >= 0)
+                                    EditorApplication.delayCall += () => { SceneView.FrameLastActiveSceneView(); SceneView.FrameLastActiveSceneView(); };
+                            }
                         }
                     }
                 }
@@ -393,6 +399,12 @@ namespace SecretZauce.SecondBrain.Editor
                             Undo.RecordObject(sceneComponentRef, "Toggle Focus On Select");
                             sceneComponentRef.isFocusOnSelect = !isFocusOn;
                             EditorUtility.SetDirty(sceneComponentRef);
+                            if (sceneComponentRef.isFocusOnSelect)
+                            {
+                                var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent?.GlobalId);
+                                if (component != null && System.Array.IndexOf(Selection.objects, component.gameObject) >= 0)
+                                    EditorApplication.delayCall += () => { SceneView.FrameLastActiveSceneView(); SceneView.FrameLastActiveSceneView(); };
+                            }
                         }
                     }
                 }
