@@ -22,8 +22,8 @@ namespace SecretZauce.SecondBrain.Editor
             OpenDefaultOrHome();
         }
 
-        // Shortcut: Option+Q (Mac) / Alt+Q (Win) — focus existing window, or open one if none exists
-        [Shortcut("Second Brain/Focus Window", KeyCode.Q, ShortcutModifiers.Alt)]
+        // Shortcut: Shift+Q — focus existing window, or open one if none exists
+        [Shortcut("Second Brain/Focus Window", KeyCode.Q, ShortcutModifiers.Shift)]
         static void FocusWindow()
         {
             var existing = Resources.FindObjectsOfTypeAll<SecondBrainWindow>();
