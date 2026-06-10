@@ -457,36 +457,6 @@ namespace SecretZauce.SecondBrain.Editor
             if (DragDropManager.IsDragging && !DragDropManager.IsExternalDrag)
                 DragDropManager.DrawFloatingPreview(Event.current.mousePosition);
 
-#if SECOND_BRAIN_PRO && UNITY_EDITOR_WIN
-            // Windows only: DragAndDrop.StartDrag() enters the OS drag loop and swallows MouseUp,
-            // so starting it at drag begin breaks internal reordering. Instead, hand the internal
-            // drag off to Unity's external DnD when the cursor nears the window edge. MouseDrag is
-            // the only event context where StartDrag() reliably begins a native session, and the
-            // handoff must happen before MouseLeaveWindow fires — so trigger inside an edge margin.
-            // Drags that stay away from the edge remain pure internal (mouse-event driven), which
-            // keeps within-window reordering on the MouseUp/TryHandleDrop path.
-            // (macOS/Linux start the session at drag begin in TreeViewDragInput.HandleRow.)
-            if (Event.current.type == EventType.MouseDrag && Event.current.button == 0
-                && DragDropManager.IsDragging && !DragDropManager.IsExternalDrag
-                && OwnerWindow != null && ProFeature.Provider != null
-                && !ProFeature.Provider.IsCrossWindowDragFromThisWindow(OwnerWindow))
-            {
-                const float edgeMargin = 20f;
-                Vector2 screenMouse = GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
-                Rect winRect = OwnerWindow.position;
-                var innerRect = new Rect(
-                    winRect.x + edgeMargin, winRect.y + edgeMargin,
-                    winRect.width - edgeMargin * 2f, winRect.height - edgeMargin * 2f);
-                if (!innerRect.Contains(screenMouse))
-                {
-                    var dragItems = DragDropManager.GetDraggedItems();
-                    var dragPaths = DragDropManager.GetDraggedPaths();
-                    if (dragItems.Count > 0)
-                        ProFeature.Provider.BeginExternalDrag(OwnerWindow, dragItems, dragPaths);
-                }
-            }
-#endif
-
             // Global MouseUp handler - CRITICAL for ensuring drag always ends
             // This catches MouseUp events even when not over a specific item
             // Handles both internal drags and potential drags that were never started

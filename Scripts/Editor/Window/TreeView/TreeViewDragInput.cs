@@ -217,13 +217,13 @@ namespace SecretZauce.SecondBrain.Editor
                 if (pathsToDrag != null && pathsToDrag.Count > 0)
                 {
                     dragDropManager.BeginDrag(pathsToDrag, ownerTreeView.Context.Collections);
-#if SECOND_BRAIN_PRO && !UNITY_EDITOR_WIN
+#if SECOND_BRAIN_PRO
                     // Start Unity's external DnD during EventType.MouseDrag — the only reliable
                     // event context for DragAndDrop.StartDrag(). This allows items to be dropped
                     // on Scene View, Project Browser, or another BrowserWindow immediately.
-                    // Windows is excluded: there StartDrag() enters the OS drag loop and swallows
-                    // MouseUp, breaking internal reordering — on Windows the handoff is deferred
-                    // until the cursor nears the window edge (TreeView.HandlePostNodeDrawingInputs).
+                    // On Windows the OS drag loop swallows MouseUp from this point on, so the
+                    // in-window reorder commits through DragUpdated/DragPerform instead — see the
+                    // UNITY_EDITOR_WIN blocks in this file (visual mode, AcceptDrag, DragExited).
                     if (ownerTreeView.OwnerWindow != null && ProFeature.Provider != null)
                     {
                         var extItems = dragDropManager.GetDraggedItems();
