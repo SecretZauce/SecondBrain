@@ -221,7 +221,7 @@ namespace SecretZauce.SecondBrain.Editor
         public static void EnterFolderInProjectWindow(Object folder)
         {
             if (folder == null) return;
-            var projectBrowserType = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
+            var projectBrowserType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
             if (projectBrowserType == null) return;
             var browsers = Resources.FindObjectsOfTypeAll(projectBrowserType);
             if (browsers.Length == 0)

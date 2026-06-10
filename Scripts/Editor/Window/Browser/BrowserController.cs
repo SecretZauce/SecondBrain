@@ -226,6 +226,13 @@ namespace SecretZauce.SecondBrain.Editor
                 }
             }
 
+            if (folderToEnter != null)
+            {
+                var capturedFolder = folderToEnter;
+                EditorApplication.delayCall += () => EditorGUIUtils.EnterFolderInProjectWindow(capturedFolder);
+                return;
+            }
+            
             // Record the expected selection so the subsequent selectionChanged callback can confirm
             // whether the change originated from this controller or externally.
             expectedUnitySelection = new HashSet<Object>(unitySelection);
@@ -237,12 +244,6 @@ namespace SecretZauce.SecondBrain.Editor
                     SceneView.FrameLastActiveSceneView();
                     SceneView.FrameLastActiveSceneView();
                 };
-
-            if (folderToEnter != null)
-            {
-                var capturedFolder = folderToEnter;
-                EditorApplication.delayCall += () => EditorGUIUtils.EnterFolderInProjectWindow(capturedFolder);
-            }
         }
 
         public Object GetObjectAtPath(int[] path)
