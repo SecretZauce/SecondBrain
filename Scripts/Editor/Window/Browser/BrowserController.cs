@@ -207,7 +207,7 @@ namespace SecretZauce.SecondBrain.Editor
                         {
                             if (sceneComponentRef.isFocusOnSelect)
                                 shouldFocusSceneView = true;
-                            obj = component.gameObject;
+                            obj = BrowserSettings.ComponentRefSelectsGameObject ? (Object)component.gameObject : component;
                         }
                     }
 
@@ -223,6 +223,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (shouldFocusSceneView)
                 EditorApplication.delayCall += ()=>
                 {
+                    SceneView.FrameLastActiveSceneView();
                     SceneView.FrameLastActiveSceneView();
                 };
         }
