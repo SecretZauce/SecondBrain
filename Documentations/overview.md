@@ -1,21 +1,25 @@
-SecondBrain is a Unity **editor tool** that gives you a second hierarchy window for your project — organize assets, prefabs, scenes, GameObjects, and custom actions in a structured, searchable window built for faster access and better productivity. Nothing is shipped to your built game.
+## A Second Hierarchy for Anything
+
+SecondBrain brings a powerful second hierarchy window to the Unity Editor, giving you a structured and searchable way to organize Assets, Prefabs, Scenes, GameObjects, Components, and Executable Actions.
+
+Packed with many more productivity boosts to help you navigate complex projects with ease, and get more done.
 
 ---
 
-## Flexibility — Store Anything That Matters
+## Drag, Organize, and Customize
 
-SecondBrain is a universal project organizer built around Unity's asset system.
+Drag anything in Unity into the SecondBrain window to create a reference to it.
 
-**Drag in anything from your project:**
+<img alt="Try Dragging items into SecondBrain window" src="gifs/drag-items.gif" width="600"/>
 
-| What you drag | What SecondBrain stores |
-|---|---|
-| Prefab, material, texture, audio clip | Direct reference to the asset file |
-| Scene file | Reference + a ▶ play button to open it |
-| Text file | Reference; URLs open in your system browser on Enter |
-| GameObject from the Hierarchy | Scene Object reference — retains name even when scene is closed |
-| Component from the Inspector | Scene Component reference — opens in the Inspector on Enter |
-| Action Item *(PRO)* | ScriptableObject-based executable action — run with a single keypress |
+| What you add                                                      | Source                            | What is stored                                                       | Extra Magic |
+|-------------------------------------------------------------------|-----------------------------------|----------------------------------------------------------------------|-------------|
+| GameObjects                                                       | Unity's Hierarchy                 | Scene Object reference — persists even when scene is closed          |             |
+| Components                                                        | Inspector Window                  | Scene Component reference — persists even when scene is closed       |             |
+| Assets ( Scriptable Objects, Prefabs, Materials, etc. ) | Project Tab                       | Direct reference to the asset file                                   |             |
+| Scenes                                                            | Project Tab / Unity's Hierarchy   | Reference + a ▶ play button to open it                         |             |
+| Copied text or URLs                                               | Clipboard (Copy Buffer)           | Reference; URLs open in your system browser on Enter            |             |
+| Action Item *(PRO)*                                               | SecondBrain Window's Context Menu | ScriptableObject-based executable action — run with a single keypress|             |
 
 **Developers can go further:**
 
