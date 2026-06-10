@@ -77,7 +77,7 @@ namespace SecretZauce.SecondBrain.Editor
         static SearchFilterFlags GetTypeFlag(Object obj)
         {
             if (obj is Container)       return SearchFilterFlags.Containers;
-            if (obj is SceneObject)     return SearchFilterFlags.SceneObjects;
+            if (obj is SceneObjectRef)  return SearchFilterFlags.SceneObjects;
             if (obj is SceneAsset)      return SearchFilterFlags.Scenes;
             if (obj is TextAsset)       return SearchFilterFlags.TextAssets;
             if (obj is GameObject)      return SearchFilterFlags.Prefabs;
