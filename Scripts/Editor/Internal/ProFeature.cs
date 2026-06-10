@@ -58,6 +58,15 @@ namespace SecretZauce.SecondBrain.Editor
         public bool HasDragLeftSourceWindow(BrowserWindow thisWindow);
 
         /// <summary>
+        /// Unity fires one DragExited to the source window the instant DragAndDrop.StartDrag()
+        /// is called, while the internal drag is still alive. Returns true exactly once per
+        /// drag-out session for that startup event so the caller can ignore it; any later
+        /// DragExited is a real session end and returns false. (Used by the Windows-only
+        /// deferred drag-out handoff.)
+        /// </summary>
+        public bool ConsumeStartupDragExited(BrowserWindow thisWindow);
+
+        /// <summary>
         /// Attempts to execute a cross-window item transfer into <paramref name="dest"/>.
         /// Calls <c>DragAndDrop.AcceptDrag()</c> internally when transfer succeeds.
         /// Returns true when the transfer was handled (caller should Use the event and return).
