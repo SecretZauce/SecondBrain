@@ -1,29 +1,25 @@
 ## A Second Hierarchy for Anything
 
 SecondBrain brings a powerful second hierarchy window to the Unity Editor, giving you a structured and searchable way to organize Assets, Prefabs, Scenes, GameObjects, Components, and Executable Actions.
-
-Packed with many more productivity boosts to help you navigate complex projects with ease, and get more done.
+Packed with productivity boosts to help you navigate complex projects with ease, and get more done.
 
 ---
 
-## Drag, Organize, and Customize
+## Drag Anything
 
-Drag anything in Unity into the SecondBrain window to create a reference to it.
+Drag or add anything in your project into the SecondBrain window to create a reference to it.
 
 <img alt="Try Dragging items into SecondBrain window" src="gifs/drag-items.gif" width="600"/>
 
-| What you add                                                      | Source                            | What is stored                                                       | Extra Magic |
-|-------------------------------------------------------------------|-----------------------------------|----------------------------------------------------------------------|-------------|
-| GameObjects                                                       | Unity's Hierarchy                 | Scene Object reference — persists even when scene is closed          |             |
-| Components                                                        | Inspector Window                  | Scene Component reference — persists even when scene is closed       |             |
-| Assets ( Scriptable Objects, Prefabs, Materials, etc. ) | Project Tab                       | Direct reference to the asset file                                   |             |
-| Scenes                                                            | Project Tab / Unity's Hierarchy   | Reference + a ▶ play button to open it                         |             |
-| Copied text or URLs                                               | Clipboard (Copy Buffer)           | Reference; URLs open in your system browser on Enter            |             |
-| Action Item *(PRO)*                                               | SecondBrain Window's Context Menu | ScriptableObject-based executable action — run with a single keypress|             |
-
-**Developers can go further:**
-
-`TypedContainer<T>` lets you create strongly-typed containers that only accept a specific asset type, and `ActionItem` is fully subclassable for custom executable actions.
+| What you add                                          | Source                            | What is stored                                                        | Extra Magic                                                                                                                                               |
+|-------------------------------------------------------|-----------------------------------|-----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| GameObjects                                           | Unity's Hierarchy                 | Scene Object reference — persists even when scene is closed           | - Navigate to object (Open scene if not already opened)<br/>- Quick Peek: Edit GameObject from a popup window (PRO)<br/>- Force Focus Camera on Selection |
+| Components                                            | Inspector Window                  | Scene Component reference — persists even when scene is closed        | - Navigate to object (Open scene if not already opened)<br/>- Quick Peek: Edit Component from a popup window (PRO)<br/>- Force Focus Camera on Selection  |
+| Assets ( Scriptable Objects, Prefabs, Materials, etc. ) | Project Tab                       | Direct reference to the asset file                                    | - Quick Peek: Edit an Asset from a popup window                                                                                                           |
+| Scenes                                                | Project Tab / Unity's Hierarchy   | Direct reference to the asset file                                    | - Option to load up the scene (if not already opened)<br/>- Option to Enter PlayMode (if scene is loaded)                                                 |
+| Copied Text or URLs                                   | Ctrl+V / Cmd+V                    | A newly created TextAsset containing your pasted content              | - Opens URL on your browser<br/> - Quick Peek: Edit text content from a popup window (PRO)                                                                |
+| Scriptable Object Container                           | SecondBrain Window's Context Menu | A strongly-typed container that holds children of specific asset type | - Add a new child asset from a list of pre-defined templates<br/>Quick Peek: Browse the container's contents from a popup window (PRO)                    |
+| Action Item (PRO)                                     | SecondBrain Window's Context Menu | ScriptableObject-based executable action                              | - Execute any custom actions right from the SecondBrain Window<br/>- Or execute from Quick Peek popup with parameter passing (PRO)                        |
 
 ---
 
