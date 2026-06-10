@@ -217,5 +217,22 @@ namespace SecretZauce.SecondBrain.Editor
                 EditorGUIUtility.labelWidth = prevLabelWidth;
             }
         }
+
+        public static void EnterFolderInProjectWindow(Object folder)
+        {
+            if (folder == null) return;
+            var projectBrowserType = typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser");
+            if (projectBrowserType == null) return;
+            var browsers = Resources.FindObjectsOfTypeAll(projectBrowserType);
+            if (browsers.Length == 0)
+            {
+                EditorApplication.ExecuteMenuItem("Window/General/Project");
+                browsers = Resources.FindObjectsOfTypeAll(projectBrowserType);
+            }
+            var method = projectBrowserType.GetMethod("ShowFolderContents",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var browser in browsers)
+                method?.Invoke(browser, new object[] { folder.GetInstanceID(), true });
+        }
     }
 }

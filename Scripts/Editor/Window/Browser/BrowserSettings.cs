@@ -36,6 +36,18 @@ namespace SecretZauce.SecondBrain.Editor
     /// </summary>
     public static class BrowserSettings
     {
+        const string KeyFolderFocusPrefix = "Browser_FolderFocus_";
+
+        public static bool GetFolderFocusOnSelect(string folderGuid)
+            => !string.IsNullOrEmpty(folderGuid) && EditorPrefs.GetBool(KeyFolderFocusPrefix + folderGuid, false);
+
+        public static void SetFolderFocusOnSelect(string folderGuid, bool value)
+        {
+            if (string.IsNullOrEmpty(folderGuid)) return;
+            if (value) EditorPrefs.SetBool(KeyFolderFocusPrefix + folderGuid, true);
+            else EditorPrefs.DeleteKey(KeyFolderFocusPrefix + folderGuid);
+        }
+
         const string KeyAskBeforeDeletion = "Browser_AskBeforeDeletion_v1";
         const string KeyAskBeforeRemove = "Browser_AskBeforeRemove_v1";
         const string KeyShowIconsPerType = "Browser_ShowIconsPerType_v1";
