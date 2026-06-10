@@ -182,6 +182,7 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             List<Object> unitySelection = new List<Object>();
+            bool shouldFocusSceneView = false;
             foreach (var path in selectedPaths)
             {
                 Object obj = GetObjectAtPath(path);
@@ -193,13 +194,21 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         var go = SceneObjectMap.Resolve(sceneObjRef.sceneObject.GlobalId);
                         if (go != null)
+                        {
+                            if (sceneObjRef.isFocusOnSelect)
+                                shouldFocusSceneView = true;
                             obj = go;
+                        }
                     }
                     else if (obj is SceneComponentRef sceneComponentRef && sceneComponentRef.sceneComponent != null)
                     {
                         var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent.GlobalId);
                         if (component != null)
+                        {
+                            if (sceneComponentRef.isFocusOnSelect)
+                                shouldFocusSceneView = true;
                             obj = component;
+                        }
                     }
 
                     unitySelection.Add(obj);
@@ -210,6 +219,9 @@ namespace SecretZauce.SecondBrain.Editor
             // whether the change originated from this controller or externally.
             expectedUnitySelection = new HashSet<Object>(unitySelection);
             SelectionUtils.SetObjects(unitySelection.Count > 0 ? unitySelection.ToArray() : Array.Empty<Object>());
+
+            if (shouldFocusSceneView)
+                EditorApplication.delayCall += SceneView.FrameLastActiveSceneView;
         }
 
         public Object GetObjectAtPath(int[] path)
