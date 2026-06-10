@@ -18,6 +18,7 @@ namespace SecretZauce.SecondBrain.Editor
         static int      s_CacheFontSize;
         static Texture s_EnterIcon;
         static Texture s_PlayIcon;
+        static Texture s_FocusIcon;
         static GUIStyle s_ItemStyle;   // EditorStyles.label, MiddleLeft, configured font size
         static GUIStyle s_ArrowStyle;  // GUI.skin.label, MiddleCenter, fontSize=14 (shared by arrow/exec/play buttons)
 
@@ -53,6 +54,7 @@ namespace SecretZauce.SecondBrain.Editor
 
             s_EnterIcon = IconUtils.Load("enter");
             s_PlayIcon = IconUtils.Load("play");
+            s_FocusIcon = IconUtils.Load("focus");
         }
 
         static void EnsureAssetPathCacheSubscription()
@@ -262,7 +264,7 @@ namespace SecretZauce.SecondBrain.Editor
                             : (isHoveringArrow
                                 ? (isProSkin ? new Color(1f, 1f, 1f, 1f) : new Color(0f, 0f, 0f, 1f))
                                 : (isProSkin ? new Color(0.6f, 0.6f, 0.6f, 0.4f) : new Color(0.2f, 0.2f, 0.2f, 0.5f)));
-                        if (GUI.Button(focusRectNudged, new GUIContent("◎", "Focus scene view camera when selected"), s_ArrowStyle))
+                        if (GUI.Button(focusRectNudged, new GUIContent(s_FocusIcon, "Focus scene view camera when selected"), s_ArrowStyle))
                         {
                             Undo.RecordObject(sceneRef, "Toggle Focus On Select");
                             sceneRef.isFocusOnSelect = !isFocusOn;
@@ -394,7 +396,7 @@ namespace SecretZauce.SecondBrain.Editor
                             : (isHoveringArrow
                                 ? (isProSkin ? new Color(1f, 1f, 1f, 1f) : new Color(0f, 0f, 0f, 1f))
                                 : (isProSkin ? new Color(0.6f, 0.6f, 0.6f, 0.4f) : new Color(0.2f, 0.2f, 0.2f, 0.5f)));
-                        if (GUI.Button(focusRectNudged, new GUIContent("◎", "Focus scene view camera when selected"), s_ArrowStyle))
+                        if (GUI.Button(focusRectNudged, new GUIContent(s_FocusIcon, "Focus scene view camera when selected"), s_ArrowStyle))
                         {
                             Undo.RecordObject(sceneComponentRef, "Toggle Focus On Select");
                             sceneComponentRef.isFocusOnSelect = !isFocusOn;
