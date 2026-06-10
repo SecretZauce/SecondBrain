@@ -237,6 +237,12 @@ namespace SecretZauce.SecondBrain.Editor
                 // Left/Right/Return multi-select toggles foldouts only; do not change selection
                 if (handled && (key == KeyCode.LeftArrow || key == KeyCode.RightArrow || key == KeyCode.Return || key == KeyCode.KeypadEnter))
                     result.FoldoutToggled = true;
+                // Up/Down moves selection to item above topmost or below bottommost selection
+                if (handled && key is KeyCode.UpArrow or KeyCode.DownArrow)
+                {
+                    result.SelectionChanged = true;
+                    result.NewPrimaryPath = primaryPath;
+                }
                 return result;
             }
 
@@ -318,11 +324,14 @@ namespace SecretZauce.SecondBrain.Editor
 
             var key = Event.current.keyCode;
 
-            // Up/Down navigation - use single selection mode (clears multi-select)
+            // Up/Down: navigate to item above topmost or below bottommost selection, then collapse to single
             if (key is KeyCode.UpArrow or KeyCode.DownArrow)
             {
                 ISearchPredicate predicate = searchPredicate != null ? new FuncSearchPredicate(searchPredicate) : null;
                 Func<Object, bool> matchFunc = predicate != null ? new Func<Object, bool>(predicate.Matches) : null;
+                var anchor = FindMultiSelectAnchorPath(selectedPaths, key, matchFunc);
+                if (anchor != null)
+                    primaryPath = anchor;
                 return ProcessUpDownNavigation(ref primaryPath, key, out needsRepaint, matchFunc);
             }
 
@@ -331,6 +340,38 @@ namespace SecretZauce.SecondBrain.Editor
                 return ProcessLeftRightNavigationMulti(selectedPaths, key, out needsRepaint);
 
             return false;
+        }
+
+        // Returns the path that should anchor Up/Down navigation for a multi-selection:
+        // the topmost visible item for Up, the bottommost for Down.
+        int[] FindMultiSelectAnchorPath(List<int[]> selectedPaths, KeyCode key, Func<Object, bool> searchPredicate)
+        {
+            List<int[]> visible;
+            if (!treeView.IsSearching() && treeView.visiblePaths != null && treeView.visiblePaths.Count > 0)
+                visible = treeView.visiblePaths;
+            else
+                visible = GenerateVisiblePaths(searchPredicate);
+
+            int boundaryIndex = key == KeyCode.UpArrow ? int.MaxValue : int.MinValue;
+            int[] boundaryPath = null;
+
+            for (int vi = 0; vi < visible.Count; vi++)
+            {
+                foreach (var sp in selectedPaths)
+                {
+                    if (!StructureUtils.ArePathsEqual(visible[vi], sp))
+                        continue;
+
+                    if (key == KeyCode.UpArrow ? vi < boundaryIndex : vi > boundaryIndex)
+                    {
+                        boundaryIndex = vi;
+                        boundaryPath = visible[vi];
+                    }
+                    break;
+                }
+            }
+
+            return boundaryPath;
         }
 
         bool ProcessLeftRightNavigation(
