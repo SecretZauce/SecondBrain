@@ -183,6 +183,7 @@ namespace SecretZauce.SecondBrain.Editor
 
             List<Object> unitySelection = new List<Object>();
             bool shouldFocusSceneView = false;
+            Object folderToEnter = null;
             foreach (var path in selectedPaths)
             {
                 Object obj = GetObjectAtPath(path);
@@ -210,6 +211,16 @@ namespace SecretZauce.SecondBrain.Editor
                             obj = component.gameObject;
                         }
                     }
+                    else if (obj is DefaultAsset)
+                    {
+                        var folderPath = AssetDatabase.GetAssetPath(obj);
+                        if (!string.IsNullOrEmpty(folderPath) && AssetDatabase.IsValidFolder(folderPath))
+                        {
+                            var guid = AssetDatabase.AssetPathToGUID(folderPath);
+                            if (BrowserSettings.GetFolderFocusOnSelect(guid))
+                                folderToEnter = obj;
+                        }
+                    }
 
                     unitySelection.Add(obj);
                 }
@@ -226,6 +237,12 @@ namespace SecretZauce.SecondBrain.Editor
                     SceneView.FrameLastActiveSceneView();
                     SceneView.FrameLastActiveSceneView();
                 };
+
+            if (folderToEnter != null)
+            {
+                var capturedFolder = folderToEnter;
+                EditorApplication.delayCall += () => EditorGUIUtils.EnterFolderInProjectWindow(capturedFolder);
+            }
         }
 
         public Object GetObjectAtPath(int[] path)

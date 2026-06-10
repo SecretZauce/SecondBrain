@@ -456,6 +456,7 @@ namespace SecretZauce.SecondBrain.Editor
                 string assetPath = GetAssetPathCached(this.node);
                 bool isSceneAsset = node is SceneAsset;
                 bool isPrefabAsset = !string.IsNullOrEmpty(assetPath) && assetPath.EndsWith(".prefab");
+                bool isFolder = node is DefaultAsset && !string.IsNullOrEmpty(assetPath) && AssetDatabase.IsValidFolder(assetPath);
 
                 var baseTarget = node as Base;
                 var isBase = baseTarget != null;
@@ -628,9 +629,33 @@ namespace SecretZauce.SecondBrain.Editor
                 // Reset fontStyle on the cached style so the next leaf row starts clean.
                 s_ItemStyle.fontStyle = FontStyle.Normal;
 #if SECOND_BRAIN_PRO
-                if (actionItemGUI.TryDrawActionItem()) 
+                if (actionItemGUI.TryDrawActionItem())
                     return true;
 #endif
+
+                if (isFolder)
+                {
+                    string folderGuid = AssetDatabase.AssetPathToGUID(assetPath);
+                    bool isFolderFocusOn = BrowserSettings.GetFolderFocusOnSelect(folderGuid);
+                    Color folderFocusColor = isFolderFocusOn
+                        ? (isProSkin ? new Color(0.4f, 0.8f, 1f, 1f) : new Color(0.1f, 0.5f, 0.9f, 1f))
+                        : (isHoveringArrow
+                            ? (isProSkin ? new Color(1f, 1f, 1f, 1f) : new Color(0f, 0f, 0f, 1f))
+                            : (isProSkin ? new Color(0.6f, 0.6f, 0.6f, 0.4f) : new Color(0.2f, 0.2f, 0.2f, 0.5f)));
+                    Rect folderFocusRect = this.arrowRect;
+                    folderFocusRect.y -= 1;
+                    var prevFolderFocusColor = GUI.color;
+                    GUI.color = folderFocusColor;
+                    bool folderFocusClicked = GUI.Button(folderFocusRect, new GUIContent(s_FocusIcon, "Enter folder in Project window when selected"), s_ArrowStyle);
+                    GUI.color = prevFolderFocusColor;
+                    if (folderFocusClicked)
+                    {
+                        bool newValue = !isFolderFocusOn;
+                        BrowserSettings.SetFolderFocusOnSelect(folderGuid, newValue);
+                        if (newValue && System.Array.IndexOf(Selection.objects, node) >= 0)
+                            EditorApplication.delayCall += () => EditorGUIUtils.EnterFolderInProjectWindow(node);
+                    }
+                }
 
                 if (isSceneAsset && !isEditorPlaying && !string.IsNullOrEmpty(assetPath))
                 {
