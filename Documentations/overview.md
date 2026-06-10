@@ -60,7 +60,7 @@ Hover over the **left or right edge** of any row to see a floating preview panel
 
 <img alt="Quick Browse floating popup" src="gifs/quick-browse.gif" width="600"/>
 
-**Shift+Q** opens a floating browser window centered on the editor — from anywhere, any time. Start typing and the search bar is already focused. Press **Shift+Q** again or click away to dismiss.
+**Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* opens a floating browser window centered on the editor — from anywhere, any time. Start typing and the search bar is already focused. Press **Alt+Q** again or click away to dismiss.
 
 ### Scene Linking *(PRO)*
 

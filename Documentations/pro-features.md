@@ -88,12 +88,12 @@ The panel header contains a layout toggle (tab icon / foldout icon) to switch be
 
 ## Quick Browse
 
-<img alt="Quick Browse floating popup opened with Shift+Q" src="gifs/quick-browse.gif" width="600"/>
+<img alt="Quick Browse floating popup opened with Alt+Q" src="gifs/quick-browse.gif" width="600"/>
 
-**Shift+Q** opens a floating browser window centered on the Unity editor — from anywhere, any time.
+**Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* opens a floating browser window centered on the Unity editor — from anywhere, any time.
 
 - The search bar is focused automatically on open. Start typing to filter immediately.
-- Press **Shift+Q** again or click outside the popup to close it.
+- Press **Alt+Q** again or click outside the popup to close it.
 - Press **Escape** twice to close: the first press clears the search bar, the second closes the popup.
 - If a **Default Base** is set, Quick Browse navigates straight to it on open.
 

@@ -1413,11 +1413,11 @@ namespace SecretZauce.SecondBrain.Editor
                 // On macOS, Option+Space is delivered as a non-breaking-space character event
                 // (keyCode=None, character=' ', alt=true) rather than KeyCode.Space.
                 isToggleShortcut |= ev.keyCode == KeyCode.None && ev.alt && ev.character == ' ';
-                // Cmd+Shift+Q
-                isToggleShortcut |= ev.keyCode == KeyCode.Q && ev.shift && ev.command;
+                // Option+Q
+                isToggleShortcut |= ev.keyCode == KeyCode.Q && ev.alt;
 #else
-                // Ctrl+Shift+Q
-                isToggleShortcut |= ev.keyCode == KeyCode.Q && ev.shift && ev.control;
+                // Alt+Q
+                isToggleShortcut |= ev.keyCode == KeyCode.Q && ev.alt;
 #endif
                 if (ev.type == EventType.KeyDown && isToggleShortcut)
                 {

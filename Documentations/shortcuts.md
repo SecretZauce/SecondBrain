@@ -18,8 +18,8 @@
 | **Escape** | Clear search → go home → close popup *(priority order)* |
 | **Down** *(in search bar)* | Move focus to first matching result |
 | **Enter** *(in search bar)* | Exit search mode |
-| **Shift+Q** | Toggle Quick Browse popup *(PRO)* |
-| **Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* | Focus existing SecondBrain window |
+| **Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* | Toggle Quick Browse popup *(PRO)* |
+| **Shift+Q** | Focus existing SecondBrain window |
 | **Alt+Shift+Q** *(Win/Linux)* / **Option+Shift+Q** *(Mac)* | Open new browser window *(PRO)* |
 
 ---
