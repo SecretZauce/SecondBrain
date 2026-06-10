@@ -221,7 +221,10 @@ namespace SecretZauce.SecondBrain.Editor
             SelectionUtils.SetObjects(unitySelection.Count > 0 ? unitySelection.ToArray() : Array.Empty<Object>());
 
             if (shouldFocusSceneView)
-                EditorApplication.delayCall += SceneView.FrameLastActiveSceneView;
+                EditorApplication.delayCall += ()=>
+                {
+                    SceneView.FrameLastActiveSceneView();
+                };
         }
 
         public Object GetObjectAtPath(int[] path)
