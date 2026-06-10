@@ -700,6 +700,9 @@ namespace SecretZauce.SecondBrain.Editor
             if (_scrollViewRect.width <= 0f)
                 return;
 
+            if (visiblePaths.Count == 0)
+                return;
+
             float pw = TreeViewDragInput.QuickPeekZoneWidth;
 
             // Row rects drawn inside the scroll view already have their xMax clamped to the
