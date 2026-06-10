@@ -252,7 +252,23 @@ namespace SecretZauce.SecondBrain.Editor
                         // Scene is loaded and GO is active: draw normally (use provided fontColor if any)
                         DrawLabelWithTempWidth(new GUIContent(displayName, BrowserSettings.ShowIconsPerType ? icon : null), s_ItemStyle);
                     }
-                    // Do NOT show the navigation button when the scene is already loaded
+                    if (!isMissing)
+                    {
+                        Rect focusRectNudged = this.arrowRect;
+                        focusRectNudged.y -= 1;
+                        bool isFocusOn = sceneRef.isFocusOnSelect;
+                        s_ArrowStyle.normal.textColor = isFocusOn
+                            ? (isProSkin ? new Color(0.4f, 0.8f, 1f, 1f) : new Color(0.1f, 0.5f, 0.9f, 1f))
+                            : (isHoveringArrow
+                                ? (isProSkin ? new Color(1f, 1f, 1f, 1f) : new Color(0f, 0f, 0f, 1f))
+                                : (isProSkin ? new Color(0.6f, 0.6f, 0.6f, 0.4f) : new Color(0.2f, 0.2f, 0.2f, 0.5f)));
+                        if (GUI.Button(focusRectNudged, new GUIContent("◎", "Focus scene view camera when selected"), s_ArrowStyle))
+                        {
+                            Undo.RecordObject(sceneRef, "Toggle Focus On Select");
+                            sceneRef.isFocusOnSelect = !isFocusOn;
+                            EditorUtility.SetDirty(sceneRef);
+                        }
+                    }
                 }
                 else
                 {
@@ -360,6 +376,24 @@ namespace SecretZauce.SecondBrain.Editor
                     else
                     {
                         DrawLabelWithTempWidth(new GUIContent(displayName, BrowserSettings.ShowIconsPerType ? icon : null), s_ItemStyle);
+                    }
+
+                    if (!isMissing)
+                    {
+                        Rect focusRectNudged = this.arrowRect;
+                        focusRectNudged.y -= 1;
+                        bool isFocusOn = sceneComponentRef.isFocusOnSelect;
+                        s_ArrowStyle.normal.textColor = isFocusOn
+                            ? (isProSkin ? new Color(0.4f, 0.8f, 1f, 1f) : new Color(0.1f, 0.5f, 0.9f, 1f))
+                            : (isHoveringArrow
+                                ? (isProSkin ? new Color(1f, 1f, 1f, 1f) : new Color(0f, 0f, 0f, 1f))
+                                : (isProSkin ? new Color(0.6f, 0.6f, 0.6f, 0.4f) : new Color(0.2f, 0.2f, 0.2f, 0.5f)));
+                        if (GUI.Button(focusRectNudged, new GUIContent("◎", "Focus scene view camera when selected"), s_ArrowStyle))
+                        {
+                            Undo.RecordObject(sceneComponentRef, "Toggle Focus On Select");
+                            sceneComponentRef.isFocusOnSelect = !isFocusOn;
+                            EditorUtility.SetDirty(sceneComponentRef);
+                        }
                     }
                 }
                 else
