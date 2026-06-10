@@ -199,7 +199,7 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent.GlobalId);
                         if (component != null)
-                            obj = component;
+                            obj = component.gameObject;
                     }
 
                     unitySelection.Add(obj);
