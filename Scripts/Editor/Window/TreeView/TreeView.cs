@@ -300,8 +300,20 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         // Initialize external drag if not already dragging
                         // Do not start external drag while an item is being renamed
+#if SECOND_BRAIN_PRO && UNITY_EDITOR_WIN
+                        // Never re-classify our own drag-out as an incoming external drag. If the
+                        // internal drag state was cancelled mid-session (e.g. the spurious
+                        // MouseLeaveWindow Windows sends when the OS drag loop takes mouse
+                        // capture), converting here would route the drop through AddExternalItems
+                        // — duplicating the items ("Already in Tree") instead of reordering.
+                        bool isOwnDragOut = OwnerWindow != null &&
+                            ProFeature.Provider?.IsCrossWindowDragFromThisWindow(OwnerWindow) == true;
+                        if (!isOwnDragOut && !Renamer.IsRenamingAny && !DragDropManager.IsDragging)
+                            DragDropManager.BeginExternalDrag(Context.Collections);
+#else
                         if (!Renamer.IsRenamingAny && !DragDropManager.IsDragging)
                             DragDropManager.BeginExternalDrag(Context.Collections);
+#endif
                     }
                 }
 
@@ -483,23 +495,35 @@ namespace SecretZauce.SecondBrain.Editor
                 if (DragDropManager.IsDragging && !DragDropManager.IsExternalDrag)
                 {
 #if SECOND_BRAIN_PRO
+                    bool ownDragOutActive = OwnerWindow != null && ProFeature.Provider != null &&
+                        ProFeature.Provider.IsCrossWindowDragFromThisWindow(OwnerWindow);
                     // BeginExternalDrag is called during MouseDrag (the reliable event context).
                     // This MouseLeaveWindow path is a fallback for edge cases where that missed
                     // (e.g. drag started outside a row rect). Only call if not already active.
-                    if (OwnerWindow != null && ProFeature.Provider != null &&
-                        ProFeature.Provider.IsCrossWindowDragFromThisWindow(OwnerWindow) == false)
+                    if (OwnerWindow != null && ProFeature.Provider != null && !ownDragOutActive)
                     {
                         var dragItems = DragDropManager.GetDraggedItems();
                         var dragPaths = DragDropManager.GetDraggedPaths();
                         if (dragItems.Count > 0)
                             ProFeature.Provider.BeginExternalDrag(OwnerWindow, dragItems, dragPaths);
                     }
+#if UNITY_EDITOR_WIN
+                    // Windows sends a spurious MouseLeaveWindow when the OS drag loop takes mouse
+                    // capture right after StartDrag(), while the cursor is still inside the window.
+                    // Cancelling here would kill the in-window reorder (and let the next DragUpdated
+                    // re-classify our own drag as an incoming external drag → duplicated items).
+                    // Keep the internal drag alive; the session-end DragExited in
+                    // ProcessGlobalDragEvent cancels it reliably on every outcome.
+                    if (!ownDragOutActive)
 #endif
-                    DragDropManager.CancelDrag();
-                    UnsubscribeFromEditorUpdate();
-                    Event.current.Use();
-                    position = scrollPosition;
-                    return true;
+#endif
+                    {
+                        DragDropManager.CancelDrag();
+                        UnsubscribeFromEditorUpdate();
+                        Event.current.Use();
+                        position = scrollPosition;
+                        return true;
+                    }
                 }
 
                 // Cancel a potential (not-yet-started) drag as well
