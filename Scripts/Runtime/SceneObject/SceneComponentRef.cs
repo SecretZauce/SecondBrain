@@ -6,5 +6,6 @@ namespace SecretZauce.SecondBrain
     public class SceneComponentRef : ScriptableObject
     {
         public SceneComponent sceneComponent = new SceneComponent();
+        public bool isFocusOnSelect;
     }
 }
