@@ -227,12 +227,20 @@ namespace SecretZauce.SecondBrain.Editor
             if (browsers.Length == 0)
             {
                 EditorApplication.ExecuteMenuItem("Window/General/Project");
-                browsers = Resources.FindObjectsOfTypeAll(projectBrowserType);
+                // Defer: the newly-opened browser hasn't run its first Update/OnGUI yet,
+                // so calling ShowFolderContents on it immediately causes a null ref inside
+                // Unity's internal ProjectBrowser initialization code.
+                var capturedFolder = folder;
+                EditorApplication.delayCall += () => EnterFolderInProjectWindow(capturedFolder);
+                return;
             }
             var method = projectBrowserType.GetMethod("ShowFolderContents",
                 BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var browser in browsers)
-                method?.Invoke(browser, new object[] { folder.GetInstanceID(), true });
+            {
+                try { method?.Invoke(browser, new object[] { folder.GetInstanceID(), true }); }
+                catch { }
+            }
         }
     }
 }
