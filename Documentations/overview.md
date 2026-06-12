@@ -70,24 +70,32 @@ Link a Base to a scene. When that scene opens in the editor, SecondBrain opens s
 
 Every item type knows what to do when you press **Return** or Double-Click on them.
 
-| Item | What happens |
-|---|---|
-| Base | Navigate in |
-| Container | Toggle expand / collapse |
-| Scene Object | Ping and select in the Hierarchy |
+| Item            | What happens |
+|-----------------|---|
+| Base            | Navigate in |
+| Container       | Toggle expand / collapse |
+| Scene Object    | Ping and select in the Hierarchy |
 | Scene Component | Select in the Inspector |
-| Scene | Open the scene |
-| Prefab | Open in Prefab Stage |
-| URL text file | Open in system browser |
-| Action Item | Execute *(PRO)* |
+| Scene           | Open the scene |
+| Prefab          | Open in Prefab Stage |
+| URLs            | Open in system browser |
+| Action Item     | Execute *(PRO)* |
 
 ### Keyboard Navigation
 
-Full keyboard navigation: **↑ / ↓** to move selection, **← / →** to collapse/expand containers, **Alt+← / Alt+→** to recursively collapse/expand, **Ctrl+Z / Ctrl+Shift+Z** for undo/redo, **Ctrl+R** to rename, **Ctrl+D** to duplicate, **Ctrl+Left / Ctrl+Right** for back/forward history, and more. See the full [Keyboard Shortcuts](shortcuts.md) reference.
+Full keyboard navigation support: 
+- **↑ / ↓** to move selection
+- **← / →** to collapse/expand containers
+- **Alt+← / Alt+→** to recursively collapse/expand
+- **Ctrl+Z / Ctrl+Shift+Z** for undo/redo, **Ctrl+R** to rename
+- **Ctrl+D** to duplicate
+- **Ctrl+Left / Ctrl+Right** for back/forward history, and more.<br>
+
+See the full [Keyboard Shortcuts](shortcuts.md) reference.
 
 ---
 
-## Customization — Make It Yours
+## Customize Your Experience
 
 ### Visual Styling
 
@@ -101,14 +109,9 @@ Right-click any Container or Base to set an emoji (or any built-in Unity editor 
 | Background | Fills the entire row |
 
 Multi-select several nodes and style them all at once.
-
-### Profiles *(PRO)*
-
-PRO gives you unlimited Profiles — each a completely separate hierarchy root. Use one Profile per team member for personalized workspaces, share a common Profile across the team while each person keeps their own private one alongside it, or separate entirely different project contexts. Profiles can be stored editor-only or included in player builds.
-
 ### Settings
 
-Tune SecondBrain's behavior to your workflow — confirmation dialogs, row height, double-click action, naming-on-create, default expand state, and more. PRO adds Quick Peek layout, Scene Linking, and per-Base override controls.
+Tune SecondBrain's behavior to your workflow — confirmation dialogs, row height, What should happen when you double-click?, Should we force naming containers on creation?, default expand state, and more.
 
 See [Styling and Settings](styling-and-settings.md).
 
@@ -116,23 +119,24 @@ See [Styling and Settings](styling-and-settings.md).
 
 ## Free vs PRO at a Glance
 
-| Capability | Free | PRO |
-|---|---|---|
-| Browser windows | 1 | Unlimited |
-| Profiles | 1 | Unlimited |
-| Bases (workspaces) | 1 | Unlimited |
-| Scenes and Assets (drag & drop) | ✓ | ✓ |
-| Scene Object references | ✓ | ✓ |
-| Component references | ✓ | ✓ |
-| Real-time search | ✓ | ✓ |
-| Full undo / redo | ✓ | ✓ |
-| Keyboard navigation | ✓ | ✓ |
-| Core browsing, styling | ✓ | ✓ |
-| Move items between Bases | — | ✓ |
-| Quick Peek hover preview | — | ✓ |
-| Quick Browse keyboard popup | — | ✓ |
-| Scene Linking (auto-open / close) | — | ✓ |
-| Action Items | — | ✓ |
+| Capability                        | Free | PRO       |
+|-----------------------------------|------|-----------|
+| Browser windows                   | 1    | Unlimited |
+| Profiles                          | 1    | Unlimited |
+| Bases                             | 1    | Unlimited |
+| Max Tabs / Windows                | 1    | Unlimited |
+| Scenes and Assets (drag & drop)   | ✓    | ✓         |
+| Scene Object references           | ✓    | ✓         |
+| Component references              | ✓    | ✓         |
+| Real-time search                  | ✓    | ✓         |
+| Full undo / redo                  | ✓    | ✓         |
+| Keyboard navigation               | ✓    | ✓         |
+| Core browsing, styling            | ✓    | ✓         |
+| Move items between Bases          | —    | ✓         |
+| Quick Peek hover preview          | —    | ✓         |
+| Quick Browse keyboard popup       | —    | ✓         |
+| Scene Linking (auto-open / close) | —    | ✓         |
+| Action Items                      | —    | ✓         |
 
 ---
 
