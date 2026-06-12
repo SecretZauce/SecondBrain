@@ -101,11 +101,16 @@ namespace SecretZauce.SecondBrain.Editor
 
             GUILayout.Space(Padding);
 
-            // ── Icon row ──────────────────────────────────────────────────────────
+            // ── Icon + title row ───────────────────────────────────────────────────
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             if (windowIcon != null)
-                GUILayout.Label(windowIcon, GUILayout.Width(32), GUILayout.Height(32));
+            {
+                GUILayout.Label(windowIcon, GUILayout.Width(20), GUILayout.Height(20));
+                GUILayout.Space(6);
+            }
+            var headerStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 15, alignment = TextAnchor.MiddleLeft };
+            GUILayout.Label("PRO Feature", headerStyle, GUILayout.Height(20), GUILayout.ExpandWidth(false));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
