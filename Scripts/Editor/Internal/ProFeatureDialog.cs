@@ -59,7 +59,8 @@ namespace SecretZauce.SecondBrain.Editor
             var wnd = CreateInstance<ProFeatureDialogWindow>();
             wnd.featureName = featureName;
             wnd.upgradeUrl  = upgradeUrl;
-            wnd.titleContent = new GUIContent("SecondBrain PRO");
+            var icon = Resources.Load<Texture2D>("Editor/Icons/second_brain_icon");
+            wnd.titleContent = new GUIContent("SecondBrain PRO", icon);
             wnd.minSize = new Vector2(WindowWidth, 100);
             wnd.maxSize = new Vector2(WindowWidth, 2000);
 

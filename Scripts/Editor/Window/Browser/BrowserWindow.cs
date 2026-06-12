@@ -315,13 +315,16 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         void UpdateWindowTitle()
         {
+            if (s_WindowIcon == null)
+                s_WindowIcon = Resources.Load<Texture2D>("Editor/Icons/second_brain_icon");
+
             var targetObj = Root as Object;
             var targetName = targetObj != null ? (targetObj == (Object)HomeRoot ? "Home" : targetObj.name) : null;
             if (Root is IHasEmoji hasEmoji && !string.IsNullOrEmpty(hasEmoji.EmojiIcon)
                 && !EmojiIconUtils.IsEditorIcon(hasEmoji.EmojiIcon))
                 targetName = hasEmoji.EmojiIcon + " " + targetName;
             string newTitle = targetName;
-            titleContent = new GUIContent(newTitle, titleContent?.image);
+            titleContent = new GUIContent(newTitle, s_WindowIcon);
         }
 
         protected virtual void OnEnable()
@@ -1764,6 +1767,7 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         // Cached styles and icons for the tag line — allocated once, reused every repaint.
+        static Texture2D s_WindowIcon;
         static GUIStyle s_TagStarStyle;
         static GUIStyle s_TagXStyle;
         static Texture  s_TagDefaultBaseIcon;
