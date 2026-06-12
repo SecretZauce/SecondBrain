@@ -24,21 +24,29 @@ Drag or add anything in your project into the SecondBrain window to create a ref
 
 ---
 
-## Organization — Structure Work Exactly How You Think
+## Organize, However You Want
 
-The hierarchy is simple and infinitely flexible:
+The hierarchy is based on 3-level structure: Profiles > Bases > Containers
+
+- **Profiles** are Swappable workspace per device. it allows each team member to work and modify their own custom hierarchy independently from each other - e.g. "Tech Artist's Workspace", "Dev's Workspace"
+- **Bases** are the root of each hierarchy. Think of it like a "Cabinet" or "Folder" that contians your custom hierarchy and separate concerns cleanly.
+
+ Link a Base to a scene so it opens automatically when that scene loads (PRO).
+
+- **Containers** are folders you nest freely. Give each one a name, an emoji, and a color so your team can scan the tree at a glance.
+
 
 ```
-Profile  (project root)
-  └── Base  (workspace — e.g. "Level Design", "Audio", "UI")
+Profile  
+  └── Base  ( — e.g. "Level Design", "Audio", "UI")
         └── Container  (folder — nestable to any depth)
               ├── Container
               ├── Any asset or reference
               └── Action Item  [PRO]
 ```
 
-- **Bases** are top-level workspaces. Separate concerns cleanly — one Base per feature, discipline, or scene. Link a Base to a scene so it opens automatically when that scene loads (PRO).
-- **Containers** are folders you nest freely. Give each one a name, an emoji, and a color so your team can scan the tree at a glance.
+
+
 - **No duplicates.** SecondBrain prevents adding the same item twice — either within the same Container or anywhere in the tree — so the hierarchy stays a reliable single source of truth.
 
 See [Data Structure](data-structure.md) and [Building Your Hierarchy](browsing.md#building-your-hierarchy).
