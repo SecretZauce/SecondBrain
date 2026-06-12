@@ -48,6 +48,7 @@ namespace SecretZauce.SecondBrain.Editor
         // ── State ──────────────────────────────────────────────────────────────
         string featureName;
         string upgradeUrl;
+        Texture2D windowIcon;
 
         // ── Cached styles (created lazily inside OnGUI) ────────────────────────
         GUIStyle titleStyle;
@@ -59,8 +60,8 @@ namespace SecretZauce.SecondBrain.Editor
             var wnd = CreateInstance<ProFeatureDialogWindow>();
             wnd.featureName = featureName;
             wnd.upgradeUrl  = upgradeUrl;
-            var icon = Resources.Load<Texture2D>("Editor/Icons/second_brain_icon");
-            wnd.titleContent = new GUIContent("SecondBrain PRO", icon);
+            wnd.windowIcon = Resources.Load<Texture2D>("Editor/Icons/second_brain_icon");
+            wnd.titleContent = new GUIContent("SecondBrain PRO", wnd.windowIcon);
             wnd.minSize = new Vector2(WindowWidth, 100);
             wnd.maxSize = new Vector2(WindowWidth, 2000);
 
@@ -100,13 +101,13 @@ namespace SecretZauce.SecondBrain.Editor
 
             GUILayout.Space(Padding);
 
-            // ── Icon row (star emoji as a stand-in; lightweight, no asset needed) ──
-            var iconStyle = new GUIStyle(EditorStyles.label)
-            {
-                fontSize  = 28,
-                alignment = TextAnchor.MiddleCenter
-            };
-            GUILayout.Label("⭐ PRO Feature", iconStyle, GUILayout.Height(36));
+            // ── Icon row ──────────────────────────────────────────────────────────
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if (windowIcon != null)
+                GUILayout.Label(windowIcon, GUILayout.Width(32), GUILayout.Height(32));
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
 
             GUILayout.Space(6);
 

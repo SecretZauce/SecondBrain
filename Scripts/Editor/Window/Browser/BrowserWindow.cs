@@ -324,7 +324,7 @@ namespace SecretZauce.SecondBrain.Editor
                 && !EmojiIconUtils.IsEditorIcon(hasEmoji.EmojiIcon))
                 targetName = hasEmoji.EmojiIcon + " " + targetName;
             string newTitle = targetName;
-            titleContent = new GUIContent(newTitle, s_WindowIcon);
+            titleContent = new GUIContent(newTitle, IsAtHome() ? s_WindowIcon : null);
         }
 
         protected virtual void OnEnable()
