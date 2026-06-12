@@ -33,7 +33,7 @@ namespace SecretZauce.SecondBrain
 
         // ── Build-time config ──────────────────────────────────────────────────
 
-        [SerializeField] string defaultProfileName = "Default Profile";
+        [SerializeField] string defaultProfileName = "";
 
         // Empty string means "no profile loaded in builds" (user explicitly chose None).
         // Null/missing core asset falls back to the built-in constant inside Profile.LoadActiveProfile.
