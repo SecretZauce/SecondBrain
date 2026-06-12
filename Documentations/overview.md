@@ -5,67 +5,62 @@ Packed with productivity boosts to help you navigate complex projects with ease,
 
 ---
 
-## Drag Anything
+## Keep Whatever You Need
 
-Drag or add anything in your project into the SecondBrain window to create a reference to it.
+Drag or add anything from your project into the SecondBrain window to create a reference to it.
 
 <img alt="Try Dragging items into SecondBrain window" src="gifs/drag-items.gif" width="600"/>
 
-| What you add                                            | Source                             | What is stored                                                                    | Extra Magic                                                                                                                                               |
+| What you add                                            | Source                             | What is stored                                                                    | Supported UX (Extra Magic)                                                                                                                                |
 |---------------------------------------------------------|------------------------------------|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | GameObjects                                             | Unity's Hierarchy                  | Scene Object reference — persists even when scene is closed                       | - Navigate to object (Open scene if not already opened)<br/>- Quick Peek: Edit GameObject from a popup window (PRO)<br/>- Force Focus Camera on Selection |
 | Components                                              | Inspector Window                   | Scene Component reference — persists even when scene is closed                    | - Navigate to object (Open scene if not already opened)<br/>- Quick Peek: Edit Component from a popup window (PRO)<br/>- Force Focus Camera on Selection  |
 | Assets ( Scriptable Objects, Prefabs, Materials, etc. ) | Project Window                     | Direct reference to the asset file                                                | - Quick Peek: Edit an Asset from a popup window                                                                                                           |
 | Scenes                                                  | Project Window / Unity's Hierarchy | Direct reference to the asset file                                                | - Option to load up the scene (if not already opened)<br/>- Option to Enter PlayMode (if scene is loaded)                                                 |
-| Folders                                                 | Project Window                     | Direct reference to the folder                                                    | - Open folder in Project window automatically on selection
+| Folders                                                 | Project Window                     | Direct reference to the folder                                                    | - Open folder in Project window automatically on selection                                                                                                
 | Typed Scriptable Object Container                       | SecondBrain Window's Context Menu  | A strongly-typed Scriptable Object container that holds children of specific type | - Add a new child Scriptable Object from a list of pre-defined templates<br/>- Quick Peek: Browse the container's contents from a popup window (PRO)      |
 | Action Item (PRO)                                       | SecondBrain Window's Context Menu  | ScriptableObject-based executable action                                          | - Execute any custom actions right from the SecondBrain Window<br/>- Or execute from Quick Peek popup with parameter passing (PRO)                        |
 | Copied Text or URLs                                     | Ctrl+V / Cmd+V                     | A newly created TextAsset containing your pasted content                          | - Opens URL on your browser<br/> - Quick Peek: Edit text content from a popup window (PRO)                                                                |
 
 ---
 
-## Organize, However You Want
+## Organize However You Want
 
 The hierarchy is based on 3-level structure: Profiles > Bases > Containers
 
-- **Profiles** are Swappable workspace per device. it allows each team member to work and modify their own custom hierarchy independently from each other - e.g. "Tech Artist's Workspace", "Dev's Workspace"
-- **Bases** are the root of each hierarchy. Think of it like a "Cabinet" or "Folder" that contians your custom hierarchy and separate concerns cleanly.
-
- Link a Base to a scene so it opens automatically when that scene loads (PRO).
-
-- **Containers** are folders you nest freely. Give each one a name, an emoji, and a color so your team can scan the tree at a glance.
-
-
 ```
-Profile  
-  └── Base  ( — e.g. "Level Design", "Audio", "UI")
-        └── Container  (folder — nestable to any depth)
+Profile ( Workspace Separation )
+  └── Base  ( Topic Separation )
+        └── Container  ( Parent of the references — nestable to any depth)
               ├── Container
               ├── Any asset or reference
               └── Action Item  [PRO]
 ```
+- **Profiles** are Swappable workspace per device. it allows each team member to work and modify their own custom hierarchy independently from each other - e.g. "Tech Artist's Workspace", "Dev's Workspace", "James's Workspace" etc.
+- **Bases** are the roots of each hierarchy. Think of it like a "Cabinet" or "Folder" that containing your custom hierarchy tree which help you separate concerns cleanly - e.g. "Level Design", "Audio", "UI"
+- **Containers** are groups that contain your actual references dragged in from outside the SecondBrain window. You can add in amy supported asset types from ahove table or nest Containers inside each other freely. Custom emoji and color are supported.
 
+> [!NOTE]
+**No duplicates.**  <br>
+> SecondBrain prevents adding the same item twice — either within the same Container or anywhere else in the tree. 
 
-
-- **No duplicates.** SecondBrain prevents adding the same item twice — either within the same Container or anywhere in the tree — so the hierarchy stays a reliable single source of truth.
-
-See [Data Structure](data-structure.md) and [Building Your Hierarchy](browsing.md#building-your-hierarchy).
+See [Data Structure](data-structure.md) and [Building Your Hierarchy](browsing.md#building-your-hierarchy) for more details.
 
 ---
 
-## Productivity — Stay in Flow
+## Move Faster with Ease 
 
 ### Quick Peek *(PRO)*
 
 <img alt="Quick Peek hover preview" src="gifs/quick-peek.gif" width="600"/>
 
-Hover over the **left or right edge** of any row to see a floating preview panel without navigating away. Containers show their children in a compact layout; scene objects show their component list; any other asset shows its Inspector inline.
+Hover over the **left or right edge** of any row to see a floating preview panel without navigating away. Containers show their children in a compact layout; scene objects show their component list; any other asset shows its Inspector inline if available.
 
 ### Quick Browse *(PRO)*
 
 <img alt="Quick Browse floating popup" src="gifs/quick-browse.gif" width="600"/>
 
-**Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* opens a floating browser window centered on the editor — from anywhere, any time. Start typing and the search bar is already focused. Press **Alt+Q** again or click away to dismiss.
+**Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* opens a floating browser window centered on the editor — from anywhere, any time. Start typing and the search bar is already focused. Press **Alt+Q** again or Press ESC twice to close.
 
 ### Scene Linking *(PRO)*
 
@@ -73,7 +68,7 @@ Link a Base to a scene. When that scene opens in the editor, SecondBrain opens s
 
 ### Enter Actions
 
-Every item type knows what to do when you press **Return**:
+Every item type knows what to do when you press **Return** or Double-Click on them.
 
 | Item | What happens |
 |---|---|
