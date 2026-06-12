@@ -61,7 +61,10 @@ namespace SecretZauce.SecondBrain.Editor
 
         void OnEnable()
         {
+
             bannerTexture = Resources.Load<Texture2D>("Editor/Branding/SecondBrain_Transparent");
+            var icon = Resources.Load<Texture2D>("Editor/Icons/second_brain_icon");
+            titleContent = new GUIContent("SecondBrain Installer", icon);
         }
 
 #if SECOND_BRAIN_DEV
