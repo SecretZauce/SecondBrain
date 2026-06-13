@@ -24,21 +24,21 @@ Drag or add anything from your project into the SecondBrain window to create a r
 
 ---
 
-## Organize However You Want
+## Organize However You Like
 
 The hierarchy is based on 3-level structure: Profiles > Bases > Containers
 
 ```
-Profile ( Workspace Separation )
-  └── Base  ( Topic Separation )
-        └── Container  ( Parent of the references — nestable to any depth)
-              ├── Container
-              ├── Any asset or reference
-              └── Action Item  [PRO]
+Profile ( Per-Team Member Separation - e.g. "Tom's Profile", "Amy's Profile" )
+  └── Base  ( Hierarchy Separation - e.g. "Frequently Used Stuff", "Level Design Tools", "Game Systems" )
+        └── Container  ( The actual parent of the references — nestable to any depth)
+              ├── GameObjects / Components / Assets
+              ├── Containers 
+              └── Custom Actions [PRO]
 ```
-- **Profiles** are Swappable workspace per device. it allows each team member to work and modify their own custom hierarchy independently from each other - e.g. "Tech Artist's Workspace", "Dev's Workspace", "James's Workspace" etc.
-- **Bases** are the roots of each hierarchy. Think of it like a "Cabinet" or "Folder" that containing your custom hierarchy tree which help you separate concerns cleanly - e.g. "Level Design", "Audio", "UI"
-- **Containers** are groups that contain your actual references dragged in from outside the SecondBrain window. You can add in amy supported asset types from ahove table or nest Containers inside each other freely. Custom emoji and color are supported.
+- **Profiles** are Swappable workspace per device. it allows each team member to work and modify their own custom hierarchy independently from each other - e.g. "Tech Artist's Workspace", "Dev's Workspace", "James's Workspace" etc. Selected profile is saved per device.
+- **Bases** are the roots of each hierarchy. Allow you to have multiple hierarchy trees under one profile. 
+- **Containers** are groups inside a Base. A parent that contain your actual references dragged in from outside the SecondBrain window. You can add any supported assets from ahove table or nest Containers inside each other freely.
 
 > [!NOTE]
 **No duplicates.**  <br>
@@ -48,38 +48,47 @@ See [Data Structure](data-structure.md) and [Building Your Hierarchy](browsing.m
 
 ---
 
-## Move Faster with Ease 
+## Move Faster
+
+Navigate your project faster with these productivity boosts.
 
 ### Quick Peek *(PRO)*
 
 <img alt="Quick Peek hover preview" src="gifs/quick-peek.gif" width="600"/>
 
-Hover over the **left or right edge** of any row to see a floating preview panel without navigating away. Containers show their children in a compact layout; scene objects show their component list; any other asset shows its Inspector inline if available.
+Hover over the **left or right edge** of any row to see a floating inspector popup of each asset / object if available. 
+- GameObjects shows their components in a tabbed or foldout layout.
+- Containers show their children in a tabbed or foldout layout.
+- Assets show their inspctor / property editor with limitations for some types of assets such as materials and textures.
 
 ### Quick Browse *(PRO)*
 
 <img alt="Quick Browse floating popup" src="gifs/quick-browse.gif" width="600"/>
 
-**Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* opens a floating browser window centered on the editor — from anywhere, any time. Start typing and the search bar is already focused. Press **Alt+Q** again or Press ESC twice to close.
+**Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* opens a floating browser window centered on the editor — from anywhere, any time. 
+- Start typing and the search bar is already focused. 
+- Pressing Enter will navigate into the selected item (See Enter Actions below)
+- Press **Alt+Q** again or Press ESC twice to close.
 
 ### Scene Linking *(PRO)*
 
-Link a Base to a scene. When that scene opens in the editor, SecondBrain opens straight to that workspace automatically. No manual switching.
+Link a Base to a scene. When that scene opens in the editor, SecondBrain opens straight to that workspace automatically.
 
 ### Enter Actions
 
 Every item type knows what to do when you press **Return** or Double-Click on them.
 
-| Item            | What happens |
-|-----------------|---|
-| Base            | Navigate in |
-| Container       | Toggle expand / collapse |
-| Scene Object    | Ping and select in the Hierarchy |
-| Scene Component | Select in the Inspector |
-| Scene           | Open the scene |
-| Prefab          | Open in Prefab Stage |
-| URLs            | Open in system browser |
-| Action Item     | Execute *(PRO)* |
+| Item            | What happens                                                                                                |
+|-----------------|-------------------------------------------------------------------------------------------------------------|
+| Base            | Navigate in                                                                                                 |
+| Container       | Toggle expand / collapse                                                                                    |
+| Scene Object    | Open floating inspector of the GameObject OR open the scene and ping the object if the scene is not opened. |
+| Scene Component | Open floating inspector of the Component OR open the scene and ping the object if the scene is not opened.  |
+| Scene           | Open the scene                                                                                              |
+| Prefab          | Open in Prefab Stage                                                                                        |
+| Folder | Open a locked project window of that folder
+| URLs            | Open in system's browser                                                                                    |
+| Action Item     | Execute *(PRO)*                                                                                             |
 
 ### Keyboard Navigation
 
