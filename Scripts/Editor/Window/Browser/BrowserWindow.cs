@@ -1413,14 +1413,12 @@ namespace SecretZauce.SecondBrain.Editor
                 var ev = Event.current;
                 bool isToggleShortcut = ev.keyCode == KeyCode.Space && (ev.control || ev.alt);
 #if UNITY_EDITOR_OSX
-                // On macOS, Option+Space is delivered as a non-breaking-space character event
-                // (keyCode=None, character=' ', alt=true) rather than KeyCode.Space.
                 isToggleShortcut |= ev.keyCode == KeyCode.None && ev.alt && ev.character == ' ';
-                // Option+Q
-                isToggleShortcut |= ev.keyCode == KeyCode.Q && ev.alt;
+                // Option+W
+                isToggleShortcut |= ev.keyCode == KeyCode.W && ev.alt;
 #else
-                // Alt+Q
-                isToggleShortcut |= ev.keyCode == KeyCode.Q && ev.alt;
+                // Alt+W
+                isToggleShortcut |= ev.keyCode == KeyCode.W && ev.alt;
 #endif
                 if (ev.type == EventType.KeyDown && isToggleShortcut)
                 {

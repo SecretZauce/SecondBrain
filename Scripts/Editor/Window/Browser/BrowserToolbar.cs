@@ -99,11 +99,11 @@ namespace SecretZauce.SecondBrain.Editor
                     alignment = TextAnchor.MiddleLeft,
                     padding = new RectOffset(4, 4, 0, 0),
                 };
-                var mainKey = "Alt+Q";
+                var mainKey = "Alt+W";
 #if UNITY_EDITOR_OSX
-                mainKey = "Option+Q";
+                mainKey = "Option+W";
 #endif
-                GUILayout.Label("Press " + mainKey +" or ESC twice to close", s_HintStyle);
+                GUILayout.Label("Press " + mainKey +" (or ESC twice) to close", s_HintStyle);
             }
 
             GUILayout.FlexibleSpace();

@@ -68,10 +68,10 @@ Hover over the **left or right edge** of any row to see a floating inspector pop
 
 <img alt="Quick Browse floating popup" src="gifs/quick-browse.gif" width="600"/>
 
-**Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* opens a floating browser window centered on the editor — from anywhere, any time. 
+**Alt+W** *(Win/Linux)* / **Option+W** *(Mac)* opens a floating browser window centered on the editor — from anywhere, any time. 
 - Start typing and the search bar is already focused. 
 - Pressing Enter will navigate into the selected item (See Enter Actions below)
-- Press **Alt+Q** again or Press ESC twice to close.
+- Press **Alt+W** again or Press ESC twice to close.
 
 ### Scene Linking *(PRO)*
 
