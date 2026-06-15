@@ -21,7 +21,7 @@ Packed with productivity boosts to help you navigate complex projects with ease,
 
 ## Table of Contents
 
-- [What You Can Keep](#keep-whatever-you-need)
+- [Keep Whatever You Need](#keep-whatever-you-need)
 - [Organize However You Like](#organize-however-you-like)
 - [Move Faster](#move-faster)
 - [Customize Your Experience](#customize-your-experience)
