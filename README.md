@@ -14,37 +14,50 @@
 
 **SecondBrain** is a Unity Editor tool that gives you a second hierarchy window for organizing Assets, Prefabs, Scenes, GameObjects, Components, Notes, Folders, and executable Actions — all persisted as ScriptableObject data inside your project.
 
-<img alt="SecondBrain's main browser window showing a hierarchy of Containers and Assets with custom emoji icons and label colors" src="gifs/browser-window.gif" width="600"/>
+<img alt="SecondBrain browser window with a hierarchy of Containers and Assets using custom emoji icons and label colors" src="gifs/browser-window.gif" width="600"/>
+
+## Table of Contents
+
+- [Features](#features)
+  - [Free](#free)
+  - [PRO](#pro)
+- [Free vs PRO](#free-vs-pro)
+- [Installation](#installation)
+  - [Free](#free-1)
+  - [PRO](#pro-1)
+- [Quick Start](#quick-start)
+- [Requirements](#requirements)
+- [License](#license)
 
 ## Features
 
 ### Free
 - **Drag anything in** — drop assets from the Project window, GameObjects or scene names from the Hierarchy, and components from the Inspector. References persist even when scenes are closed.
-<br><img alt="Dragging assets from Project, Hierarchy, and Inspector" src="gifs/drag-drop.gif" width="600"/>
+<br><img alt="Persistent drag-and-drop from Project window, Hierarchy, and Inspector into a Container" src="gifs/drag-drop.gif" width="600"/>
 - **Structured hierarchy** — organize everything inside nestable Containers.
-  <br><img alt="Creating a child item via right-click context menu" src="gifs/create-items.gif" width="600"/>
+  <br><img alt="Nestable Containers with right-click Create Child context menu" src="gifs/create-items.gif" width="600"/>
+- **Visual styling** — assign emoji icons (or any built-in Unity editor icon) and label colors (Gradient, Font Color, Circle Dot, or Background) to Containers and Bases.
+  <br><img alt="Emoji icons and label colors applied to Containers and Bases" src="gifs/styling.gif" width="600"/>
+- **TypedContainer API** — subclass `TypedContainer<T>` to create strongly-typed containers for your own ScriptableObjects.
+<br><img alt="Custom TypedContainer for CharacterConfig ScriptableObjects shown in the browser hierarchy" src="gifs/typed-container.gif" width="600"/>
 - **Real-time search** — case-insensitive substring filter with per-type filtering flags.
 - **Enter actions** — every item type knows what to do on Return or double-click (open scene, ping object, open URL, open Prefab Stage, and more).
-- **Visual styling** — assign emoji icons (or any built-in Unity editor icon) and label colors (Gradient, Font Color, Circle Dot, or Background) to Containers and Bases.
-  <br><img alt="visual styling options" src="gifs/styling.gif" width="600"/>
 - **Full undo / redo** — all structural operations integrate with Unity's undo system.
 - **Keyboard navigation** — arrow keys, Ctrl+R rename, Ctrl+D duplicate, Ctrl+Left/Right back/forward history, and more.
 - **Paste as note** — Ctrl+V pastes clipboard text as a new Text Asset child; URLs open in the system browser.
-- **TypedContainer API** — subclass `TypedContainer<T>` to create strongly-typed containers for your own ScriptableObjects.
-<br><img alt="Example of a custom typed container for CharacterConfig assets" src="gifs/typed-container.gif" width="600"/>
 
 ### PRO
 Everything in Free, plus:
 
 - **Quick Peek** — hover the edge of any row for a floating inspector popup. Containers show children in Tabs or Foldouts; Scene Objects show their components; Text Assets are editable inline.
-<br><img alt="Quick Peek hover preview showing a floating inspector with tabs for child containers" src="gifs/quick-peek.gif" width="600"/>
+<br><img alt="Quick Peek floating inspector popup showing child Containers in tabs on hover" src="gifs/quick-peek.gif" width="600"/>
 
 - **Quick Browse** — `Option+W` / `Alt+W` opens a centered floating browser from anywhere in the editor. Search bar is focused immediately.
-<br><img alt="Quick Browse floating popup opened with Alt+W" src="gifs/quick-browse.gif" width="600"/>
+<br><img alt="Quick Browse centered floating browser opened with Alt+W with focused search bar" src="gifs/quick-browse.gif" width="600"/>
 
-- **Scene Linking** — link a Base to a Unity scene so the browser auto-opens to that workspace whenever the scene loads.
 - **Action Items** — ScriptableObject-based executable actions that live in your hierarchy.
-<br><img alt="Action Item example showing a custom Log Message action in the Create Child menu and executed in the browser" src="gifs/action-items.gif" width="600"/>
+<br><img alt="Action Item created via Create Child menu and executed directly in the browser" src="gifs/action-items.gif" width="600"/>
+- **Scene Linking** — link a Base to a Unity scene so the browser auto-opens to that workspace whenever the scene loads.
 - **Multiple Profiles & Bases** — unlimited profiles (per-team-member workspaces) and unlimited Bases per profile.
 - **Multiple windows** — open and dock as many browser windows as you need; each tracks its own navigation, foldout state, and selection.
 - **Drag out** — drag items from SecondBrain into the Scene View or another SecondBrain window.
