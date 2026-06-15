@@ -16,6 +16,7 @@ namespace SecretZauce.SecondBrain
     }
 
     [CreateAssetMenu(menuName = "ScriptableStructure/Container", fileName = "Container", order = 0)]
+    [CreateChild]
     public class Container : ScriptableObject, IObjectStructure, IHasEmoji, IHasColor, IHasChildViewPreference
     {
         public List<Object> Children => children;
