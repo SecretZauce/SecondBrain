@@ -33,7 +33,7 @@ With **PRO**, you can create unlimited Profiles, Bases, and browser windows — 
 The Installer Window opens automatically after setup. You can also reopen it any time via **Tools → Second Brain → Installer**. It shows:
 
 - Your installed version, edition (Free / Pro), and status as capsule tags.
-- Links to Documentation, Discord, and the GitHub changelog.
+- Links to Documentation, [Discord](https://discord.gg/wzxhQS6eFc), and the GitHub changelog.
 - A button to open the SecondBrain browser window.
 - If you have only the free package installed, a prompt to upgrade to PRO.
 - If you have only the Pro package installed (free package missing), a button to install the free package automatically via the Package Manager.

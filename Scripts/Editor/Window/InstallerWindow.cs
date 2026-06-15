@@ -11,7 +11,7 @@ namespace SecretZauce.SecondBrain.Editor
     {
         // ── URLs ──────────────────────────────────────────────────────────────────
         const string DocumentationUrl  = "https://secretzauce.gitbook.io/second-brain";
-        const string DiscordUrl        = "https://discord.gg/secretzauce";
+        const string DiscordUrl        = "https://discord.gg/wzxhQS6eFc";
         const string ReportBugUrl      = "https://github.com/SecretZauce/second-brain/issues";
         const string ChangelogUrl      = "https://github.com/SecretZauce/second-brain/blob/main/CHANGELOG.md";
         const string ProFeaturesUrl    = ProLicenseUtils.ASSET_STORE_URL;
