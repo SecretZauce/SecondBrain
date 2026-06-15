@@ -81,14 +81,23 @@ Pressing **Return** (or double-clicking when **Double-Click Action** is set to *
 | URLs | Open in system's browser |
 | Action Item | Execute *(PRO)* |
 
-### Folder Focus Toggle
+### Focus Toggles
 
-Folder assets display a small focus icon on the right side of their row. Clicking it **toggles folder focus mode** for that specific folder:
+Several item types display a small focus icon on the right side of their row. Clicking it toggles focus-on-select behaviour for that specific item. The icon turns blue when enabled.
 
-- **Off (dim)** — selecting the folder in SecondBrain highlights it in the Project window but does not navigate into it.
-- **On (blue)** — selecting the folder in SecondBrain automatically navigates the Project window into that folder, the same as pressing **Return**.
+**Scene Object refs and Scene Component refs** (only visible when the scene is open):
 
-The toggle is per-folder and persists between editor sessions. Use it on folders you frequently browse so the Project window tracks your SecondBrain selection without you needing to press **Return** each time.
+- **Off (dim)** — selecting the ref updates Unity's selection but leaves the Scene View camera where it is.
+- **On (blue)** — selecting the ref also frames the Scene View camera on the referenced object, the same as pressing **F** in the Scene View.
+
+The toggle is saved on the asset itself and persists across sessions.
+
+**Folder assets**:
+
+- **Off (dim)** — selecting the folder highlights it in the Project window but does not navigate into it.
+- **On (blue)** — selecting the folder automatically navigates the Project window into it, the same as pressing **Return**.
+
+The toggle is per-folder and stored in EditorPrefs.
 
 ---
 
