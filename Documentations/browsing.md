@@ -73,12 +73,22 @@ Pressing **Return** (or double-clicking when **Double-Click Action** is set to *
 |---|---|
 | Base | Navigate into it |
 | Container | Toggle expand / collapse |
-| Scene Object ref | Open floating inspector of the GameObject OR open the scene and ping the object if the scene is not open |
-| Scene Component ref | Open floating inspector of the Component OR open the scene and ping the object if the scene is not open |
+| Scene Object ref | If scene is open: open a floating inspector for the GameObject. If scene is not open: open the scene and ping the object. |
+| Scene Component ref | If scene is open: open a floating inspector for the Component. If scene is not open: open the scene and ping the object. |
 | Scene | Open the scene |
 | Prefab | Open in Prefab Stage |
+| Folder asset | Navigate into the folder in the Project window |
 | URLs | Open in system's browser |
 | Action Item | Execute *(PRO)* |
+
+### Folder Focus Toggle
+
+Folder assets display a small focus icon on the right side of their row. Clicking it **toggles folder focus mode** for that specific folder:
+
+- **Off (dim)** — selecting the folder in SecondBrain highlights it in the Project window but does not navigate into it.
+- **On (blue)** — selecting the folder in SecondBrain automatically navigates the Project window into that folder, the same as pressing **Return**.
+
+The toggle is per-folder and persists between editor sessions. Use it on folders you frequently browse so the Project window tracks your SecondBrain selection without you needing to press **Return** each time.
 
 ---
 

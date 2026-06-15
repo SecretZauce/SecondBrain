@@ -6,6 +6,8 @@ This page covers developer extension points — ways to add custom node types an
 
 ## Extending TypedContainer
 
+<img alt="A TypedContainer subclass shown in the SecondBrain browser alongside its typed children" src="gifs/typed-container.gif" width="600"/>
+
 `TypedContainer<T>` is an abstract `ScriptableObject` base class that holds a strongly-typed list of children. Subclass it to create a container that only accepts one specific `ScriptableObject` type. SecondBrain manages the asset lifecycle; you only need to define the type constraint and any create-child presets.
 
 ### Minimal example
