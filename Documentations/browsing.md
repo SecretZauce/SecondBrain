@@ -34,21 +34,6 @@ When you are inside a Base, a tag bar appears at the bottom of the window:
 
 ## Building Your Hierarchy
 
-### Creating Items
-
-Right-click any Container or Base and choose **Create Child**. A submenu lists all valid child types for that node.
-
-When **Force Naming On Create** is on (the default), an inline ghost row appears:
-- Type a name → press **Enter** to create.
-- Press **Escape** to cancel without creating anything.
-- Empty or duplicate names are rejected inline.
-
-To create items with an auto-generated name instantly (no ghost row), disable **Force Naming On Create** in [Settings](styling-and-settings.md#settings).
-
-### Pasting from the Clipboard
-
-Press **Ctrl+V** inside the browser to paste the current clipboard text as a new Text Asset child of the selected Container. If the clipboard contains a URL, the asset name is set to the URL's hostname automatically.
-
 ### Adding Existing Assets
 
 <img alt="Dragging assets from Project, Hierarchy, and Inspector" src="gifs/drag-drop.gif" width="600"/>
@@ -61,6 +46,23 @@ Drag any asset from Unity's **Project** window onto a Container or Base. You can
 
 See [Drag & Drop](#drag--drop) below for drop targeting details.
 
+### Creating Items
+
+<img alt="Creating a child item via right-click context menu" src="gifs/create-items.gif" width="600"/>
+
+Right-click any Container or Base and choose **Create Child**. A submenu lists all valid child types for that node. You can also click the **+** button that appears at the right side of a selected row to create a new child Container directly.
+
+When **Force naming on create** is on (the default), an inline ghost row appears:
+- Type a name → press **Enter** to create.
+- Press **Escape** to cancel without creating anything.
+- Empty or duplicate names are rejected inline.
+
+To create items with an auto-generated name instantly (no ghost row), disable **Force naming on create** in [Settings](styling-and-settings.md#settings).
+
+### Pasting from the Clipboard
+
+Press **Ctrl+V** inside the browser to paste the current clipboard text as a new Text Asset child of the selected Container. If the clipboard contains a URL, the asset name is set to the URL's hostname automatically.
+
 ---
 
 ## Enter Actions
@@ -70,13 +72,13 @@ Pressing **Return** (or double-clicking when **Double-Click Action** is set to *
 | Item type | Enter action |
 |---|---|
 | Base | Navigate into it |
-| Container | Expand / collapse |
-| Scene Object ref | Ping and select the GameObject *(scene must be open)* |
-| Scene Component ref | Select the component in the Inspector |
-| Scene Asset | Open the scene; ▶ play button appears alongside |
+| Container | Toggle expand / collapse |
+| Scene Object ref | Open floating inspector of the GameObject OR open the scene and ping the object if the scene is not open |
+| Scene Component ref | Open floating inspector of the Component OR open the scene and ping the object if the scene is not open |
+| Scene | Open the scene |
 | Prefab | Open in Prefab Stage |
-| Text Asset (URL) | Open the URL in your system browser |
-| Action Item | Execute the action *(PRO)* |
+| URLs | Open in system's browser |
+| Action Item | Execute *(PRO)* |
 
 ---
 
@@ -142,11 +144,12 @@ Scene GameObjects dragged from the Hierarchy are wrapped in a Scene Object refer
 
 ### Dragging Out *(PRO)*
 
+<img alt="Dragging an item from SecondBrain into the Scene View" src="gifs/drag-out.gif" width="600"/>
+
 Items can be dragged back out of SecondBrain to other Unity windows:
 
 - **Another SecondBrain window** — drop onto a Container or between rows to move the item across windows.
-- **Scene View** — drops the asset at the cursor position in the scene.
-- **Project Browser** — a dialog lets you choose where to place the asset.
+- **Scene View** — places the asset at the cursor position in the scene. Only asset types Unity supports dropping into the Scene View work here (e.g. Prefabs, Materials).
 
 ### Move to a Different Base *(PRO)*
 

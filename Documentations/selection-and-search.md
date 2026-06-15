@@ -8,7 +8,7 @@
 | **Ctrl+A** | Select all currently visible rows |
 | **Up / Down** arrow | Move selection one row |
 
-Selecting items in SecondBrain updates Unity's own selection (Inspector, Project window) in sync. Clicking outside the browser in Unity can clear the browser's selection — this is expected behavior.
+Selecting items in SecondBrain updates Unity's own selection (Inspector, Project window) in sync.
 
 Selection is cleared automatically when you navigate to a different node.
 

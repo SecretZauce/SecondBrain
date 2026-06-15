@@ -38,11 +38,14 @@ Profile ( Per-Team Member Separation - e.g. "Tom's Profile", "Amy's Profile" )
 ```
 - **Profiles** are Swappable workspace per device. it allows each team member to work and modify their own custom hierarchy independently from each other - e.g. "Tech Artist's Workspace", "Dev's Workspace", "James's Workspace" etc. Selected profile is saved per device.
 - **Bases** are the roots of each hierarchy. Allow you to have multiple hierarchy trees under one profile. 
-- **Containers** are groups inside a Base. A parent that contain your actual references dragged in from outside the SecondBrain window. You can add any supported assets from ahove table or nest Containers inside each other freely.
+- **Containers** are groups inside a Base. A parent that contain your actual references dragged in from outside the SecondBrain window. You can add any supported assets from above table or nest Containers inside each other freely.
 
 > [!NOTE]
 **No duplicates.**  <br>
 > SecondBrain prevents adding the same item twice — either within the same Container or anywhere else in the tree. 
+
+> [!NOTE]
+> In the free tier, you have **one Profile** with **one Base**. Upgrade to PRO for unlimited Profiles, Bases, and windows.
 
 See [Data Structure](data-structure.md) and [Building Your Hierarchy](browsing.md#building-your-hierarchy) for more details.
 
@@ -71,6 +74,8 @@ Hover over the **left or right edge** of any row to see a floating inspector pop
 - Press **Alt+Q** again or Press ESC twice to close.
 
 ### Scene Linking *(PRO)*
+
+<img alt="Scene Linking — a Base auto-opens when its linked scene loads" src="gifs/scene-linking.gif" width="600"/>
 
 Link a Base to a scene. When that scene opens in the editor, SecondBrain opens straight to that workspace automatically.
 
@@ -106,6 +111,8 @@ See the full [Keyboard Shortcuts](shortcuts.md) reference.
 ## Customize Your Experience
 
 ### Visual Styling
+
+<img alt="Visual Styling — emoji icons and color styles on tree rows" src="gifs/visual-styling.gif" width="600"/>
 
 Right-click any Container or Base to set an emoji (or any built-in Unity editor icon) and a label color. Four color styles let you decide how prominent the highlight is:
 
@@ -159,4 +166,5 @@ See [Styling and Settings](styling-and-settings.md).
 | [Styling & Settings](styling-and-settings.md) | Emoji, colors, Inspectors, all settings |
 | [PRO Features](pro-features.md) | Quick Peek, Quick Browse, Scene Linking, Action Items, Multiple Windows |
 | [Keyboard Shortcuts](shortcuts.md) | Full shortcut reference |
+| [Advanced Topics](advanced-topics.md) | Extending TypedContainer and Action Items for custom tooling |
 | [Upgrading to PRO](upgrading-to-pro.md) | Installing PRO and activating your license |

@@ -50,7 +50,7 @@ Hover over the **left or right side** of a tree row to see a floating preview pa
 | Any other asset | The Unity Inspector inline |
 
 > [!NOTE]
-> Some asset types show a **limited preview** instead of the full Inspector: Materials, Textures, Sprites, Shaders, Compute Shaders, and assets whose editor uses a UIElements-based inspector. For these, Quick Peek shows a 120 px thumbnail, the asset type name, and an **Open Property Editor** button to open the full editor.
+> Some asset types show a limited preview instead of the full Inspector (for example, Materials, Textures, and Sprites). For these, Quick Peek shows a thumbnail, the asset type name, and an **Open Property Editor** button to open the full editor.
 
 ### Tabs and Foldouts mode
 
@@ -93,8 +93,7 @@ The panel header contains a layout toggle (tab icon / foldout icon) to switch be
 **Alt+Q** *(Win/Linux)* / **Option+Q** *(Mac)* opens a floating browser window centered on the Unity editor — from anywhere, any time.
 
 - The search bar is focused automatically on open. Start typing to filter immediately.
-- Press **Alt+Q** again or click outside the popup to close it.
-- Press **Escape** twice to close: the first press clears the search bar, the second closes the popup.
+- Press **Alt+Q** again to close, or press **Escape** twice (first press clears the search bar, second closes the popup).
 - If a **Default Base** is set, Quick Browse navigates straight to it on open.
 
 **Setting a Default Base:**
@@ -130,9 +129,7 @@ Link a Base to a Unity scene so that the browser opens automatically to that wor
 
 ## Action Items
 
-Action Items are ScriptableObject-based executable actions that live in your hierarchy like any other item. Developers create them by subclassing `ActionItem`; users simply run them.
-
-**To run an Action Item:** Select it and press **Return**, double-click it (when **Double-Click Action** is set to **Enter**), or right-click → **Execute**.
+Action Items are ScriptableObject-based executable actions that live in your hierarchy like any other item. Select one and press **Return**, double-click it (when **Double-Click Action** is set to **Enter**), or right-click → **Execute** to run it.
 
 **Built-in Action Items:**
 
@@ -145,5 +142,4 @@ Action Items are ScriptableObject-based executable actions that live in your hie
 | Place on Ground | Scene / Object Placement | Moves selected GameObjects to the ground surface |
 | Wrap with Empty Parent | Scene / Hierarchy | Wraps selected GameObjects inside a new empty parent |
 
-> [!NOTE]
-> The `ActionItem` class is subclassable. Teams can ship custom executable actions (CI triggers, asset validators, build scripts) directly inside the SecondBrain hierarchy alongside the content they operate on.
+For how to create custom Action Items, see [Advanced Topics: Extending Action Items](advanced-topics.md#extending-action-items).

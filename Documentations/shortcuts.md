@@ -22,7 +22,3 @@
 | **Shift+Q** | Focus existing SecondBrain window |
 | **Alt+Shift+Q** *(Win/Linux)* / **Option+Shift+Q** *(Mac)* | Open new browser window *(PRO)* |
 
----
-
-> [!NOTE]
-> For developer extension points and internal implementation details not covered in this guide, see the Advanced page.

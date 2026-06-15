@@ -1,11 +1,11 @@
 Everything in SecondBrain lives in a tree rooted at a Profile:
 
 ```
-Profile  (project root)
-  └── Base  (workspace)
-        └── Container  (folder)
+Profile  ( Per-Team Member Separation — e.g. "Tom's Profile", "Amy's Profile" )
+  └── Base  ( Hierarchy Separation — e.g. "Frequently Used Stuff", "Level Design Tools" )
+        └── Container  ( The actual parent of the references — nestable to any depth )
               ├── Container  (nested, any depth)
-              ├── Any project asset
+              ├── Any project asset  ( Prefabs, Materials, Scenes, etc. )
               ├── Scene Object reference
               ├── Scene Component reference
               └── Action Item  [PRO]
@@ -47,13 +47,6 @@ Drag any asset from Unity's **Project** window into a Container. You can also dr
 - **Inspector** — drag a component header; it's wrapped in a Scene Component reference.
 - **Across tabs** — hover the SecondBrain window tab in the dock while dragging (the window doesn't need to be focused first), wait for it to become active, then drop at the target position inside the tree.
 
-| Asset type | Enter action |
-|---|---|
-| Prefab | Opens in Prefab Stage |
-| Scene file | Opens the scene; ▶ play button appears |
-| Text file (URL) | Opens the URL in your system browser |
-| Any other asset | Selects in Project window / Inspector |
-
 ### Scene Object Reference
 
 A link to a specific GameObject in a scene, stored by scene path. The reference shows the object's last known name even when the scene is closed. When the scene is open, pressing **Return** pings and selects the object.
@@ -78,4 +71,4 @@ SecondBrain enforces two rules:
 ---
 
 > [!NOTE]
-> For developer extension points (`TypedContainer<T>`, `ActionItem` subclassing, `[CreateChild]` attribute) and other internal details, see the Advanced page.
+> For developer extension points (`TypedContainer<T>`, `ActionItem` subclassing, `[CreateChild]` attribute) and other internal details, see [Advanced Topics](advanced-topics.md).

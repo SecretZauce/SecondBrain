@@ -34,6 +34,11 @@ Controls how the color appears on each row:
 | Circle Dot | Small colored circle beside the label |
 | Background | Fills the entire row background |
 
+<img alt="Gradient color style" src="gifs/color-gradient.png" width="400"/>
+<img alt="Font Color color style" src="gifs/color-font.png" width="400"/>
+<img alt="Circle Dot color style" src="gifs/color-dot.png" width="400"/>
+<img alt="Background color style" src="gifs/color-background.png" width="400"/>
+
 **Foldout Only** restricts the color to the Container's header row and does not propagate to child rows.
 
 **Apply Styles to All** propagates the current style and Foldout Only setting to every Container in the active Base (asks for confirmation).
@@ -52,14 +57,14 @@ Selecting a Base or Container and opening the Unity **Inspector** shows a dedica
 
 | Option | Behavior |
 |---|---|
-| Expand As Default | Starts expanded on first view |
-| Collapsed As Default | Starts collapsed on first view |
-| Always Expand | Always expands, ignoring any saved foldout state |
+| Expand | Starts expanded on first view |
+| Collapse | Starts collapsed on first view |
+| Always | Always expands, ignoring any saved foldout state |
 
 **Container Expand** controls the container node's own expand state in the tree view. **Child View Expand** controls whether children start expanded or collapsed inside Quick Peek when no saved per-item foldout state exists.
 
 - Reorder children directly in the inspector list.
-- Enable **Disable Quick Peek** to suppress hover previews for this Container and all its descendants.
+- Enable **Disable Quick Peek** *(PRO)* to suppress hover previews for this Container and all its descendants.
 
 ### Base Inspector
 
@@ -70,28 +75,49 @@ Selecting a Base or Container and opening the Unity **Inspector** shows a dedica
 
 ## Settings
 
-Open via the **⚙** toolbar button.
+Open via the **⚙** toolbar button. Settings are grouped into collapsible sections.
+
+**Interaction**
 
 | Setting | Default | Description |
 |---|---|---|
-| Ask Before Deletion | On | Confirmation dialog before permanently deleting an asset |
-| Ask Before Remove | On | Confirmation dialog before removing an item from its parent |
-| Show Icons Per Type | On | Display type-specific icons on tree rows |
-| Force Naming On Create | On | Show inline name field before creating; disable to create with auto-name instantly |
-| Default Color Style | Gradient | Color style applied to newly created nodes |
-| Default Color Foldout Only | Off | Restrict color to foldout header by default on new nodes |
-| Container Expand | Expand As Default | Initial expand/collapse state for the container node itself in the tree view |
+| Double Click Action | Enter | What double-clicking a tree item does: **Enter** (triggers the item's enter action) or **Rename** |
+| Enable Quick Peek on hover *(PRO)* | On | Toggle Quick Peek hover preview globally |
+
+**General**
+
+| Setting | Default | Description |
+|---|---|---|
+| Show icons per type | On | Display type-specific icons on tree rows |
+| Force naming on create | On | Show inline name field before creating; disable to create with an auto-generated name instantly |
+| Expand all on enter base | Off | When enabled, all containers in a Base expand automatically when you navigate into it. Does not affect foldout state on session reopen or domain reload. |
+| Font Size | 12 | Controls TreeView item font size (9–15 pt). Row height scales with the value. |
+
+**Confirmation Dialogs**
+
+| Setting | Default | Description |
+|---|---|---|
+| Ask before deletion | On | Confirmation dialog before permanently deleting an asset |
+| Ask before remove | On | Confirmation dialog before removing an item from its parent |
+
+**New Container Defaults**
+
+| Setting | Default | Description |
+|---|---|---|
+| Color Style | Gradient | Color style applied to newly created nodes |
+| Foldout only | Off | Restrict color to the Container's header row by default on new nodes |
+| Container Expand | Expand | Initial expand/collapse state for the container node itself in the tree view |
 | Preferred Child View *(PRO)* | Foldouts | Fallback layout for Quick Peek — Foldouts or Tabs — used when no per-container preference has been saved |
-| Double-Click Action | Rename | What double-clicking a leaf item does: **Rename** or **Enter** |
-| Item Size | Medium | Row height — Tiny / Small / Medium / Large / Extra Large |
-| Expand All on Enter Base | Off | When enabled, all containers in a Base expand automatically when you navigate into it. Does not affect foldout state on session reopen or domain reload. |
-| Storage Location *(PRO)* | Editor-Only | Per-profile storage toggle in the browser header (**Editor** / **Build**). **Build** = `Assets/Resources/` (included in player builds). **Editor** = `Assets/Resources/Editor/` (excluded from player builds). See [PRO: Profiles](pro-features.md#profiles). |
-| Enable Quick Peek *(PRO)* | On | Toggle Quick Peek hover preview globally |
-| Enable Scene Linking *(PRO)* | On | Toggle all Scene Linking auto-open / close globally |
-| Close on Scene Close *(PRO)* | Off | Auto-close the browser window when its linked scene closes |
+
+**Scene Linking** *(PRO)*
+
+| Setting | Default | Description |
+|---|---|---|
+| Enable Scene Linking | On | Toggle all Scene Linking auto-open / close globally |
+| Close on scene close | Off | Auto-close the browser window when its linked scene closes |
 
 > [!NOTE]
-> **Container Expand** and **Preferred Child View** are grouped under **New Container Defaults** in the Settings popup. **Child View Expand** is set per-container in the [Container Inspector](#container-inspector).
+> **Child View Expand** is set per-container in the [Container Inspector](#container-inspector), not in the Settings popup.
 
 > [!NOTE]
 > **Preferred Child View** is the fallback only. Switching the layout inside a Quick Peek panel saves the preference back to that container permanently, overriding this default for that container.
