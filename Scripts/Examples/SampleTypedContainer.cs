@@ -4,7 +4,7 @@ using UnityEngine;
 namespace SecretZauce.SecondBrain.Examples
 {
     [CreateAssetMenu(menuName = "Create SampleTypedContainer", fileName = "SampleTypedContainer", order = 0)]
-    [CreateChild("Sample/" + nameof(SampleTypedContainer))]
+    [CreateChild("Examples")]
     public class SampleTypedContainer : TypedContainer<SampleConfig>, IHasCreateChildOption
     {
         // Provide two create-child options for SampleConfig: a default and a "magic" preset.
