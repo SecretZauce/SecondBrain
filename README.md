@@ -12,75 +12,194 @@
 
 ---
 
-**SecondBrain** is a Unity Editor tool that gives you a second hierarchy window for organizing Assets, Prefabs, Scenes, GameObjects, Components, Notes, Folders, and executable Actions — all persisted as ScriptableObject data inside your project.
+## A Second Hierarchy for Anything
+
+SecondBrain brings a powerful second hierarchy window to the Unity Editor, giving you a structured and searchable way to organize Assets, Prefabs, Scenes, GameObjects, Components, and Executable Actions.
+Packed with productivity boosts to help you navigate complex projects with ease, and get more done.
 
 <img alt="SecondBrain browser window with a hierarchy of Containers and Assets using custom emoji icons and label colors" src="gifs/browser-window.gif" width="600"/>
 
 ## Table of Contents
 
-- [Features](#features)
-  - [Free](#free)
-  - [PRO](#pro)
-- [Free vs PRO](#free-vs-pro)
+- [What You Can Keep](#keep-whatever-you-need)
+- [Organize However You Like](#organize-however-you-like)
+- [Move Faster](#move-faster)
+- [Customize Your Experience](#customize-your-experience)
+- [Free vs PRO](#free-vs-pro-at-a-glance)
+- [Documentation](#in-this-guide)
 - [Installation](#installation)
-  - [Free](#free-1)
-  - [PRO](#pro-1)
 - [Quick Start](#quick-start)
 - [Requirements](#requirements)
 - [License](#license)
 
-## Features
+---
 
-### Free
-- **Drag anything in** — drop assets from the Project window, GameObjects or scene names from the Hierarchy, and components from the Inspector. References persist even when scenes are closed.
-<br><img alt="Persistent drag-and-drop from Project window, Hierarchy, and Inspector into a Container" src="gifs/drag-drop.gif" width="600"/>
-- **Structured hierarchy** — organize everything inside nestable Containers.
-  <br><img alt="Nestable Containers with right-click Create Child context menu" src="gifs/create-items.gif" width="600"/>
-- **Visual styling** — assign emoji icons (or any built-in Unity editor icon) and label colors (Gradient, Font Color, Circle Dot, or Background) to Containers and Bases.
-  <br><img alt="Emoji icons and label colors applied to Containers and Bases" src="gifs/styling.gif" width="600"/>
-- **TypedContainer API** — subclass `TypedContainer<T>` to create strongly-typed containers for your own ScriptableObjects.
-<br><img alt="Custom TypedContainer for CharacterConfig ScriptableObjects shown in the browser hierarchy" src="gifs/typed-container.gif" width="600"/>
-- **Real-time search** — case-insensitive substring filter with per-type filtering flags.
-- **Enter actions** — every item type knows what to do on Return or double-click (open scene, ping object, open URL, open Prefab Stage, and more).
-- **Full undo / redo** — all structural operations integrate with Unity's undo system.
-- **Keyboard navigation** — arrow keys, Ctrl+R rename, Ctrl+D duplicate, Ctrl+Left/Right back/forward history, and more.
-- **Paste as note** — Ctrl+V pastes clipboard text as a new Text Asset child; URLs open in the system browser.
+## Keep Whatever You Need
 
-### PRO
-Everything in Free, plus:
+Drag or add anything from your project into the SecondBrain window to create a reference to it.
 
-- **Quick Peek** — hover the edge of any row for a floating inspector popup. Containers show children in Tabs or Foldouts; Scene Objects show their components; Text Assets are editable inline.
-<br><img alt="Quick Peek floating inspector popup showing child Containers in tabs on hover" src="gifs/quick-peek.gif" width="600"/>
+<img alt="Try Dragging items into SecondBrain window" src="Documentations/gifs/drag-items.gif" width="600"/>
 
-- **Quick Browse** — `Option+W` / `Alt+W` opens a centered floating browser from anywhere in the editor. Search bar is focused immediately.
-<br><img alt="Quick Browse centered floating browser opened with Alt+W with focused search bar" src="gifs/quick-browse.gif" width="600"/>
+| What you add                                            | Source                             | What is stored                                                                    | Supported UX (Extra Magic)                                                                                                                                |
+|---------------------------------------------------------|------------------------------------|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| GameObjects                                             | Unity's Hierarchy                  | Scene Object reference — persists even when scene is closed                       | - Navigate to object (Open scene if not already opened)<br/>- Quick Peek: Edit GameObject from a popup window (PRO)<br/>- Force Focus Camera on Selection |
+| Components                                              | Inspector Window                   | Scene Component reference — persists even when scene is closed                    | - Navigate to object (Open scene if not already opened)<br/>- Quick Peek: Edit Component from a popup window (PRO)<br/>- Force Focus Camera on Selection  |
+| Assets ( Scriptable Objects, Prefabs, Materials, etc. ) | Project Window                     | Direct reference to the asset file                                                | - Quick Peek: Edit an Asset from a popup window                                                                                                           |
+| Scenes                                                  | Project Window / Unity's Hierarchy | Direct reference to the asset file                                                | - Option to load up the scene (if not already opened)<br/>- Option to Enter PlayMode (if scene is loaded)                                                 |
+| Folders                                                 | Project Window                     | Direct reference to the folder                                                    | - Open folder in Project window automatically on selection                                                                                                |
+| Typed Scriptable Object Container                       | SecondBrain Window's Context Menu  | A strongly-typed Scriptable Object container that holds children of specific type | - Add a new child Scriptable Object from a list of pre-defined templates<br/>- Quick Peek: Browse the container's contents from a popup window (PRO)      |
+| Action Item (PRO)                                       | SecondBrain Window's Context Menu  | ScriptableObject-based executable action                                          | - Execute any custom actions right from the SecondBrain Window<br/>- Or execute from Quick Peek popup with parameter passing (PRO)                        |
+| Copied Text or URLs                                     | Ctrl+V / Cmd+V                     | A newly created TextAsset containing your pasted content                          | - Opens URL on your browser<br/> - Quick Peek: Edit text content from a popup window (PRO)                                                                |
 
-- **Action Items** — ScriptableObject-based executable actions that live in your hierarchy.
-<br><img alt="Action Item created via Create Child menu and executed directly in the browser" src="gifs/action-items.gif" width="600"/>
-- **Scene Linking** — link a Base to a Unity scene so the browser auto-opens to that workspace whenever the scene loads.
-- **Multiple Profiles & Bases** — unlimited profiles (per-team-member workspaces) and unlimited Bases per profile.
-- **Multiple windows** — open and dock as many browser windows as you need; each tracks its own navigation, foldout state, and selection.
-- **Drag out** — drag items from SecondBrain into the Scene View or another SecondBrain window.
+---
 
-## Free vs PRO
+## Organize However You Like
 
-| Capability                                            | Free | PRO |
-|-------------------------------------------------------|:---:|:---:|
-| Browser windows                                       | 1 | Unlimited |
-| Profiles                                              | 1 | Unlimited |
-| Bases                                                 | 1 | Unlimited |
-| Drag & drop (assets, scenes, GameObjects, components) | ✓ | ✓ |
-| Real-time search                                      | ✓ | ✓ |
-| Full undo / redo                                      | ✓ | ✓ |
-| Keyboard navigation                                   | ✓ | ✓ |
-| Emoji icons & label colors                            | ✓ | ✓ |
-| TypedContainer API                                    | ✓ | ✓ |
-| Quick Peek hover preview                              | — | ✓ |
-| Quick Browse keyboard popup                           | — | ✓ |
-| Scene Linking (auto-open / close)                     | — | ✓ |
-| Action Items                                          | — | ✓ |
-| Drag items out between Bases                          | — | ✓ |
-| Multi-window support                                  | — | ✓ |
+The hierarchy is based on 3-level structure: Profiles > Bases > Containers
+
+```
+Profile ( Per-Team Member Separation - e.g. "Tom's Profile", "Amy's Profile" )
+  └── Base  ( Hierarchy Separation - e.g. "Frequently Used Stuff", "Level Design Tools", "Game Systems" )
+        └── Container  ( The actual parent of the references — nestable to any depth)
+              ├── GameObjects / Components / Assets
+              ├── Containers 
+              └── Custom Actions [PRO]
+```
+
+- **Profiles** are swappable workspaces per device. They allow each team member to work and modify their own custom hierarchy independently — e.g. "Tech Artist's Workspace", "Dev's Workspace", "James's Workspace". The selected Profile is saved per device.
+- **Bases** are the roots of each hierarchy. They let you have multiple hierarchy trees under one Profile.
+- **Containers** are groups inside a Base — the actual parents of your references. You can add any supported asset from the table above or nest Containers inside each other freely.
+
+> [!NOTE]
+> **No duplicates.** SecondBrain prevents adding the same item twice — either within the same Container or anywhere else in the tree.
+
+> [!NOTE]
+> In the free tier, you have **one Profile** with **one Base**. Upgrade to PRO for unlimited Profiles, Bases, and windows.
+
+See [Data Structure](Documentations/data-structure.md) and [Building Your Hierarchy](Documentations/browsing.md#building-your-hierarchy) for more details.
+
+---
+
+## Move Faster
+
+Navigate your project faster with these productivity boosts.
+
+### Quick Peek *(PRO)*
+
+<img alt="Quick Peek hover preview" src="Documentations/gifs/quick-peek.gif" width="600"/>
+
+Hover over the **left or right edge** of any row to see a floating inspector popup of each asset / object if available.
+- GameObjects show their components in a tabbed or foldout layout.
+- Containers show their children in a tabbed or foldout layout.
+- Assets show their inspector / property editor with limitations for some types of assets such as materials and textures.
+
+### Quick Browse *(PRO)*
+
+<img alt="Quick Browse floating popup" src="Documentations/gifs/quick-browse.gif" width="600"/>
+
+**Alt+W** *(Win/Linux)* / **Option+W** *(Mac)* opens a floating browser window centered on the editor — from anywhere, any time.
+- Start typing and the search bar is already focused.
+- Pressing Enter will navigate into the selected item (see Enter Actions below).
+- Press **Alt+W** again or **Esc** twice to close.
+
+### Scene Linking *(PRO)*
+
+<img alt="Scene Linking — a Base auto-opens when its linked scene loads" src="Documentations/gifs/scene-linking.gif" width="600"/>
+
+Link a Base to a scene. When that scene opens in the editor, SecondBrain opens straight to that workspace automatically.
+
+### Enter Actions
+
+Every item type knows what to do when you press **Return** or double-click on it.
+
+| Item            | What happens                                                                                                 |
+|-----------------|--------------------------------------------------------------------------------------------------------------|
+| Base            | Navigate in                                                                                                  |
+| Container       | Toggle expand / collapse                                                                                     |
+| Scene Object    | Open floating inspector of the GameObject OR open the scene and ping the object if the scene is not opened.  |
+| Scene Component | Open floating inspector of the Component OR open the scene and ping the object if the scene is not opened.   |
+| Scene           | Open the scene                                                                                               |
+| Prefab          | Open in Prefab Stage                                                                                         |
+| URLs            | Open in system's browser                                                                                     |
+| Action Item     | Execute *(PRO)*                                                                                              |
+
+### Keyboard Navigation
+
+Full keyboard navigation support:
+- **↑ / ↓** to move selection
+- **← / →** to collapse/expand containers
+- **Alt+← / Alt+→** to recursively collapse/expand
+- **Ctrl+Z / Ctrl+Shift+Z** for undo/redo, **Ctrl+R** to rename
+- **Ctrl+D** to duplicate
+- **Ctrl+Left / Ctrl+Right** for back/forward history, and more.
+
+See the full [Keyboard Shortcuts](Documentations/shortcuts.md) reference.
+
+---
+
+## Customize Your Experience
+
+### Visual Styling
+
+<img alt="Visual Styling — emoji icons and color styles on tree rows" src="Documentations/gifs/visual-styling.gif" width="600"/>
+
+Right-click any Container or Base to set an emoji (or any built-in Unity editor icon) and a label color. Four color styles let you decide how prominent the highlight is:
+
+| Style | Effect |
+|---|---|
+| Gradient | Gradient wash across the row |
+| Font Color | Tints the label text |
+| Circle Dot | Small colored circle beside the name |
+| Background | Fills the entire row |
+
+Multi-select several nodes and style them all at once.
+
+### Settings
+
+Tune SecondBrain's behavior to your workflow — confirmation dialogs, row height, double-click action, force naming on creation, default expand state, and more.
+
+See [Styling and Settings](Documentations/styling-and-settings.md).
+
+---
+
+## Free vs PRO at a Glance
+
+| Capability                        | Free | PRO       |
+|-----------------------------------|------|-----------|
+| Browser windows                   | 1    | Unlimited |
+| Profiles                          | 1    | Unlimited |
+| Bases                             | 1    | Unlimited |
+| Max Tabs / Windows                | 1    | Unlimited |
+| Scenes and Assets (drag & drop)   | ✓    | ✓         |
+| Scene Object references           | ✓    | ✓         |
+| Component references              | ✓    | ✓         |
+| Real-time search                  | ✓    | ✓         |
+| Full undo / redo                  | ✓    | ✓         |
+| Keyboard navigation               | ✓    | ✓         |
+| Core browsing, styling            | ✓    | ✓         |
+| Move items between Bases          | —    | ✓         |
+| Quick Peek hover preview          | —    | ✓         |
+| Quick Browse keyboard popup       | —    | ✓         |
+| Scene Linking (auto-open / close) | —    | ✓         |
+| Action Items                      | —    | ✓         |
+
+---
+
+## In This Guide
+
+| Page | What it covers |
+|---|---|
+| [Getting Started](Documentations/getting-started.md) | Opening the window, first-run orientation |
+| [Data Structure](Documentations/data-structure.md) | Profiles, Bases, Containers, asset types — the full hierarchy |
+| [Browsing](Documentations/browsing.md) | Navigation, creating items, drag & drop, enter actions, undo |
+| [Selection & Search](Documentations/selection-and-search.md) | Multi-select, range select, real-time search |
+| [Styling & Settings](Documentations/styling-and-settings.md) | Emoji, colors, Inspectors, all settings |
+| [PRO Features](Documentations/pro-features.md) | Quick Peek, Quick Browse, Scene Linking, Action Items, Multiple Windows |
+| [Keyboard Shortcuts](Documentations/shortcuts.md) | Full shortcut reference |
+| [Advanced Topics](Documentations/advanced-topics.md) | Extending TypedContainer and Action Items for custom tooling |
+| [Upgrading to PRO](Documentations/upgrading-to-pro.md) | Installing PRO and activating your license |
+
+---
 
 ## Installation
 
@@ -99,10 +218,13 @@ On first launch, SecondBrain runs a one-time setup and automatically opens the *
 ### PRO
 
 1. Purchase and download SecondBrain PRO from the [Unity Asset Store](https://assetstore.unity.com/).
-2. Import the PRO `.unitypackage` into your project (The installer will ask you to download free package from the GitHub repository if not installed already).
+2. Import the PRO `.unitypackage` into your project (the installer will prompt you to install the free package from GitHub if it is not already present).
 3. Unity recompiles and PRO features activate automatically — no license key required.
 
-> [!NOTE] Both packages must be at matching versions. A **Version Mismatch** dialog appears if they fall out of sync and links you to the correct update.
+> [!NOTE]
+> Both packages must be at matching versions. A **Version Mismatch** dialog appears if they fall out of sync and links you to the correct update.
+
+---
 
 ## Quick Start
 
@@ -113,9 +235,13 @@ On first launch, SecondBrain runs a one-time setup and automatically opens the *
 
 See the [full documentation](https://secretzauce.gitbook.io/second-brain) for browsing, styling, PRO features, and the extension API.
 
+---
+
 ## Requirements
 
 - Unity 6 LTS (6000.0.x) or later
+
+---
 
 ## License
 
