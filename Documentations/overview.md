@@ -86,7 +86,6 @@ Every item type knows what to do when you press **Return** or Double-Click on th
 | Scene Component | Open floating inspector of the Component OR open the scene and ping the object if the scene is not opened.  |
 | Scene           | Open the scene                                                                                              |
 | Prefab          | Open in Prefab Stage                                                                                        |
-| Folder | Open a locked project window of that folder
 | URLs            | Open in system's browser                                                                                    |
 | Action Item     | Execute *(PRO)*                                                                                             |
 

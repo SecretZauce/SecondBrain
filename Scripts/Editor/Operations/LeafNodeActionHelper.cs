@@ -114,6 +114,13 @@ namespace SecretZauce.SecondBrain.Editor
             bool isPrefabAsset = !string.IsNullOrEmpty(objAssetPath) && objAssetPath.EndsWith(".prefab");
             var baseTarget = node as Base;
             bool isBase = baseTarget != null;
+            bool isFolder = node is DefaultAsset && !string.IsNullOrEmpty(objAssetPath) && AssetDatabase.IsValidFolder(objAssetPath);
+
+            if (isFolder)
+            {
+                EditorGUIUtils.EnterFolderInProjectWindow(node);
+                return true;
+            }
 
             if (isSceneAsset)
             {
@@ -179,13 +186,14 @@ namespace SecretZauce.SecondBrain.Editor
             if (node is TextAsset urlTextAsset && IsUrl(urlTextAsset.text))
                 return true;
 
-            // Check for scene assets, prefabs, or Base objects
+            // Check for scene assets, prefabs, Base objects, or folder assets
             string assetPath = AssetDatabase.GetAssetPath(node);
             bool isSceneAsset = node is SceneAsset;
             bool isPrefabAsset = !string.IsNullOrEmpty(assetPath) && assetPath.EndsWith(".prefab");
             bool isBase = node is Base;
+            bool isFolder = node is DefaultAsset && !string.IsNullOrEmpty(assetPath) && AssetDatabase.IsValidFolder(assetPath);
 
-            return isSceneAsset || isPrefabAsset || isBase;
+            return isSceneAsset || isPrefabAsset || isBase || isFolder;
         }
 
         /// <summary>
