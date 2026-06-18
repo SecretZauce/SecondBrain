@@ -33,7 +33,6 @@ With **PRO**, you can create unlimited Profiles, Bases, and browser windows — 
 The Installer Window opens automatically after setup. You can also reopen it any time via **Tools → Second Brain → Installer**. It shows:
 
 - Your installed version, edition (Free / Pro), and status as capsule tags.
-- Links to Documentation, [Discord](https://discord.gg/wzxhQS6eFc), and the GitHub changelog.
 - A button to open the SecondBrain browser window.
 - If you have only the free package installed, a prompt to upgrade to PRO.
 - If you have only the Pro package installed (free package missing), a button to install the free package automatically via the Package Manager.
@@ -50,16 +49,6 @@ Once the window is open, you can start filling it immediately:
 - **Make groups** — You can click the **+** button that appears on the toolbar of the SecondBrainWindow to create a new Container at depth zero. Or press **+** at the right side of the selected row to created a Child Container.
 - **Drag to reorder** — drag any row up or down to reorder it within its parent, or drag it onto a different Container to move it there.
 - **Keyboard shortcuts** — use **↑ / ↓** to navigate rows, **Return** to enter a Base or execute an action, **Ctrl+R** to rename, **Ctrl+Z** to undo. See [Keyboard Shortcuts](shortcuts.md) for the full list.
-
----
-
-## Version Compatibility and Licensing
-
-SecondBrain free and PRO are versioned together. When both packages are installed, their versions must match. If they fall out of sync — for example, after updating only one package — a **Version Mismatch** dialog appears on the next editor reload. It identifies which package is ahead and links you to the correct update so you can bring them back into alignment.
-
-**Free** — full browsing, drag & drop, search, styling, undo/redo, and keyboard navigation, with one Profile, one Base, and one window.
-
-**PRO** — everything in Free, plus unlimited Profiles, Bases, and windows; Quick Peek, Quick Browse, Scene Linking, Action Items, cross-Base moves, and multi-user workflow support.
 
 ---
 
