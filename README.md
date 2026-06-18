@@ -233,7 +233,7 @@ On first launch, SecondBrain runs a one-time setup and automatically opens the *
 3. Drag assets from the Project window, Hierarchy, or Inspector onto a Container.
 4. Right-click any Container to create children, rename, set an emoji, set a color, or delete.
 
-See the [full documentation](https://secretzauce.gitbook.io/second-brain) for browsing, styling, PRO features, and the extension API.
+See the [full documentation](https://github.com/SecretZauce/SecondBrain/blob/main/Documentations/getting-started.md) for browsing, styling, PRO features, and the extension API.
 
 ---
 
