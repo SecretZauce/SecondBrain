@@ -17,7 +17,7 @@
 SecondBrain brings a powerful second hierarchy window to the Unity Editor, giving you a structured and searchable way to organize Assets, Prefabs, Scenes, GameObjects, Components, and Executable Actions.
 Packed with productivity boosts to help you navigate complex projects with ease, and get more done.
 
-<img alt="SecondBrain browser window with a hierarchy of Containers and Assets using custom emoji icons and label colors" src="gifs/browser-window.gif" width="600"/>
+<img alt="Your second hierarchy window" src="pngs/hierarchy-preview.png" width="600"/>
 
 ## Table of Contents
 
@@ -38,9 +38,9 @@ Packed with productivity boosts to help you navigate complex projects with ease,
 
 Drag or add anything from your project into the SecondBrain window to create a reference to it.
 
-<img alt="Try Dragging items into SecondBrain window" src="Documentations/gifs/drag-items.gif" width="600"/>
+<img alt="Try Dragging any objects or assets into SecondBrain window" src="gifs/drag-items.gif" width="600"/>
 
-| What you add                                            | Source                             | What is stored                                                                    | Supported UX (Extra Magic)                                                                                                                                |
+| What you add                                            | Source                             | What is stored                                                                    | Productivity Features                                                                                                                                     |
 |---------------------------------------------------------|------------------------------------|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | GameObjects                                             | Unity's Hierarchy                  | Scene Object reference — persists even when scene is closed                       | - Navigate to object (Open scene if not already opened)<br/>- Quick Peek: Edit GameObject from a popup window (PRO)<br/>- Force Focus Camera on Selection |
 | Components                                              | Inspector Window                   | Scene Component reference — persists even when scene is closed                    | - Navigate to object (Open scene if not already opened)<br/>- Quick Peek: Edit Component from a popup window (PRO)<br/>- Force Focus Camera on Selection  |
@@ -86,7 +86,7 @@ Navigate your project faster with these productivity boosts.
 
 ### Quick Peek *(PRO)*
 
-<img alt="Quick Peek hover preview" src="Documentations/gifs/quick-peek.gif" width="600"/>
+<img alt="Take a glance at your item on hovering" src="gifs/quick-peek.gif" width="600"/>
 
 Hover over the **left or right edge** of any row to see a floating inspector popup of each asset / object if available.
 - GameObjects show their components in a tabbed or foldout layout.
@@ -95,7 +95,7 @@ Hover over the **left or right edge** of any row to see a floating inspector pop
 
 ### Quick Browse *(PRO)*
 
-<img alt="Quick Browse floating popup" src="Documentations/gifs/quick-browse.gif" width="600"/>
+<img alt="Quickly navigate to frequently used items" src="gifs/quick-browse.gif" width="600"/>
 
 **Alt+W** *(Win/Linux)* / **Option+W** *(Mac)* opens a floating browser window centered on the editor — from anywhere, any time.
 - Start typing and the search bar is already focused.
@@ -104,7 +104,7 @@ Hover over the **left or right edge** of any row to see a floating inspector pop
 
 ### Scene Linking *(PRO)*
 
-<img alt="Scene Linking — a Base auto-opens when its linked scene loads" src="Documentations/gifs/scene-linking.gif" width="600"/>
+<img alt="Scene Linking — a Base auto-opens when its linked scene loads" src="pngs/scene-linking.png" width="600"/>
 
 Link a Base to a scene. When that scene opens in the editor, SecondBrain opens straight to that workspace automatically.
 
@@ -141,7 +141,7 @@ See the full [Keyboard Shortcuts](Documentations/shortcuts.md) reference.
 
 ### Visual Styling
 
-<img alt="Visual Styling — emoji icons and color styles on tree rows" src="Documentations/gifs/visual-styling.gif" width="600"/>
+<img alt="Visual Styling — emoji icons and color styles on tree rows" src="pngs/visual-styling.png" width="600"/>
 
 Right-click any Container or Base to set an emoji (or any built-in Unity editor icon) and a label color. Four color styles let you decide how prominent the highlight is:
 
@@ -233,7 +233,7 @@ On first launch, SecondBrain runs a one-time setup and automatically opens the *
 3. Drag assets from the Project window, Hierarchy, or Inspector onto a Container.
 4. Right-click any Container to create children, rename, set an emoji, set a color, or delete.
 
-See the [full documentation](https://secretzauce.gitbook.io/second-brain) for browsing, styling, PRO features, and the extension API.
+See the [full documentation](https://github.com/SecretZauce/SecondBrain/blob/main/Documentations/getting-started.md) for browsing, styling, PRO features, and the extension API.
 
 ---
 
@@ -250,3 +250,7 @@ See the [full documentation](https://secretzauce.gitbook.io/second-brain) for br
 | Second Brain (Free) | MIT                            |
 | Second Brain Pro    | Unity Asset Store EULA         |
 | Material Icons      | Apache 2.0 — © 2014 Google LLC |
+
+## Contact
+- [Discord Server](https://discord.gg/wzxhQS6eFc)
+- **Support Email:** sc.zauce.support@gmail.com

@@ -1,6 +1,7 @@
 ## Styling — Emoji and Colors
 
 Styling options are available on Containers and Bases. Right-click a node to access them. When multiple nodes are selected, the style is applied to all of them simultaneously.
+<img alt="Color styles on tree rows" src="pngs/visual-styling.png" width="600"/>
 
 ### Emoji / Icon
 
@@ -21,7 +22,7 @@ Right-click → **Set Color** opens the color tray.
 - Choose from **preset swatches** or create **custom colors** (up to 12, newest first, persisted across sessions).
 - To add a custom color, click **Add Color** and use the HSV picker.
 - Right-click any custom swatch to remove it. The **Clear** swatch cannot be removed.
-- **Reset Colors** restores built-in defaults and removes all custom colors (asks for confirmation).
+- **Reset Colors** restores built-in defaults and removes all custom colors.
 
 ### Color Style
 
@@ -34,22 +35,20 @@ Controls how the color appears on each row:
 | Circle Dot | Small colored circle beside the label |
 | Background | Fills the entire row background |
 
-<img alt="Gradient color style" src="gifs/color-gradient.png" width="400"/>
-<img alt="Font Color color style" src="gifs/color-font.png" width="400"/>
-<img alt="Circle Dot color style" src="gifs/color-dot.png" width="400"/>
-<img alt="Background color style" src="gifs/color-background.png" width="400"/>
 
 **Foldout Only** restricts the color to the Container's header row and does not propagate to child rows.
 
-**Apply Styles to All** propagates the current style and Foldout Only setting to every Container in the active Base (asks for confirmation).
+**Apply Styles to All** propagates the current style and Foldout Only setting to every Container in the active Base.
 
 ---
 
-## Inspectors
+## Base & Container Configuration 
 
 Selecting a Base or Container and opening the Unity **Inspector** shows a dedicated panel.
 
 ### Container Inspector
+
+<img alt="Container Inspector" src="pngs/container-inspector.png" width="600"/>
 
 - Set emoji and color.
 - Set **Preferred Child View** (Foldouts or Tabs) — controls how children appear in [Quick Peek](pro-features.md#quick-peek).
@@ -67,6 +66,8 @@ Selecting a Base or Container and opening the Unity **Inspector** shows a dedica
 - Enable **Disable Quick Peek** *(PRO)* to suppress hover previews for this Container and all its descendants.
 
 ### Base Inspector
+
+<img alt="Base Inspector" src="pngs/base-inspector.png" width="600"/>
 
 - Set emoji and color.
 - *(PRO)* Set the **Scene Link** — object picker or **Open Scenes** dropdown. See [PRO: Scene Linking](pro-features.md#scene-linking).

@@ -8,6 +8,8 @@ A **Profile** is the top-level root of the SecondBrain hierarchy — it holds al
 
 ### Switching Profiles
 
+<img alt="Profile dropdown in the browser header" src="gifs/profile-dropdown.gif" width="600"/>
+
 The **profile dropdown** in the browser header shows the currently active profile. Click it to switch or create a new one.
 
 ### Creating a Profile
@@ -30,9 +32,11 @@ Click the ⚙ icon next to the profile dropdown to open the **SecondBrain Core**
 
 ---
 
-## Multiple Windows
+## Multiple Tabs
 
-Click the **new tab button** in the toolbar to open additional browser windows. Each window tracks its own navigation history, foldout state, and selection independently.
+<img alt="Multiple Tabs Support" src="gifs/multiple-windows.gif" width="600"/>
+
+Click the **new tab button** in the toolbar to open a new tab on the same layout. Each tab / window tracks its own navigation history, foldout state, and selection independently.
 
 ---
 
@@ -54,20 +58,18 @@ Hover over the **left or right side** of a tree row to see a floating preview pa
 
 ### Tabs and Foldouts mode
 
+<img alt="Quick Peek Tabs and Foldouts mode" src="gifs/quick-peek-tabs-foldouts.gif" width="600"/>
+
 The panel header contains a layout toggle (tab icon / foldout icon) to switch between **Tabs** and **Foldouts** mode.
 
-**Tabs mode** — each child or component is a selectable tab. Long names are ellipsized; hovering a tab shows the full name as a tooltip. The selected tab index is remembered per item between sessions.
+**Tabs mode** — each child or component is a selectable tab. The selected tab index is remembered per item between sessions.
 
 **Foldouts mode** — children are shown as expandable foldout rows. An **Expand / Collapse All** button appears in the panel header.
 
-- Switching the layout for a **Container** saves the new preference back to that container's **Preferred Child View** field (undo-supported). The main browser tree immediately reflects the change.
-- Switching the layout for a **Scene Object ref** persists the choice per scene object in editor preferences.
-- Foldout expand/collapse states are persisted per item and shared with the main browser window.
-
-> [!NOTE]
-> In Foldouts mode, nested Containers and Scene Assets appear as non-expandable rows with a **▶** button. Clicking it opens a standalone inspector window for that Container or opens the scene.
-
 **Other behavior:**
+
+<img alt="Quick Peek behavior" src="gifs/quick-peek-behavior.gif" width="600"/>
+
 - Moving the cursor away from both the row and the panel dismisses Quick Peek.
 - Quick Peek is suppressed while a drag is in progress.
 - **Drag the panel header** to detach Quick Peek and convert it into a free-floating editor window that stays open.
@@ -95,10 +97,6 @@ The panel header contains a layout toggle (tab icon / foldout icon) to switch be
 - The search bar is focused automatically on open. Start typing to filter immediately.
 - Press **Alt+W** again to close, or press **Escape** twice (first press clears the search bar, second closes the popup).
 - If a **Default Base** is set, Quick Browse navigates straight to it on open.
-
-**Setting a Default Base:**
-
-Navigate into the Base you want to set as default, open the [Tag Bar](browsing.md#the-tag-bar) at the bottom of the browser, and use the Default Base controls there.
 
 ---
 
@@ -131,7 +129,7 @@ Link a Base to a Unity scene so that the browser opens automatically to that wor
 
 Action Items are ScriptableObject-based executable actions that live in your hierarchy like any other item. Select one and press **Return**, double-click it (when **Double-Click Action** is set to **Enter**), or right-click → **Execute** to run it.
 
-**Built-in Action Items:**
+**Examples of included Action Items:**
 
 | Action | Category in Create Child menu | What it does |
 |---|---|---|
@@ -142,4 +140,4 @@ Action Items are ScriptableObject-based executable actions that live in your hie
 | Place on Ground | Scene / Object Placement | Moves selected GameObjects to the ground surface |
 | Wrap with Empty Parent | Scene / Hierarchy | Wraps selected GameObjects inside a new empty parent |
 
-For how to create custom Action Items, see [Advanced Topics: Extending Action Items](advanced-topics.md#extending-action-items).
+For how to create custom Action Items, see [Advanced Topics](advanced-topics.md).

@@ -4,16 +4,16 @@
 
 <img alt="Entering a Base by double-clicking or clicking the arrow" src="gifs/enter-base.gif" width="600"/>
 
-Double-click a Base, click the **▶** arrow on the right side of its row, or select it and press **Return** to navigate into it. The window title and toolbar update to show the Base name — including its emoji if one is set.
+Double-click a Base, click the **>** arrow on the right side of its row, or select it and press **Return** to navigate into it. The window title and toolbar update to show the Base name — including its emoji if one is set.
 
 > [!NOTE]
-> By default, double-clicking a leaf item triggers its **Enter** action. If you prefer double-click to rename instead, change **Double-Click Action** to **Rename** in [Settings](styling-and-settings.md#settings).
+> By default, double-clicking a leaf item triggers its **Enter** action. If you prefer double-click to rename instead, change **Double-Click Action** to **Rename** in [Settings](styling-and-settings.md).
 
 Press **Escape** to return to the Home view.
 
 ### Back and Forward
 
-**Ctrl+Left** / **Ctrl+Right** (or the ◀ ▶ toolbar buttons) moves through your navigation history. The buttons are greyed out when there is no history in that direction.
+**Ctrl+Left** / **Ctrl+Right** (or the < > toolbar buttons) moves through your navigation history. The buttons are greyed out when there is no history in that direction.
 
 ### Escape Priority
 
@@ -27,8 +27,8 @@ Press **Escape** to return to the Home view.
 
 When you are inside a Base, a tag bar appears at the bottom of the window:
 
-- **Scene link tag** — shows the linked scene filename. Click **×** to unlink. See [PRO: Scene Linking](pro-features.md#scene-linking).
-- **Default Base tag** *(PRO)* — shown when this Base is the Quick Browse default. When set, [Quick Browse](pro-features.md#quick-browse) navigates straight to this Base on open instead of showing the Home view. Click **×** to clear it.
+- **Scene link tag** — shows the linked scene filename. Click **×** to unlink. 
+- **Default Base tag** *(PRO)* — shown when this Base is the Quick Browse default. When set, Quick Browse navigates straight to this Base on open instead of showing the Home view. Click **×** to clear it.
 
 ---
 
@@ -44,8 +44,6 @@ Drag any asset from Unity's **Project** window onto a Container or Base. You can
 - **Inspector** — drag a component header to create a Scene Component reference.
 - **Across tabs** — hover the SecondBrain tab in the dock while dragging (without needing to focus it first) and drop at the target position inside the tree.
 
-See [Drag & Drop](#drag--drop) below for drop targeting details.
-
 ### Creating Items
 
 <img alt="Creating a child item via right-click context menu" src="gifs/create-items.gif" width="600"/>
@@ -57,7 +55,7 @@ When **Force naming on create** is on (the default), an inline ghost row appears
 - Press **Escape** to cancel without creating anything.
 - Empty or duplicate names are rejected inline.
 
-To create items with an auto-generated name instantly (no ghost row), disable **Force naming on create** in [Settings](styling-and-settings.md#settings).
+To create items with an auto-generated name instantly (no ghost row), disable **Force naming on create** in [Settings](styling-and-settings.md).
 
 ### Pasting from the Clipboard
 
@@ -77,11 +75,12 @@ Pressing **Return** (or double-clicking when **Double-Click Action** is set to *
 | Scene Component ref | If scene is open: open a floating inspector for the Component. If scene is not open: open the scene and ping the object. |
 | Scene | Open the scene |
 | Prefab | Open in Prefab Stage |
-| Folder asset | Navigate into the folder in the Project window |
 | URLs | Open in system's browser |
 | Action Item | Execute *(PRO)* |
 
 ### Focus Toggles
+
+<img alt="Focus toggle" src="gifs/focus-toggle.gif" width="600"/>
 
 Several item types display a small focus icon on the right side of their row. Clicking it toggles focus-on-select behaviour for that specific item. The icon turns blue when enabled.
 
@@ -126,7 +125,7 @@ Duplication is only available for leaf items (assets, references). Containers an
 > [!WARNING]
 > **Delete Asset** is permanent and cannot be undone via the asset file. Use **Remove from List** if you want to unlink an asset without destroying it.
 
-If **Ask Before Deletion** or **Ask Before Remove** is enabled in [Settings](styling-and-settings.md#settings), a confirmation dialog appears.
+If **Ask Before Deletion** or **Ask Before Remove** is enabled in [Settings](styling-and-settings.md), a confirmation dialog appears.
 
 ### Properties
 
@@ -145,8 +144,6 @@ All operations — create, rename, delete, duplicate, reparent, move, and naviga
 <img alt="Reordering items with drag and drop" src="gifs/reorder.gif" width="600"/>
 
 Drag any row to reorder it within its parent or move it into a different Container. A drop indicator shows the exact insertion point. The drag only activates after you exceed a short distance threshold, so single-click selection is not affected.
-
-Releasing outside the window or losing focus cancels the drag with no changes.
 
 ### Dropping from the Project Window
 
