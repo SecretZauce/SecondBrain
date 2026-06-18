@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="Assets/SecretZauce/SecondBrain/Resources/Editor/Branding/SecondBrain_Transparent.png" alt="SecondBrain" width="420"/>
+  <img src="./Resources/Editor/Branding/SecondBrain_Transparent.png" alt="SecondBrain" width="420"/>
 </p>
 
 <p align="center">
-  <a href="https://secretzauce.gitbook.io/second-brain">Documentation</a> &nbsp;|&nbsp;
+  <a href="https://github.com/SecretZauce/SecondBrain/blob/main/Documentations/getting-started.md">Documentation</a> &nbsp;|&nbsp;
   <a href="https://discord.gg/wzxhQS6eFc">Discord</a> &nbsp;|&nbsp;
-  <a href="https://github.com/SecretZauce/second-brain/issues">Report a Bug</a> &nbsp;|&nbsp;
-  <a href="https://github.com/SecretZauce/second-brain/blob/main/CHANGELOG.md">Changelog</a> &nbsp;|&nbsp;
+  <a href="https://github.com/SecretZauce/SecondBrain/issues/new">Report a Bug</a> &nbsp;|&nbsp;
+  <a href="https://github.com/SecretZauce/SecondBrain/blob/main/CHANGELOG.md">Changelog</a> &nbsp;|&nbsp;
   <a href="https://assetstore.unity.com/">Asset Store ↗</a>
 </p>
 
