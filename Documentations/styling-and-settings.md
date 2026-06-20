@@ -94,13 +94,6 @@ Open via the **⚙** toolbar button. Settings are grouped into collapsible secti
 | Expand all on enter base | Off | When enabled, all containers in a Base expand automatically when you navigate into it. Does not affect foldout state on session reopen or domain reload. |
 | Font Size | 12 | Controls TreeView item font size (9–15 pt). Row height scales with the value. |
 
-**Confirmation Dialogs**
-
-| Setting | Default | Description |
-|---|---|---|
-| Ask before deletion | On | Confirmation dialog before permanently deleting an asset |
-| Ask before remove | On | Confirmation dialog before removing an item from its parent |
-
 **New Container Defaults**
 
 | Setting | Default | Description |

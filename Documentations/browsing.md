@@ -114,18 +114,18 @@ Right-click → **Duplicate** or press **Ctrl+D**. A copy appears directly after
 
 Duplication is only available for leaf items (assets, references). Containers and Bases cannot be duplicated.
 
-### Removing and Deleting
+### Removing Items
 
-| Operation | What it does | Available on |
-|---|---|---|
-| **Delete Asset** | Permanently deletes the file from disk | All nodes except Scene refs |
-| **Remove from List** | Removes the item from the hierarchy without deleting the file | Asset nodes that are not Containers or Bases |
-| **Remove Link** | Removes the scene reference; does not touch the actual scene | Scene Object and Scene Component refs |
+Right-click any item and choose **Remove**, or select it and press **Delete** / **Backspace**.
 
-> [!WARNING]
-> **Delete Asset** is permanent and cannot be undone via the asset file. Use **Remove from List** if you want to unlink an asset without destroying it.
+What happens depends on how the item is stored:
 
-If **Ask Before Deletion** or **Ask Before Remove** is enabled in [Settings](styling-and-settings.md), a confirmation dialog appears.
+| Item type | What Remove does |
+|---|---|
+| Container, Action Item, or any asset embedded directly in the profile | Destroyed and removed from the profile file |
+| A linked asset with its own file (e.g. a Scene Object ref saved as a separate `.asset`) | Unlinked only — the file stays on disk |
+
+Both cases are **fully undoable** with **Ctrl+Z**. For anything that can't be undone in-editor, use **git discard** to restore disk state.
 
 ### Properties
 
