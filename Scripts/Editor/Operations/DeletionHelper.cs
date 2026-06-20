@@ -63,11 +63,6 @@ namespace SecretZauce.SecondBrain.Editor
             var targetChild = parentChildren[lastIndex];
             string nameToStore = targetChild?.name;
 
-            // Capture the parent's asset path BEFORE destruction for targeted Project-window refresh.
-            // The parent is NOT destroyed, so this is safe to call before or after, but doing it
-            // before avoids any potential null-ref if the asset is later unloaded.
-            string parentAssetPath = AssetDatabase.GetAssetPath(parent as Object);
-
             // Register undo on the parent and remove the reference from its children list
             Undo.RegisterCompleteObjectUndo(parent as Object, $"Delete {nameToStore}");
             parent.RemoveChild(targetChild);
@@ -77,12 +72,13 @@ namespace SecretZauce.SecondBrain.Editor
             if (targetChild != null)
                 DestroyObjectRecursive(targetChild);
 
-            AssetDatabase.SaveAssets();
-
-            // Targeted Project-window refresh: reimport only the parent asset that lost a child.
-            // This is much cheaper than the global AssetDatabase.Refresh() and updates the
-            // Project window immediately without requiring a manual save.
-            SubAssetRefreshUtils.ImportAndRegister(parentAssetPath);
+            // Defer the save and Project-window refresh to the next editor frame.
+            // Calling AssetDatabase.SaveAssets() immediately after Undo.DestroyObjectImmediate
+            // triggers OnPostprocessAllAssets while Unity's sub-asset registry is still settling,
+            // causing a NullReferenceException in Unity's own MaterialPostprocessor. Deferring
+            // one frame lets the registry fully settle before the save + import run.
+            SubAssetRefreshUtils.RegisterAffectedAsset(parent as Object);
+            SubAssetRefreshUtils.ScheduleRefreshAffectedAssets();
         }
 
         /// <summary>
