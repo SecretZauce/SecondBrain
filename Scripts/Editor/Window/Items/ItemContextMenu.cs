@@ -74,7 +74,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (obj is not SceneObjectRef && obj is not SceneComponentRef)
                 menu.AddItem(new GUIContent("Rename"), false, window.BeginRenamingSelectedItem);
 
-            bool canRemoveFromList = !isIStructure && !(obj is SceneObjectRef) && !(obj is SceneComponentRef);
+            bool canRemoveFromList = !isIStructure && !AssetDatabase.IsMainAsset(obj);
             if (canRemoveFromList)
                 menu.AddItem(new GUIContent("Remove from List"), false, window.RemoveSelectedItemsFromList);
 
