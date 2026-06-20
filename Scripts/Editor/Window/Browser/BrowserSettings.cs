@@ -48,8 +48,6 @@ namespace SecretZauce.SecondBrain.Editor
             else EditorPrefs.DeleteKey(KeyFolderFocusPrefix + folderGuid);
         }
 
-        const string KeyAskBeforeDeletion = "Browser_AskBeforeDeletion_v1";
-        const string KeyAskBeforeRemove = "Browser_AskBeforeRemove_v1";
         const string KeyShowIconsPerType = "Browser_ShowIconsPerType_v1";
         const string KeyForceNamingOnCreate = "Browser_ForceNamingOnCreate_v1";
         const string KeyDefaultColorStyle = "Browser_DefaultColorStyle_v1";
@@ -68,32 +66,6 @@ namespace SecretZauce.SecondBrain.Editor
         public const int MaxItemFontSize = 15;
 
         public static event Action OnSettingsChanged;
-
-        public static bool AskBeforeDeletion
-        {
-            get => EditorPrefs.GetBool(KeyAskBeforeDeletion, true);
-            set
-            {
-                if (AskBeforeDeletion == value) return;
-                EditorPrefs.SetBool(KeyAskBeforeDeletion, value);
-                OnSettingsChanged?.Invoke();
-            }
-        }
-
-        /// <summary>
-        /// When true, a confirmation dialog is shown before removing items from their parent list.
-        /// Removing does not delete the underlying asset.
-        /// </summary>
-        public static bool AskBeforeRemove
-        {
-            get => EditorPrefs.GetBool(KeyAskBeforeRemove, true);
-            set
-            {
-                if (AskBeforeRemove == value) return;
-                EditorPrefs.SetBool(KeyAskBeforeRemove, value);
-                OnSettingsChanged?.Invoke();
-            }
-        }
 
         /// <summary>
         /// Determines what happens when the user double-clicks a TreeView item.
