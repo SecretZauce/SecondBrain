@@ -7,7 +7,7 @@
   <a href="https://discord.gg/wzxhQS6eFc">Discord</a> &nbsp;|&nbsp;
   <a href="https://github.com/SecretZauce/SecondBrain/issues/new">Report a Bug</a> &nbsp;|&nbsp;
   <a href="https://github.com/SecretZauce/SecondBrain/blob/main/CHANGELOG.md">Changelog</a> &nbsp;|&nbsp;
-  <a href="https://assetstore.unity.com/">Asset Store ↗</a>
+  <a href="https://assetstore.unity.com/packages/slug/383598">Asset Store ↗</a>
 </p>
 
 ---
@@ -217,7 +217,7 @@ On first launch, SecondBrain runs a one-time setup and automatically opens the *
 
 ### PRO
 
-1. Purchase and download SecondBrain PRO from the [Unity Asset Store](https://assetstore.unity.com/).
+1. Purchase and download SecondBrain PRO from the [Unity Asset Store](https://assetstore.unity.com/packages/slug/383598).
 2. Import the PRO `.unitypackage` into your project (the installer will prompt you to install the free package from GitHub if it is not already present).
 3. Unity recompiles and PRO features activate automatically — no license key required.
 

@@ -2,7 +2,7 @@
 
 SecondBrain PRO is a separate Unity package that builds on top of the free package. Both must be installed and at matching versions to work correctly.
 
-Purchase and download links are available through the Installer Window (**Tools → Second Brain → Installer**) or via the [Unity Asset Store]().
+Purchase and download links are available through the Installer Window (**Tools → Second Brain → Installer**) or via the [Unity Asset Store](https://assetstore.unity.com/packages/slug/383598).
 
 ---
 
