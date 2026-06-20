@@ -172,25 +172,29 @@ namespace SecretZauce.SecondBrain.Editor
         // reimports the changed .asset files but does NOT trigger a domain reload (unless
         // .cs files also changed). The Profile ScriptableObject is updated in-place by
         // Unity's deserializer, but BrowserController.Collections is a snapshot built at
-        // Initialize() time and goes stale. This AssetPostprocessor fires after every
-        // import batch and tells all open BrowserWindows to rebuild when the active
-        // Profile's file is among the reimported assets.
+        // Initialize() time and goes stale.
+        //
+        // We cannot distinguish a git-triggered reimport from a SecondBrain-internal save
+        // (delete, rename, reorder, color change, etc.) inside OnPostprocessAllAssets alone,
+        // because both call paths ultimately invoke AssetDatabase.SaveAssets() / ImportAsset().
+        //
+        // The solution: defer the check by one editor frame via delayCall. By then, any
+        // internal OnStructureChanged → BrowserController.RefreshFromRoot() has already
+        // updated Collections to match the new profile state. If Collections are still
+        // out of sync after that frame, the reimport was external — notify all windows.
 
         class ProfileAssetWatcher : AssetPostprocessor
         {
+            static bool _checkScheduled;
+
             static void OnPostprocessAllAssets(
                 string[] importedAssets,
                 string[] deletedAssets,
                 string[] movedAssets,
                 string[] movedFromAssetPaths)
             {
-                // Skip quickly if no .asset files were touched.
+                // Quick exit: no .asset files touched.
                 if (!Array.Exists(importedAssets, p => p.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)))
-                    return;
-
-                // This import was initiated by SecondBrain itself (rename, delete, reorder).
-                // Only notify for external file changes such as a git branch switch.
-                if (SubAssetRefreshUtils.InternalImportInProgress)
                     return;
 
                 // Do NOT call Profile.Active here — it auto-creates a profile if none
@@ -206,15 +210,95 @@ namespace SecretZauce.SecondBrain.Editor
                 if (string.IsNullOrEmpty(profilePath))
                     return;
 
-                bool profileReimported = Array.Exists(importedAssets,
-                    p => string.Equals(p, profilePath, StringComparison.OrdinalIgnoreCase));
-
-                if (!profileReimported)
+                if (!Array.Exists(importedAssets,
+                        p => string.Equals(p, profilePath, StringComparison.OrdinalIgnoreCase)))
                     return;
 
-                // Defer by one frame so the import transaction fully settles before we
-                // rebuild the UI — mirrors the pattern used in SubAssetRefreshUtils.
-                EditorApplication.delayCall += NotifyChanged;
+                // Defer one frame. During that frame, any internal OnStructureChanged
+                // callback will have run RefreshFromRoot(), keeping Collections current.
+                // If Collections are still stale when CheckAndNotify runs, it was git.
+                if (_checkScheduled)
+                    return;
+                _checkScheduled = true;
+                EditorApplication.delayCall += CheckAndNotify;
+            }
+
+            static void CheckAndNotify()
+            {
+                _checkScheduled = false;
+
+                if (!Profile.IsActiveProfileCached)
+                    return;
+
+                var profile = Profile.Active;
+                if (profile == null)
+                    return;
+
+                var profileChildren = profile.Children; // List<Base>
+
+                // Find all open BrowserWindows and check whether any has stale Collections.
+                var windows = Resources.FindObjectsOfTypeAll<BrowserWindow>();
+                if (windows == null || windows.Length == 0)
+                    return;
+
+                bool needsRefresh = false;
+                foreach (var w in windows)
+                {
+                    if (w == null)
+                        continue;
+
+                    var wc = w.Collections; // List<IStructure>, rebuilt by RefreshFromRoot
+
+                    if (w.IsAtHome())
+                    {
+                        // Home view: Collections mirrors Profile.Children.
+                        if (wc == null || wc.Count != profileChildren.Count)
+                        {
+                            needsRefresh = true;
+                            break;
+                        }
+                        for (int i = 0; i < profileChildren.Count; i++)
+                        {
+                            if (!ReferenceEquals(wc[i], profileChildren[i]))
+                            {
+                                needsRefresh = true;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Navigated view: Collections mirrors targetBase.ChildrenObjects.
+                        var targetBase = w.Root as Base;
+                        if (targetBase == null || !profileChildren.Contains(targetBase))
+                        {
+                            // The Base the window was viewing no longer exists in this branch.
+                            needsRefresh = true;
+                            break;
+                        }
+
+                        var baseChildren = targetBase.Children;
+                        if (wc == null || wc.Count != baseChildren.Count)
+                        {
+                            needsRefresh = true;
+                            break;
+                        }
+                        for (int i = 0; i < baseChildren.Count; i++)
+                        {
+                            if (!ReferenceEquals(wc[i], baseChildren[i]))
+                            {
+                                needsRefresh = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (needsRefresh)
+                        break;
+                }
+
+                if (needsRefresh)
+                    NotifyChanged();
             }
         }
     }
