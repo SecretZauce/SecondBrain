@@ -82,14 +82,17 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Recursively destroys <paramref name="obj"/> and all its descendants using
-        /// <see cref="Undo.DestroyObjectImmediate"/> so the operation is undo-safe.
+        /// Recursively destroys <paramref name="obj"/> and all its descendants.
+        /// Sub-assets are removed via <see cref="Undo.DestroyObjectImmediate"/> (undo-safe;
+        /// the asset file is updated on the next deferred save). Standalone main assets
+        /// (e.g. <c>SceneObjectRef</c> / <c>SceneComponentRef</c> created as separate .asset
+        /// files) are deleted from disk via <see cref="AssetDatabase.DeleteAsset"/> because
+        /// <c>Undo.DestroyObjectImmediate</c> only destroys the in-memory object and never
+        /// removes a main-asset file.
         /// <para>
-        /// The parent is destroyed FIRST (while its children are still live) so that
-        /// Unity's undo snapshot captures valid child references in the parent's children
-        /// list. If children were destroyed first, their references in the parent's list
-        /// would already be null/missing when the parent is captured, causing the restored
-        /// parent to have broken (null) children after undo.
+        /// Sub-asset nodes are destroyed BEFORE their children so that Unity's undo snapshot
+        /// captures valid child references. Restoring the snapshot later gives back a fully
+        /// linked parent rather than one with null/missing children.
         /// </para>
         /// </summary>
         static void DestroyObjectRecursive(Object obj)
@@ -108,12 +111,21 @@ namespace SecretZauce.SecondBrain.Editor
             if (obj is IStructure structure)
                 children = structure.ChildrenObjects?.ToList();
 
-            // Destroy the parent first — children are still live, so their references
-            // are valid inside the undo snapshot Unity captures here.
-            Undo.DestroyObjectImmediate(obj);
+            if (AssetDatabase.IsMainAsset(obj))
+            {
+                // Standalone .asset file (e.g. SceneObjectRef saved without a parent).
+                // DeleteAsset removes the file from disk immediately.
+                string path = AssetDatabase.GetAssetPath(obj);
+                if (!string.IsNullOrEmpty(path))
+                    AssetDatabase.DeleteAsset(path);
+            }
+            else
+            {
+                // Sub-asset embedded in a parent file — destroy in memory first so the undo
+                // snapshot captures valid child references, then recurse into children.
+                Undo.DestroyObjectImmediate(obj);
+            }
 
-            // Now destroy each child. They are still alive (snapshotted above) and their
-            // own undo snapshots will also capture valid descendant references.
             if (children != null)
             {
                 foreach (var child in children)
