@@ -12,10 +12,10 @@ namespace SecretZauce.SecondBrain.Editor
         // ── URLs ──────────────────────────────────────────────────────────────────
         const string DocumentationUrl  = "https://github.com/SecretZauce/SecondBrain/wiki/Getting-Started";
         const string DiscordUrl        = "https://discord.gg/wzxhQS6eFc";
-        const string ReportBugUrl      = "https://github.com/SecretZauce/second-brain/issues";
-        const string ChangelogUrl      = "https://github.com/SecretZauce/second-brain/blob/main/CHANGELOG.md";
+        const string ReportBugUrl      = "https://github.com/SecretZauce/SecondBrain/issues";
+        const string ChangelogUrl      = "https://github.com/SecretZauce/SecondBrain/blob/main/CHANGELOG.md";
         const string ProFeaturesUrl    = ProLicenseUtils.ASSET_STORE_URL;
-        const string FreePackageGitUrl = "https://github.com/SecretZauce/second-brain.git";
+        const string FreePackageGitUrl = "https://github.com/SecretZauce/SecondBrain.git";
 
         // ── Assembly names ────────────────────────────────────────────────────────
         const string FreeAsmdefName = "SecretZauce.SecondBrain.Editor";
