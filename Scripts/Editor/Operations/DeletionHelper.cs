@@ -68,9 +68,13 @@ namespace SecretZauce.SecondBrain.Editor
             parent.RemoveChild(targetChild);
             EditorUtility.SetDirty(parent as Object);
 
+            // The asset file that owns all the sub-assets we are allowed to destroy.
+            // Sub-assets embedded in any other file must only be unlinked, not destroyed.
+            string ownerAssetPath = AssetDatabase.GetAssetPath(parent as Object);
+
             // Recursively destroy the target and all its descendant assets (leaf → root order)
             if (targetChild != null)
-                DestroyObjectRecursive(targetChild);
+                DestroyObjectRecursive(targetChild, ownerAssetPath);
 
             // Defer the save and Project-window refresh to the next editor frame.
             // Calling AssetDatabase.SaveAssets() immediately after Undo.DestroyObjectImmediate
@@ -82,27 +86,33 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Recursively destroys sub-asset descendants of <paramref name="obj"/>.
+        /// Recursively destroys sub-asset descendants of <paramref name="obj"/> that live
+        /// inside <paramref name="ownerAssetPath"/>.
         /// <para>
-        /// Only objects that are sub-assets of the Profile are destroyed via
+        /// Only objects that are sub-assets of the Profile file at
+        /// <paramref name="ownerAssetPath"/> are destroyed via
         /// <see cref="Undo.DestroyObjectImmediate"/> so the deferred save removes them from
         /// the .asset file. The removal is undo-safe: restoring the parent's undo snapshot
         /// brings back a fully linked parent with valid child references.
         /// </para>
         /// <para>
-        /// Standalone main assets (e.g. a <c>SceneObjectRef</c> file created outside the
-        /// Profile) are left on disk — only the reference in the parent's children list is
-        /// removed (captured in the parent's undo snapshot). The file can be re-linked later.
-        /// GameObjects from Prefab assets are similarly skipped.
+        /// Standalone main assets, GameObjects, and sub-assets that belong to a different
+        /// .asset file are left untouched — only the reference in the parent's children list
+        /// is removed (captured in the parent's undo snapshot).
         /// </para>
         /// </summary>
-        static void DestroyObjectRecursive(Object obj)
+        static void DestroyObjectRecursive(Object obj, string ownerAssetPath)
         {
             if (obj == null) return;
 
-            // Leave standalone asset files on disk — only unlink them.
-            // Their removal from the parent list is already covered by the parent's undo snapshot.
+            // Leave GameObjects and standalone asset files untouched — just unlink them.
             if (obj is UnityEngine.GameObject || AssetDatabase.IsMainAsset(obj))
+                return;
+
+            // Leave sub-assets that belong to a different .asset file untouched.
+            // They may be referenced by other structures we must not corrupt.
+            if (!string.Equals(AssetDatabase.GetAssetPath(obj), ownerAssetPath,
+                    System.StringComparison.OrdinalIgnoreCase))
                 return;
 
             // Snapshot children BEFORE destroying this node so we can reach them after
@@ -120,7 +130,7 @@ namespace SecretZauce.SecondBrain.Editor
                 foreach (var child in children)
                 {
                     if (child != null)
-                        DestroyObjectRecursive(child);
+                        DestroyObjectRecursive(child, ownerAssetPath);
                 }
             }
         }
