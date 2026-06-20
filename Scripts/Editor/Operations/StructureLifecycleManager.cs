@@ -1831,9 +1831,15 @@ namespace SecretZauce.SecondBrain.Editor
             // --- Migrate sub-assets from old Base file to the new Base file ---
             // MigrateSubAssetsRecursive returns the exact (obj, fromPath) pairs it relocated
             // so we can reverse the migration precisely on Undo.
+            // sourceAssetPath scopes migration to objects that already live in the same file
+            // as the moved item — preventing sub-assets of unrelated assets (AudioMixerGroup,
+            // embedded Materials, etc.) from being accidentally reparented into the profile.
             var allMigrated = new List<(Object obj, string fromPath)>();
             foreach (var (item, _, _) in itemsToMove)
-                allMigrated.AddRange(MigrateSubAssetsRecursive(item, targetBasePath));
+            {
+                string sourceAssetPath = AssetDatabase.GetAssetPath(item);
+                allMigrated.AddRange(MigrateSubAssetsRecursive(item, targetBasePath, sourceAssetPath));
+            }
 
             // --- Add items to the target Base's children list in ascending source-path order ---
             // uniquePaths was sorted descending for safe removal (avoids index shifts).
@@ -1966,7 +1972,10 @@ namespace SecretZauce.SecondBrain.Editor
 
             var allMigrated = new List<(Object obj, string fromPath)>();
             foreach (var (item, _, _) in itemsToMove)
-                allMigrated.AddRange(MigrateSubAssetsRecursive(item, targetAssetPath));
+            {
+                string sourceAssetPath = AssetDatabase.GetAssetPath(item);
+                allMigrated.AddRange(MigrateSubAssetsRecursive(item, targetAssetPath, sourceAssetPath));
+            }
 
             var srcPathCmpC = Comparer<int[]>.Create((a, b) =>
             {
@@ -2224,14 +2233,18 @@ namespace SecretZauce.SecondBrain.Editor
         /// <summary>
         /// Re-embeds <paramref name="obj"/> and all of its IStructure descendants into
         /// <paramref name="targetAssetPath"/> when they currently live in a different asset file.
+        /// Only objects whose current asset path matches <paramref name="sourceAssetPath"/> are
+        /// relocated — sub-assets from unrelated files (e.g. AudioMixerGroup inside a Unity mixer,
+        /// Materials embedded in a model) are left in place.
         /// Children are migrated before their parent (safe order for Unity's asset database).
         /// Returns the list of <c>(obj, fromPath)</c> pairs for every object that was actually
         /// relocated — this list is used to reverse the migration on Undo.
         /// </summary>
-        static List<(Object obj, string fromPath)> MigrateSubAssetsRecursive(Object obj, string targetAssetPath)
+        static List<(Object obj, string fromPath)> MigrateSubAssetsRecursive(
+            Object obj, string targetAssetPath, string sourceAssetPath)
         {
             var migrated = new List<(Object, string)>();
-            MigrateSubAssetsRecursiveInternal(obj, targetAssetPath, migrated);
+            MigrateSubAssetsRecursiveInternal(obj, targetAssetPath, sourceAssetPath, migrated);
             return migrated;
         }
 
@@ -2256,6 +2269,7 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         static void MigrateSubAssetsRecursiveInternal(Object obj, string targetAssetPath,
+                                                       string sourceAssetPath,
                                                        List<(Object, string)> migrated)
         {
             if (obj == null || string.IsNullOrEmpty(targetAssetPath)) return;
@@ -2266,7 +2280,7 @@ namespace SecretZauce.SecondBrain.Editor
                 var children = structure.ChildrenObjects?.ToList();
                 if (children != null)
                     foreach (var child in children)
-                        MigrateSubAssetsRecursiveInternal(child, targetAssetPath, migrated);
+                        MigrateSubAssetsRecursiveInternal(child, targetAssetPath, sourceAssetPath, migrated);
             }
 
             // Only relocate embedded sub-assets; standalone .asset files stay where they are.
@@ -2274,6 +2288,13 @@ namespace SecretZauce.SecondBrain.Editor
 
             string currentPath = AssetDatabase.GetAssetPath(obj);
             if (string.IsNullOrEmpty(currentPath) || currentPath == targetAssetPath) return;
+
+            // Guard: only migrate sub-assets that originated in the same source file as the
+            // top-level item being moved. Sub-assets from unrelated files — AudioMixerGroup
+            // inside a Unity AudioMixer, Materials embedded in a model, etc. — must not be
+            // ripped out of their owner and embedded into a SecondBrain profile file.
+            if (!string.Equals(currentPath, sourceAssetPath, StringComparison.OrdinalIgnoreCase))
+                return;
 
             // Record before relocating so we can reverse this step on Undo.
             migrated.Add((obj, currentPath));
