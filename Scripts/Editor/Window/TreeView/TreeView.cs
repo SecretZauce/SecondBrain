@@ -1432,47 +1432,31 @@ namespace SecretZauce.SecondBrain.Editor
 
             string name = ghostSession.InputText?.Trim() ?? string.Empty;
 
-            // Empty name → cancel silently (same as pressing Escape)
-            if (string.IsNullOrEmpty(name))
+            switch (GhostNameValidation.Validate(name, ghostSession.Parent))
             {
-                CancelGhostCreation();
-                EditorGUIUtility.editingTextField = false;
-                GUI.FocusControl(null);
-                GUIUtility.keyboardControl = 0;
-                return;
-            }
+                // Empty name → cancel silently (same as pressing Escape)
+                case GhostNameValidationResult.Empty:
+                    CancelGhostCreation();
+                    EditorGUIUtility.editingTextField = false;
+                    GUI.FocusControl(null);
+                    GUIUtility.keyboardControl = 0;
+                    return;
 
-            // Validate for invalid file-path characters
-            char[] invalidChars = System.IO.Path.GetInvalidFileNameChars();
-            if (name.IndexOfAny(invalidChars) >= 0)
-            {
-                EditorApplication.delayCall += () =>
-                    EditorUtility.DisplayDialog("Invalid Name",
-                        "The name contains characters that are not allowed in asset names.", "OK");
-                // Keep ghost open so the user can fix the name
-                ghostSession.FocusPending = true;
-                return;
-            }
+                // Invalid file-path characters → keep ghost open so the user can fix the name
+                case GhostNameValidationResult.InvalidCharacters:
+                    EditorApplication.delayCall += () =>
+                        EditorUtility.DisplayDialog("Invalid Name",
+                            "The name contains characters that are not allowed in asset names.", "OK");
+                    ghostSession.FocusPending = true;
+                    return;
 
-            // Check for duplicate names among siblings
-            if (ghostSession.Parent is IStructure parentStruct)
-            {
-                var siblings = parentStruct.ChildrenObjects;
-                if (siblings != null)
-                {
-                    foreach (var sibling in siblings)
-                    {
-                        if (sibling != null &&
-                            string.Equals(sibling.name, name, StringComparison.OrdinalIgnoreCase))
-                        {
-                            EditorApplication.delayCall += () =>
-                                EditorUtility.DisplayDialog("Name Already Exists",
-                                    $"An item named \"{name}\" already exists here.\nPlease choose a different name.", "OK");
-                            ghostSession.FocusPending = true;
-                            return;
-                        }
-                    }
-                }
+                // Duplicate name among siblings → keep ghost open so the user can fix the name
+                case GhostNameValidationResult.DuplicateName:
+                    EditorApplication.delayCall += () =>
+                        EditorUtility.DisplayDialog("Name Already Exists",
+                            $"An item named \"{name}\" already exists here.\nPlease choose a different name.", "OK");
+                    ghostSession.FocusPending = true;
+                    return;
             }
 
             // Capture session data, clear ghost, then create asset
