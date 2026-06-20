@@ -165,6 +165,53 @@ namespace SecretZauce.SecondBrain.Editor
             try { OnActiveProfileChanged?.Invoke(); }
             catch (Exception ex) { Debug.LogWarning($"[SecondBrain] ProfileManager notification error: {ex.Message}"); }
         }
+
+        // ── External-change detection ──────────────────────────────────────────
+        //
+        // When the user switches git branches or checks out a different commit, Unity
+        // reimports the changed .asset files but does NOT trigger a domain reload (unless
+        // .cs files also changed). The Profile ScriptableObject is updated in-place by
+        // Unity's deserializer, but BrowserController.Collections is a snapshot built at
+        // Initialize() time and goes stale. This AssetPostprocessor fires after every
+        // import batch and tells all open BrowserWindows to rebuild when the active
+        // Profile's file is among the reimported assets.
+
+        class ProfileAssetWatcher : AssetPostprocessor
+        {
+            static void OnPostprocessAllAssets(
+                string[] importedAssets,
+                string[] deletedAssets,
+                string[] movedAssets,
+                string[] movedFromAssetPaths)
+            {
+                // Skip quickly if no .asset files were touched.
+                if (!Array.Exists(importedAssets, p => p.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)))
+                    return;
+
+                // Do NOT call Profile.Active here — it auto-creates a profile if none
+                // exists, which would corrupt state in the middle of an import transaction.
+                if (!Profile.IsActiveProfileCached)
+                    return;
+
+                var profile = Profile.Active;
+                if (profile == null)
+                    return;
+
+                string profilePath = AssetDatabase.GetAssetPath(profile);
+                if (string.IsNullOrEmpty(profilePath))
+                    return;
+
+                bool profileReimported = Array.Exists(importedAssets,
+                    p => string.Equals(p, profilePath, StringComparison.OrdinalIgnoreCase));
+
+                if (!profileReimported)
+                    return;
+
+                // Defer by one frame so the import transaction fully settles before we
+                // rebuild the UI — mirrors the pattern used in SubAssetRefreshUtils.
+                EditorApplication.delayCall += NotifyChanged;
+            }
+        }
     }
 }
 

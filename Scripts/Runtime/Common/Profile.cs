@@ -154,6 +154,12 @@ namespace SecretZauce.SecondBrain
         public static void InvalidateCache() => active = null;
 
         /// <summary>
+        /// Returns true when a Profile is already held in the static cache, without triggering
+        /// a load or auto-creation. Safe to call from AssetPostprocessor callbacks.
+        /// </summary>
+        public static bool IsActiveProfileCached => active != null;
+
+        /// <summary>
         /// Returns the folder path that the given Profile currently resides in.
         /// </summary>
         public static string GetCurrentFolder(Profile profile)
