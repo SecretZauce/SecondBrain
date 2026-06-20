@@ -82,49 +82,38 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Recursively destroys <paramref name="obj"/> and all its descendants.
-        /// Sub-assets are removed via <see cref="Undo.DestroyObjectImmediate"/> (undo-safe;
-        /// the asset file is updated on the next deferred save). Standalone main assets
-        /// (e.g. <c>SceneObjectRef</c> / <c>SceneComponentRef</c> created as separate .asset
-        /// files) are deleted from disk via <see cref="AssetDatabase.DeleteAsset"/> because
-        /// <c>Undo.DestroyObjectImmediate</c> only destroys the in-memory object and never
-        /// removes a main-asset file.
+        /// Recursively destroys sub-asset descendants of <paramref name="obj"/>.
         /// <para>
-        /// Sub-asset nodes are destroyed BEFORE their children so that Unity's undo snapshot
-        /// captures valid child references. Restoring the snapshot later gives back a fully
-        /// linked parent rather than one with null/missing children.
+        /// Only objects that are sub-assets of the Profile are destroyed via
+        /// <see cref="Undo.DestroyObjectImmediate"/> so the deferred save removes them from
+        /// the .asset file. The removal is undo-safe: restoring the parent's undo snapshot
+        /// brings back a fully linked parent with valid child references.
+        /// </para>
+        /// <para>
+        /// Standalone main assets (e.g. a <c>SceneObjectRef</c> file created outside the
+        /// Profile) are left on disk — only the reference in the parent's children list is
+        /// removed (captured in the parent's undo snapshot). The file can be re-linked later.
+        /// GameObjects from Prefab assets are similarly skipped.
         /// </para>
         /// </summary>
         static void DestroyObjectRecursive(Object obj)
         {
             if (obj == null) return;
 
-            // GameObjects from Prefab Assets cannot be destroyed via Undo.DestroyObjectImmediate.
-            // The reference was already removed from the parent's children list by RemoveChild,
-            // so we just leave the prefab asset on disk untouched.
-            if (obj is UnityEngine.GameObject)
+            // Leave standalone asset files on disk — only unlink them.
+            // Their removal from the parent list is already covered by the parent's undo snapshot.
+            if (obj is UnityEngine.GameObject || AssetDatabase.IsMainAsset(obj))
                 return;
 
-            // Snapshot children BEFORE destroying anything so we can reach them after
+            // Snapshot children BEFORE destroying this node so we can reach them after
             // the parent's native object is gone.
             List<Object> children = null;
             if (obj is IStructure structure)
                 children = structure.ChildrenObjects?.ToList();
 
-            if (AssetDatabase.IsMainAsset(obj))
-            {
-                // Standalone .asset file (e.g. SceneObjectRef saved without a parent).
-                // DeleteAsset removes the file from disk immediately.
-                string path = AssetDatabase.GetAssetPath(obj);
-                if (!string.IsNullOrEmpty(path))
-                    AssetDatabase.DeleteAsset(path);
-            }
-            else
-            {
-                // Sub-asset embedded in a parent file — destroy in memory first so the undo
-                // snapshot captures valid child references, then recurse into children.
-                Undo.DestroyObjectImmediate(obj);
-            }
+            // Destroy this sub-asset first while children are still live so the undo
+            // snapshot captures valid child references for correct restoration on undo.
+            Undo.DestroyObjectImmediate(obj);
 
             if (children != null)
             {
