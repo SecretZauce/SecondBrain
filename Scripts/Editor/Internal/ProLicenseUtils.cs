@@ -16,9 +16,8 @@ namespace SecretZauce.SecondBrain.Editor
     {
         /// <summary>
         /// Unity Asset Store page for SecondBrain PRO.
-        /// TODO: replace with the real URL before publishing.
         /// </summary>
-        public const string ASSET_STORE_URL = "https://assetstore.unity.com/"; // TODO: set real URL
+        public const string ASSET_STORE_URL = "https://assetstore.unity.com/packages/slug/383598";
 
         const string ProDefine = "SECOND_BRAIN_PRO";
 
