@@ -100,6 +100,12 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (obj == null) return;
 
+            // GameObjects from Prefab Assets cannot be destroyed via Undo.DestroyObjectImmediate.
+            // The reference was already removed from the parent's children list by RemoveChild,
+            // so we just leave the prefab asset on disk untouched.
+            if (obj is UnityEngine.GameObject)
+                return;
+
             // Snapshot children BEFORE destroying anything so we can reach them after
             // the parent's native object is gone.
             List<Object> children = null;
