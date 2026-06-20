@@ -439,10 +439,14 @@ namespace SecretZauce.SecondBrain.Editor
             if (BrowserSettings.AskBeforeDeletion)
             {
                 int total = paths.Count;
+                bool allLinks = paths.TrueForAll(p => AssetDatabase.IsMainAsset(GetObjectAtPath(p)));
+                string verb  = allLinks ? "remove the link to" : "delete";
+                string title  = allLinks ? "Remove Link" : "Delete Item(s)";
+                string button = allLinks ? "Remove Link" : "Delete";
                 string message = total == 1
-                    ? $"Are you sure you want to delete '{GetObjectAtPath(paths[0])?.name}'?"
-                    : $"Are you sure you want to delete {total} items?";
-                if (!EditorUtility.DisplayDialog("Delete Item(s)", message, "Delete", "Cancel"))
+                    ? $"Are you sure you want to {verb} '{GetObjectAtPath(paths[0])?.name}'?"
+                    : $"Are you sure you want to {verb} {total} items?";
+                if (!EditorUtility.DisplayDialog(title, message, button, "Cancel"))
                     return;
             }
 
