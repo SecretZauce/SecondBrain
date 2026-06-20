@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/SecretZauce/SecondBrain/blob/main/Documentations/getting-started.md">Documentation</a> &nbsp;|&nbsp;
+  <a href="https://github.com/SecretZauce/SecondBrain/wiki/Getting-Started">Documentation</a> &nbsp;|&nbsp;
   <a href="https://discord.gg/wzxhQS6eFc">Discord</a> &nbsp;|&nbsp;
   <a href="https://github.com/SecretZauce/SecondBrain/issues/new">Report a Bug</a> &nbsp;|&nbsp;
   <a href="https://github.com/SecretZauce/SecondBrain/blob/main/CHANGELOG.md">Changelog</a> &nbsp;|&nbsp;
@@ -76,7 +76,7 @@ Profile ( Per-Team Member Separation - e.g. "Tom's Profile", "Amy's Profile" )
 > [!NOTE]
 > In the free tier, you have **one Profile** with **one Base**. Upgrade to PRO for unlimited Profiles, Bases, and windows.
 
-See [Data Structure](Documentations/data-structure.md) and [Building Your Hierarchy](Documentations/browsing.md#building-your-hierarchy) for more details.
+See [Data Structure](https://github.com/SecretZauce/SecondBrain/wiki/Data-Structure) and [Building Your Hierarchy](https://github.com/SecretZauce/SecondBrain/wiki/Browsing#building-your-hierarchy) for more details.
 
 ---
 
@@ -133,7 +133,7 @@ Full keyboard navigation support:
 - **Ctrl+D** to duplicate
 - **Ctrl+Left / Ctrl+Right** for back/forward history, and more.
 
-See the full [Keyboard Shortcuts](Documentations/shortcuts.md) reference.
+See the full [Keyboard Shortcuts](https://github.com/SecretZauce/SecondBrain/wiki/Shortcuts) reference.
 
 ---
 
@@ -158,7 +158,7 @@ Multi-select several nodes and style them all at once.
 
 Tune SecondBrain's behavior to your workflow — confirmation dialogs, row height, double-click action, force naming on creation, default expand state, and more.
 
-See [Styling and Settings](Documentations/styling-and-settings.md).
+See [Styling and Settings](https://github.com/SecretZauce/SecondBrain/wiki/Styling-And-Settings).
 
 ---
 
@@ -189,15 +189,15 @@ See [Styling and Settings](Documentations/styling-and-settings.md).
 
 | Page | What it covers |
 |---|---|
-| [Getting Started](Documentations/getting-started.md) | Opening the window, first-run orientation |
-| [Data Structure](Documentations/data-structure.md) | Profiles, Bases, Containers, asset types — the full hierarchy |
-| [Browsing](Documentations/browsing.md) | Navigation, creating items, drag & drop, enter actions, undo |
-| [Selection & Search](Documentations/selection-and-search.md) | Multi-select, range select, real-time search |
-| [Styling & Settings](Documentations/styling-and-settings.md) | Emoji, colors, Inspectors, all settings |
-| [PRO Features](Documentations/pro-features.md) | Quick Peek, Quick Browse, Scene Linking, Action Items, Multiple Windows |
-| [Keyboard Shortcuts](Documentations/shortcuts.md) | Full shortcut reference |
-| [Advanced Topics](Documentations/advanced-topics.md) | Extending TypedContainer and Action Items for custom tooling |
-| [Upgrading to PRO](Documentations/upgrading-to-pro.md) | Installing PRO and activating your license |
+| [Getting Started](https://github.com/SecretZauce/SecondBrain/wiki/Getting-Started) | Opening the window, first-run orientation |
+| [Data Structure](https://github.com/SecretZauce/SecondBrain/wiki/Data-Structure) | Profiles, Bases, Containers, asset types — the full hierarchy |
+| [Browsing](https://github.com/SecretZauce/SecondBrain/wiki/Browsing) | Navigation, creating items, drag & drop, enter actions, undo |
+| [Selection & Search](https://github.com/SecretZauce/SecondBrain/wiki/Selection-And-Search) | Multi-select, range select, real-time search |
+| [Styling & Settings](https://github.com/SecretZauce/SecondBrain/wiki/Styling-And-Settings) | Emoji, colors, Inspectors, all settings |
+| [PRO Features](https://github.com/SecretZauce/SecondBrain/wiki/Pro-Features) | Quick Peek, Quick Browse, Scene Linking, Action Items, Multiple Windows |
+| [Keyboard Shortcuts](https://github.com/SecretZauce/SecondBrain/wiki/Shortcuts) | Full shortcut reference |
+| [Advanced Topics](https://github.com/SecretZauce/SecondBrain/wiki/Advanced-Topics) | Extending TypedContainer and Action Items for custom tooling |
+| [Upgrading to PRO](https://github.com/SecretZauce/SecondBrain/wiki/Upgrading-To-Pro) | Installing PRO and activating your license |
 
 ---
 
@@ -233,7 +233,7 @@ On first launch, SecondBrain runs a one-time setup and automatically opens the *
 3. Drag assets from the Project window, Hierarchy, or Inspector onto a Container.
 4. Right-click any Container to create children, rename, set an emoji, set a color, or delete.
 
-See the [full documentation](https://github.com/SecretZauce/SecondBrain/blob/main/Documentations/getting-started.md) for browsing, styling, PRO features, and the extension API.
+See the [full documentation](https://github.com/SecretZauce/SecondBrain/wiki/Getting-Started) for browsing, styling, PRO features, and the extension API.
 
 ---
 

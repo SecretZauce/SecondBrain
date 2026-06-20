@@ -10,7 +10,7 @@ namespace SecretZauce.SecondBrain.Editor
     public class InstallerWindow : EditorWindow
     {
         // ── URLs ──────────────────────────────────────────────────────────────────
-        const string DocumentationUrl  = "https://secretzauce.gitbook.io/second-brain";
+        const string DocumentationUrl  = "https://github.com/SecretZauce/SecondBrain/wiki/Getting-Started";
         const string DiscordUrl        = "https://discord.gg/wzxhQS6eFc";
         const string ReportBugUrl      = "https://github.com/SecretZauce/second-brain/issues";
         const string ChangelogUrl      = "https://github.com/SecretZauce/second-brain/blob/main/CHANGELOG.md";
