@@ -152,26 +152,7 @@ namespace SecretZauce.SecondBrain.Editor
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.Space(6);
-
-            // ── Confirmation ───────────────────────────────────────────────────
-            bool askDelete = BrowserSettings.AskBeforeDeletion;
-            bool askRemove = BrowserSettings.AskBeforeRemove;
-
-            if (DrawCollapsibleHeader(ref confirmationFoldout, "Confirmation Dialogs", PrefConfirmation))
-            {
-                EditorGUI.indentLevel++;
-                askDelete = EditorGUILayout.ToggleLeft(
-                    new GUIContent("Ask before deletion", "Prompt for confirmation before permanently deleting (destroying) items."),
-                    askDelete);
-
-                askRemove = EditorGUILayout.ToggleLeft(
-                    new GUIContent("Ask before remove", "Prompt for confirmation before removing items from their parent list (the assets are NOT deleted)."),
-                    askRemove);
-
-                EditorGUI.indentLevel--;
-            }
-            EditorGUILayout.Space(6);
-
+            
             // ── New Container Defaults ─────────────────────────────────────────
             ColorDisplayStyle colorStyle = BrowserSettings.DefaultColorStyle;
             bool foldoutOnly = BrowserSettings.DefaultColorFoldoutOnly;
@@ -241,8 +222,6 @@ namespace SecretZauce.SecondBrain.Editor
                 BrowserSettings.ForceNamingOnCreate = forceNaming;
                 BrowserSettings.ExpandAllOnEnterBase = expandAllOnEnterBase;
                 BrowserSettings.ItemFontSize = itemFontSize;
-                BrowserSettings.AskBeforeDeletion = askDelete;
-                BrowserSettings.AskBeforeRemove = askRemove;
                 BrowserSettings.DefaultColorStyle = colorStyle;
                 BrowserSettings.DefaultColorFoldoutOnly = foldoutOnly;
                 BrowserSettings.DefaultExpandOption = expandOption;
