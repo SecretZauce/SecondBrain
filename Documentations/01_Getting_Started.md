@@ -48,13 +48,13 @@ Once the window is open, you can start filling it immediately:
 - **Drag anything in** — drop assets from the Project window, GameObjects or scene names from the Hierarchy, or components from the Inspector directly onto a Container or Base. You can even drag while the SecondBrain tab is not focused: hover over the tab in the dock during a drag, wait for the window to appear, then drop at the target position.
 - **Make groups** — You can click the **+** button that appears on the toolbar of the SecondBrainWindow to create a new Container at depth zero. Or press **+** at the right side of the selected row to created a Child Container.
 - **Drag to reorder** — drag any row up or down to reorder it within its parent, or drag it onto a different Container to move it there.
-- **Keyboard shortcuts** — use **↑ / ↓** to navigate rows, **Return** to enter a Base or execute an action, **Ctrl+R** to rename, **Ctrl+Z** to undo. See [Keyboard Shortcuts](shortcuts.md) for the full list.
+- **Keyboard shortcuts** — use **↑ / ↓** to navigate rows, **Return** to enter a Base or execute an action, **Ctrl+R** to rename, **Ctrl+Z** to undo. See [Keyboard Shortcuts](07_Shortcuts.md) for the full list.
 
 ---
 
 ## What to Do Next
 
-- Understand the hierarchy → [Data Structure](data-structure.md)
-- Start adding content → [Browsing](browsing.md)
-- Style your nodes → [Styling & Settings](styling-and-settings.md)
-- Explore PRO features → [PRO Features](pro-features.md)
+- Understand the hierarchy → [Data Structure](02_Data_Structure.md)
+- Start adding content → [Browsing](03_Browsing.md)
+- Style your nodes → [Styling & Settings](04_Styling_And_Settings.md)
+- Explore PRO features → [PRO Features](05_Pro_Features.md)

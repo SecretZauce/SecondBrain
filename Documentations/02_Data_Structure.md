@@ -59,4 +59,4 @@ SecondBrain enforces two rules:
 ---
 
 > [!NOTE]
-> For developer extension points (`TypedContainer<T>`, `ActionItem` subclassing, `[CreateChild]` attribute) and other internal details, see [Advanced Topics](advanced-topics.md).
+> For developer extension points (`TypedContainer<T>`, `ActionItem` subclassing, `[CreateChild]` attribute) and other internal details, see [Advanced Topics](09_Advanced_Topics.md).

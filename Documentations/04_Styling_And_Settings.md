@@ -51,7 +51,7 @@ Selecting a Base or Container and opening the Unity **Inspector** shows a dedica
 <img alt="Container Inspector" src="pngs/container-inspector.png" width="600"/>
 
 - Set emoji and color.
-- Set **Preferred Child View** (Foldouts or Tabs) — controls how children appear in [Quick Peek](pro-features.md#quick-peek).
+- Set **Preferred Child View** (Foldouts or Tabs) — controls how children appear in [Quick Peek](05_Pro_Features.md#quick-peek).
 - Set **Container Expand** and **Child View Expand** — each uses the same three options:
 
 | Option | Behavior |
@@ -70,7 +70,7 @@ Selecting a Base or Container and opening the Unity **Inspector** shows a dedica
 <img alt="Base Inspector" src="pngs/base-inspector.png" width="600"/>
 
 - Set emoji and color.
-- *(PRO)* Set the **Scene Link** — object picker or **Open Scenes** dropdown. See [PRO: Scene Linking](pro-features.md#scene-linking).
+- *(PRO)* Set the **Scene Link** — object picker or **Open Scenes** dropdown. See [PRO: Scene Linking](05_Pro_Features.md#scene-linking).
 
 ---
 

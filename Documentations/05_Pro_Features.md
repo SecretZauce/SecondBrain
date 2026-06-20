@@ -77,14 +77,14 @@ The panel header contains a layout toggle (tab icon / foldout icon) to switch be
 
 **Disabling Quick Peek:**
 
-| Method | Scope |
-|---|---|
-| Turn off **Enable Quick Peek** in [Settings](styling-and-settings.md#settings) | Globally — all Containers |
-| Enable **Disable Quick Peek** in the Container Inspector | Per-Container and all its descendants |
+| Method                                                                            | Scope |
+|-----------------------------------------------------------------------------------|---|
+| Turn off **Enable Quick Peek** in [Settings](04_Styling_And_Settings.md#settings) | Globally — all Containers |
+| Enable **Disable Quick Peek** in the Container Inspector                          | Per-Container and all its descendants |
 
 **Layout defaults:**
-- **Preferred Child View** — set in [Settings](styling-and-settings.md#settings) under **New Container Defaults**. The fallback layout (Foldouts or Tabs) when no per-container preference has been saved.
-- **Child View Expand** — set per-container in the [Container Inspector](styling-and-settings.md#container-inspector). Controls whether children start expanded or collapsed inside Quick Peek when no saved per-item foldout state exists.
+- **Preferred Child View** — set in [Settings](04_Styling_And_Settings.md#settings) under **New Container Defaults**. The fallback layout (Foldouts or Tabs) when no per-container preference has been saved.
+- **Child View Expand** — set per-container in the [Container Inspector](04_Styling_And_Settings.md#container-inspector). Controls whether children start expanded or collapsed inside Quick Peek when no saved per-item foldout state exists.
 
 ---
 
@@ -121,7 +121,7 @@ Link a Base to a Unity scene so that the browser opens automatically to that wor
 | Same Base already open | Existing window is reused, not duplicated |
 
 > [!WARNING]
-> If **Enable Scene Linking** is off in [Settings](styling-and-settings.md#settings), auto-open and auto-close do not fire even if a link is set. A warning banner appears in the Base Inspector when this is the case.
+> If **Enable Scene Linking** is off in [Settings](04_Styling_And_Settings.md#settings), auto-open and auto-close do not fire even if a link is set. A warning banner appears in the Base Inspector when this is the case.
 
 ---
 
@@ -140,4 +140,4 @@ Action Items are ScriptableObject-based executable actions that live in your hie
 | Place on Ground | Scene / Object Placement | Moves selected GameObjects to the ground surface |
 | Wrap with Empty Parent | Scene / Hierarchy | Wraps selected GameObjects inside a new empty parent |
 
-For how to create custom Action Items, see [Advanced Topics](advanced-topics.md).
+For how to create custom Action Items, see [Advanced Topics](09_Advanced_Topics.md).

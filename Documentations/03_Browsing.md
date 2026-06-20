@@ -7,7 +7,7 @@
 Double-click a Base, click the **>** arrow on the right side of its row, or select it and press **Return** to navigate into it. The window title and toolbar update to show the Base name — including its emoji if one is set.
 
 > [!NOTE]
-> By default, double-clicking a leaf item triggers its **Enter** action. If you prefer double-click to rename instead, change **Double-Click Action** to **Rename** in [Settings](styling-and-settings.md).
+> By default, double-clicking a leaf item triggers its **Enter** action. If you prefer double-click to rename instead, change **Double-Click Action** to **Rename** in [Settings](04_Styling_And_Settings.md).
 
 Press **Escape** to return to the Home view.
 
@@ -55,7 +55,7 @@ When **Force naming on create** is on (the default), an inline ghost row appears
 - Press **Escape** to cancel without creating anything.
 - Empty or duplicate names are rejected inline.
 
-To create items with an auto-generated name instantly (no ghost row), disable **Force naming on create** in [Settings](styling-and-settings.md).
+To create items with an auto-generated name instantly (no ghost row), disable **Force naming on create** in [Settings](04_Styling_And_Settings.md).
 
 ### Pasting from the Clipboard
 
