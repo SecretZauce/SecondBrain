@@ -15,7 +15,7 @@ namespace SecretZauce.SecondBrain.Editor
         const string ReportBugUrl      = "https://github.com/SecretZauce/second-brain/issues";
         const string ChangelogUrl      = "https://github.com/SecretZauce/second-brain/blob/main/CHANGELOG.md";
         const string ProFeaturesUrl    = ProLicenseUtils.ASSET_STORE_URL;
-        const string FreePackageGitUrl = "https://github.com/SecretZauce/second-brain-free.git";
+        const string FreePackageGitUrl = "https://github.com/SecretZauce/second-brain.git";
 
         // ── Assembly names ────────────────────────────────────────────────────────
         const string FreeAsmdefName = "SecretZauce.SecondBrain.Editor";
