@@ -435,17 +435,6 @@ namespace SecretZauce.SecondBrain.Editor
             if (paths == null || paths.Count == 0)
                 return;
 
-            // Ask for confirmation if enabled
-            if (BrowserSettings.AskBeforeDeletion)
-            {
-                int total = paths.Count;
-                string message = total == 1
-                    ? $"Are you sure you want to delete '{GetObjectAtPath(paths[0])?.name}'?"
-                    : $"Are you sure you want to delete {total} items?";
-                if (!EditorUtility.DisplayDialog("Delete Item(s)", message, "Delete", "Cancel"))
-                    return;
-            }
-
             // Capture foldout state
             CaptureFoldoutSnapshot(treeView);
             // Subscribe AFTER the existing relay (constructor) so selectionState is already
@@ -462,16 +451,6 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (paths == null || paths.Count == 0)
                 return;
-
-            if (BrowserSettings.AskBeforeRemove)
-            {
-                int total = paths.Count;
-                string message = total == 1
-                    ? $"Remove '{GetObjectAtPath(paths[0])?.name}' from list (the object will not be deleted)?"
-                    : $"Remove {total} items from list (the objects will not be deleted)?";
-                if (!EditorUtility.DisplayDialog("Remove from List", message, "Remove", "Cancel"))
-                    return;
-            }
 
             CaptureFoldoutSnapshot(treeView);
             // Same pattern: UpdateUnitySelection inside the undo group via the selection event.
