@@ -1831,13 +1831,15 @@ namespace SecretZauce.SecondBrain.Editor
             // --- Migrate sub-assets from old Base file to the new Base file ---
             // MigrateSubAssetsRecursive returns the exact (obj, fromPath) pairs it relocated
             // so we can reverse the migration precisely on Undo.
-            // sourceAssetPath scopes migration to objects that already live in the same file
-            // as the moved item — preventing sub-assets of unrelated assets (AudioMixerGroup,
-            // embedded Materials, etc.) from being accidentally reparented into the profile.
+            // Use the PARENT's asset path as the allowed-source filter, not the item's own path.
+            // The parent is always a Profile-managed node (its file IS the profile file), so only
+            // objects that live in that same profile file are eligible for migration. This prevents
+            // sub-assets of unrelated files (AudioMixerGroup in a mixer, Materials in a model)
+            // from being pulled into the profile even when dragged directly as the moved item.
             var allMigrated = new List<(Object obj, string fromPath)>();
-            foreach (var (item, _, _) in itemsToMove)
+            foreach (var (item, parent, _) in itemsToMove)
             {
-                string sourceAssetPath = AssetDatabase.GetAssetPath(item);
+                string sourceAssetPath = AssetDatabase.GetAssetPath(parent as Object);
                 allMigrated.AddRange(MigrateSubAssetsRecursive(item, targetBasePath, sourceAssetPath));
             }
 
@@ -1971,9 +1973,9 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             var allMigrated = new List<(Object obj, string fromPath)>();
-            foreach (var (item, _, _) in itemsToMove)
+            foreach (var (item, parent, _) in itemsToMove)
             {
-                string sourceAssetPath = AssetDatabase.GetAssetPath(item);
+                string sourceAssetPath = AssetDatabase.GetAssetPath(parent as Object);
                 allMigrated.AddRange(MigrateSubAssetsRecursive(item, targetAssetPath, sourceAssetPath));
             }
 
