@@ -28,7 +28,7 @@ With **PRO**, you can create unlimited Profiles, Bases, and browser windows — 
 
 ### Installer Window
 
-<img alt="SecondBrain Installer Window" src="gifs/installer-window.png" width="600"/>
+<img alt="SecondBrain Installer Window" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/installer-window.png" width="600"/>
 
 The Installer Window opens automatically after setup. You can also reopen it any time via **Tools → Second Brain → Installer**. It shows:
 
@@ -41,7 +41,7 @@ The Installer Window opens automatically after setup. You can also reopen it any
 
 ## Getting Around
 
-<img alt="Dragging items into SecondBrain from various sources" src="gifs/drag-items.gif" width="600"/>
+<img alt="Dragging items into SecondBrain from various sources" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/drag-items.gif" width="600"/>
 
 Once the window is open, you can start filling it immediately:
 

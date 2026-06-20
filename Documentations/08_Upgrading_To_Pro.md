@@ -14,13 +14,13 @@ Purchase and download links are available through the Installer Window (**Tools 
 2. Unity recompiles. On the next editor reload, SecondBrain detects the PRO assembly and activates PRO features automatically — no license key entry required.
 3. The Installer Window confirms the edition as **PRO**.
 
-<img alt="SecondBrain Installer Window showing PRO edition" src="gifs/installer-window-pro.png" width="600"/>
+<img alt="SecondBrain Installer Window showing PRO edition" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/installer-window-pro.png" width="600"/>
 
 ### If you have the PRO package but the free package is missing
 
 The **Pro Installer** window opens automatically and shows a warning. Click **Accept — Add Package** to install the free base package directly from the Package Manager. Unity recompiles and both packages become active.
 
-<img alt="Pro Installer Window showing missing free package warning" src="gifs/pro-installer-missing-free.png" width="600"/>
+<img alt="Pro Installer Window showing missing free package warning" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/pro-installer-missing-free.png" width="600"/>
 
 > [!NOTE] You can also reopen this window via **Tools → Second Brain → Pro Installer**.
 
