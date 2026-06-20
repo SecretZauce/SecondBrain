@@ -78,7 +78,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (canRemoveFromList)
                 menu.AddItem(new GUIContent("Remove from List"), false, window.RemoveSelectedItemsFromList);
 
-            var deleteText = obj is SceneObjectRef || obj is SceneComponentRef ? "Remove Link"  : "Delete Asset";
+            var deleteText = AssetDatabase.IsMainAsset(obj) ? "Remove Link" : "Delete";
             menu.AddItem(new GUIContent(deleteText), false, window.DeleteSelectedItems);
 
             // ── Group 3: Properties ───────────────────────────────────────────
