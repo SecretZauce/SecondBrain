@@ -2147,8 +2147,7 @@ namespace SecretZauce.SecondBrain.Editor
                     return;
                 }
 
-                var targetChildren = effectiveParent.ChildrenObjects;
-                var validItems     = record.movedItems.Where(item => item != null).ToList();
+                var validItems = record.movedItems.Where(item => item != null).ToList();
 
                 if (validItems.Count == 0)
                 {
@@ -2156,10 +2155,13 @@ namespace SecretZauce.SecondBrain.Editor
                     return;
                 }
 
-                bool anyItemInTarget = targetChildren != null &&
-                                       validItems.Any(item => targetChildren.Contains(item));
-                bool allItemsInTarget = targetChildren != null &&
-                                        validItems.All(item => targetChildren.Contains(item));
+                // Check the full subtree, not just direct children. After a cross-window
+                // drag's ReparentItems step, moved containers may sit inside a sub-Container
+                // of effectiveParent rather than as its direct children. A direct-children
+                // check would see anyItemInTarget=false and falsely trigger the undo path,
+                // corrupting isCurrentlyInTarget and misfiring sub-asset migrations.
+                bool anyItemInTarget  = validItems.Any(item => IsInSubtree(item, effectiveParent));
+                bool allItemsInTarget = validItems.All(item => IsInSubtree(item, effectiveParent));
 
                 if (record.isCurrentlyInTarget && !anyItemInTarget)
                 {
@@ -2231,6 +2233,26 @@ namespace SecretZauce.SecondBrain.Editor
             var migrated = new List<(Object, string)>();
             MigrateSubAssetsRecursiveInternal(obj, targetAssetPath, migrated);
             return migrated;
+        }
+
+        /// <summary>
+        /// Returns true when <paramref name="item"/> appears anywhere in the IStructure
+        /// subtree rooted at <paramref name="root"/> (direct child or deeper).
+        /// Used by <see cref="MoveUndoRedoHandler"/> to distinguish "item was undone out of
+        /// the subtree" from "item was reparented within the subtree by ReparentItems".
+        /// </summary>
+        static bool IsInSubtree(Object item, IStructure root)
+        {
+            if (root == null || item == null) return false;
+            var children = root.ChildrenObjects;
+            if (children == null) return false;
+            foreach (var child in children)
+            {
+                if (ReferenceEquals(child, item)) return true;
+                if (child is IStructure childStructure && IsInSubtree(item, childStructure))
+                    return true;
+            }
+            return false;
         }
 
         static void MigrateSubAssetsRecursiveInternal(Object obj, string targetAssetPath,

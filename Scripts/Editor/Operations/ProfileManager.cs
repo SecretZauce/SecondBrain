@@ -214,13 +214,17 @@ namespace SecretZauce.SecondBrain.Editor
                         p => string.Equals(p, profilePath, StringComparison.OrdinalIgnoreCase)))
                     return;
 
-                // Defer one frame. During that frame, any internal OnStructureChanged
-                // callback will have run RefreshFromRoot(), keeping Collections current.
-                // If Collections are still stale when CheckAndNotify runs, it was git.
+                // Defer TWO frames before comparing. The first frame lets internal
+                // OnStructureChanged → RefreshFromRoot() calls complete on ALL open windows,
+                // including the destination window of a cross-window drag whose RefreshTree
+                // deferred call is queued AFTER this postprocessor runs (same first frame).
+                // The second frame runs the actual comparison once all Collections are current.
+                // Git branch switches have no OnStructureChanged at all, so Collections are
+                // still stale in frame 2 → correctly triggers NotifyChanged.
                 if (_checkScheduled)
                     return;
                 _checkScheduled = true;
-                EditorApplication.delayCall += CheckAndNotify;
+                EditorApplication.delayCall += () => EditorApplication.delayCall += CheckAndNotify;
             }
 
             static void CheckAndNotify()
