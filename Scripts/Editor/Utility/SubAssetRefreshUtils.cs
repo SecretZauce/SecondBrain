@@ -24,6 +24,14 @@ namespace SecretZauce.SecondBrain.Editor
         static bool _refreshScheduled;
 
         /// <summary>
+        /// True while this class is executing a SaveAssets / ImportAsset / StopAssetEditing
+        /// call that it initiated internally. ProfileAssetWatcher reads this to skip the
+        /// OnActiveProfileChanged notification for editor-originated imports (rename, delete,
+        /// reorder) and only fire it for external file changes (e.g. git branch switch).
+        /// </summary>
+        internal static bool InternalImportInProgress;
+
+        /// <summary>
         /// Read-only view of the currently tracked affected asset paths.
         /// Used by undo/redo handlers and scoped validation routines.
         /// </summary>
@@ -63,8 +71,16 @@ namespace SecretZauce.SecondBrain.Editor
             string path = RegisterAffectedAsset(obj);
             if (!string.IsNullOrEmpty(path))
             {
-                AssetDatabase.SaveAssets();
-                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                InternalImportInProgress = true;
+                try
+                {
+                    AssetDatabase.SaveAssets();
+                    AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                }
+                finally
+                {
+                    InternalImportInProgress = false;
+                }
             }
         }
 
@@ -77,7 +93,15 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (string.IsNullOrEmpty(assetPath)) return;
             _affectedParentPaths.Add(assetPath);
-            AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+            InternalImportInProgress = true;
+            try
+            {
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+            }
+            finally
+            {
+                InternalImportInProgress = false;
+            }
         }
 
         /// <summary>
@@ -137,6 +161,7 @@ namespace SecretZauce.SecondBrain.Editor
                 return;
 
             // Suspend automatic import so SaveAssets() only writes to disk.
+            InternalImportInProgress = true;
             AssetDatabase.StartAssetEditing();
             try
             {
@@ -146,7 +171,10 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 // Flush all queued imports in one atomic pass.
                 // Unity reconciles the GUID database here without the "inconsistent result" warning.
+                // OnPostprocessAllAssets fires synchronously inside StopAssetEditing — the flag
+                // must still be true at that point so ProfileAssetWatcher skips the notification.
                 AssetDatabase.StopAssetEditing();
+                InternalImportInProgress = false;
             }
         }
     }

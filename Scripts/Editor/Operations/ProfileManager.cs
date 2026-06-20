@@ -188,6 +188,11 @@ namespace SecretZauce.SecondBrain.Editor
                 if (!Array.Exists(importedAssets, p => p.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)))
                     return;
 
+                // This import was initiated by SecondBrain itself (rename, delete, reorder).
+                // Only notify for external file changes such as a git branch switch.
+                if (SubAssetRefreshUtils.InternalImportInProgress)
+                    return;
+
                 // Do NOT call Profile.Active here — it auto-creates a profile if none
                 // exists, which would corrupt state in the middle of an import transaction.
                 if (!Profile.IsActiveProfileCached)
