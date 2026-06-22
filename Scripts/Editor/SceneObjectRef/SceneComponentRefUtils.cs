@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -10,6 +11,8 @@ namespace SecretZauce.SecondBrain.Editor
 {
     public static class SceneComponentRefUtils
     {
+        static readonly Dictionary<string, Type> s_TypeCache = new Dictionary<string, Type>(StringComparer.Ordinal);
+
         public static SceneComponentRef CreateSceneComponentRef(Component component, string folder, Object parentAsset = null)
         {
             if (component == null)
@@ -91,9 +94,15 @@ namespace SecretZauce.SecondBrain.Editor
             if (string.IsNullOrEmpty(componentTypeName))
                 return typeof(Component);
 
+            if (s_TypeCache.TryGetValue(componentTypeName, out var cached))
+                return cached;
+
             var resolvedType = Type.GetType(componentTypeName, false);
             if (resolvedType != null)
+            {
+                s_TypeCache[componentTypeName] = resolvedType;
                 return resolvedType;
+            }
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -101,13 +110,19 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     resolvedType = assembly.GetType(componentTypeName, false);
                     if (resolvedType != null)
+                    {
+                        s_TypeCache[componentTypeName] = resolvedType;
                         return resolvedType;
+                    }
 
                     resolvedType = assembly.GetTypes().FirstOrDefault(type =>
                         string.Equals(type.FullName, componentTypeName, StringComparison.Ordinal) ||
                         string.Equals(type.Name, componentTypeName, StringComparison.Ordinal));
                     if (resolvedType != null)
+                    {
+                        s_TypeCache[componentTypeName] = resolvedType;
                         return resolvedType;
+                    }
                 }
                 catch
                 {
@@ -115,6 +130,7 @@ namespace SecretZauce.SecondBrain.Editor
                 }
             }
 
+            s_TypeCache[componentTypeName] = typeof(Component);
             return typeof(Component);
         }
 

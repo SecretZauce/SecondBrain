@@ -46,10 +46,27 @@ namespace SecretZauce.SecondBrain.Editor
             if (node is SceneComponentRef sceneComponentRef)
             {
                 var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent?.GlobalId);
-                var componentType = component != null
-                    ? component.GetType()
-                    : SceneComponentRefUtils.GetComponentType(sceneComponentRef.sceneComponent);
-                return EditorGUIUtility.ObjectContent(component, componentType ?? typeof(Component)).image;
+                if (component != null)
+                {
+                    // Resolved: cache icon by live component type.
+                    var liveType = component.GetType();
+                    if (!s_IconByType.TryGetValue(liveType, out var liveTex))
+                    {
+                        liveTex = EditorGUIUtility.ObjectContent(component, liveType).image;
+                        s_IconByType[liveType] = liveTex;
+                    }
+                    return liveTex;
+                }
+
+                // Unresolved (scene not loaded): derive icon from stored type name and cache by type.
+                var componentType = SceneComponentRefUtils.GetComponentType(sceneComponentRef.sceneComponent);
+                var fallbackType = componentType ?? typeof(Component);
+                if (!s_IconByType.TryGetValue(fallbackType, out var fallbackTex))
+                {
+                    fallbackTex = EditorGUIUtility.ObjectContent(null, fallbackType).image;
+                    s_IconByType[fallbackType] = fallbackTex;
+                }
+                return fallbackTex;
             }
 
             // Prefer project-asset icons (IHasCustomIcon) loaded via IconUtils, then fall

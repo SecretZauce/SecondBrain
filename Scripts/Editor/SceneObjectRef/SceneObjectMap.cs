@@ -12,11 +12,14 @@ namespace SecretZauce.SecondBrain.Editor
     {
         static readonly Dictionary<string, Object> SceneObjects = new Dictionary<string, Object>();
 
+        // GIDs that returned null from GlobalObjectIdentifierToObjectSlow — scene not loaded.
+        // Cleared whenever any scene opens so refs become resolvable again.
+        static readonly HashSet<string> s_UnresolvableIds = new HashSet<string>();
+
         static SceneObjectMap()
         {
-            // Prune destroyed scene objects whenever a scene is unloaded so the static
-            // cache does not accumulate stale entries across scene load/unload cycles.
             EditorSceneManager.sceneClosed += OnSceneClosed;
+            EditorSceneManager.sceneOpened += OnSceneOpened;
         }
 
         static void OnSceneClosed(Scene scene)
@@ -26,6 +29,14 @@ namespace SecretZauce.SecondBrain.Editor
                 if (kvp.Value == null) dead.Add(kvp.Key);
             foreach (var key in dead)
                 SceneObjects.Remove(key);
+            // Refs that were unresolvable may now resolve (or stay unresolvable) — re-check next access.
+            s_UnresolvableIds.Clear();
+        }
+
+        static void OnSceneOpened(Scene scene, OpenSceneMode mode)
+        {
+            // A new scene loaded — previously unresolvable refs in that scene can now resolve.
+            s_UnresolvableIds.Clear();
         }
 
         public static GameObject Resolve(string globalId)
@@ -46,6 +57,11 @@ namespace SecretZauce.SecondBrain.Editor
             if (SceneObjects.TryGetValue(globalId, out var obj) && obj != null)
                 return obj;
 
+            // Skip the expensive slow lookup for GIDs already known to be unresolvable
+            // (scene not loaded). Cleared on any scene open/close so staleness is bounded.
+            if (s_UnresolvableIds.Contains(globalId))
+                return null;
+
             if (GlobalObjectId.TryParse(globalId, out var gid))
             {
                 obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid) as Object;
@@ -55,6 +71,8 @@ namespace SecretZauce.SecondBrain.Editor
                     return obj;
                 }
             }
+
+            s_UnresolvableIds.Add(globalId);
             return null;
         }
     }

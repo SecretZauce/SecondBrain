@@ -27,6 +27,11 @@ namespace SecretZauce.SecondBrain.Editor
         static readonly Dictionary<int, string> s_AssetPathCache = new Dictionary<int, string>();
         static bool s_AssetPathCacheSubscribed;
 
+        // Scene-loaded state cache: sceneGuid → isLoaded.
+        // Cleared on any scene open/close so it never goes stale.
+        static readonly Dictionary<string, bool> s_SceneLoadedCache = new Dictionary<string, bool>(StringComparer.Ordinal);
+        static bool s_SceneLoadedCacheSubscribed;
+
         static void EnsureStyles()
         {
             bool ps = EditorGUIUtility.isProSkin;
@@ -64,6 +69,14 @@ namespace SecretZauce.SecondBrain.Editor
             EditorApplication.projectChanged += () => s_AssetPathCache.Clear();
         }
 
+        static void EnsureSceneLoadedCacheSubscription()
+        {
+            if (s_SceneLoadedCacheSubscribed) return;
+            s_SceneLoadedCacheSubscribed = true;
+            EditorSceneManager.sceneOpened  += (_, __) => s_SceneLoadedCache.Clear();
+            EditorSceneManager.sceneClosed  += _       => s_SceneLoadedCache.Clear();
+        }
+
         /// <summary>Returns the cached asset path for <paramref name="obj"/>, calling
         /// AssetDatabase.GetAssetPath only on the first lookup per object.</summary>
         static string GetAssetPathCached(Object obj)
@@ -80,32 +93,42 @@ namespace SecretZauce.SecondBrain.Editor
         /// <summary>
         /// Checks if a scene is currently loaded, using GUID for rename-safe detection.
         /// Falls back to name-based check for backward compatibility.
+        /// Result is cached per scene GUID for the duration of the current repaint batch;
+        /// the cache is invalidated whenever any scene opens or closes.
         /// </summary>
         static bool IsSceneLoaded(string sceneGuid, string sceneName)
         {
             // Prefer GUID-based lookup (stable across renames)
             if (!string.IsNullOrEmpty(sceneGuid))
             {
+                if (s_SceneLoadedCache.TryGetValue(sceneGuid, out var cached))
+                    return cached;
+
                 var scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
                 if (!string.IsNullOrEmpty(scenePath))
                 {
-                    // Check all loaded scenes to see if any match this path
                     for (int i = 0; i < SceneManager.sceneCount; i++)
                     {
                         var loadedScene = SceneManager.GetSceneAt(i);
                         if (loadedScene.path == scenePath)
+                        {
+                            s_SceneLoadedCache[sceneGuid] = loadedScene.isLoaded;
                             return loadedScene.isLoaded;
+                        }
                     }
                 }
+
+                s_SceneLoadedCache[sceneGuid] = false;
+                return false;
             }
-            
+
             // Fallback: name-based check (for backward compatibility or if GUID is missing)
             if (!string.IsNullOrEmpty(sceneName))
             {
                 var scene = SceneManager.GetSceneByName(sceneName);
                 return scene.isLoaded;
             }
-            
+
             return false;
         }
 
@@ -128,6 +151,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Rebuild style cache if skin or font size changed (Option-A invalidation).
             EnsureStyles();
             EnsureAssetPathCacheSubscription();
+            EnsureSceneLoadedCacheSubscription();
 
             float arrowSize = 14f;
             float plusButtonWidth = 16f;
