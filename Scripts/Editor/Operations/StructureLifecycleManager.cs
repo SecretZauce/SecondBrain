@@ -1036,16 +1036,19 @@ namespace SecretZauce.SecondBrain.Editor
                     currentInsertIndex++; // Increment for next item
             }
             EditorUtility.SetDirty(targetParent as Object);
-            AssetDatabase.SaveAssets();
+            // Reordering never adds or removes sub-assets, so a per-file ForceUpdate reimport is
+            // unnecessary overhead. Batch the save atomically instead to avoid a stall per parent.
+            AssetDatabase.StartAssetEditing();
+            try { AssetDatabase.SaveAssets(); }
+            finally { AssetDatabase.StopAssetEditing(); }
 
-            // Targeted Project-window refresh for each parent whose children list changed.
-            // Reimport only the affected asset files rather than triggering a global refresh.
+            // Register paths for undo/redo tracking only (no force-reimport needed).
             foreach (var op in oldParents)
             {
                 if (op == null) continue;
-                SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(op as Object));
+                SubAssetRefreshUtils.RegisterAffectedAsset(op as Object);
             }
-            SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(targetParent as Object));
+            SubAssetRefreshUtils.RegisterAffectedAsset(targetParent as Object);
             
             // Build a fresh collections snapshot from authoritative root so path lookups are accurate
             List<IStructure> freshCollections = null;
@@ -1084,7 +1087,6 @@ namespace SecretZauce.SecondBrain.Editor
              foreach (var newPath in newPaths)
              {
                  selectionState.AddToSelection(window, newPath);
-                 OnExpansionRequested?.Invoke(newPath);
              }
              EditorUtility.SetDirty(selectionState);
              
@@ -1211,7 +1213,8 @@ namespace SecretZauce.SecondBrain.Editor
             foreach (var (_, item) in containerPairs)
             {
                 var p = StructureUtils.FindPathToChild(resolveCollections, item);
-                if (p != null) { selectionState.AddToSelection(window, p); OnExpansionRequested?.Invoke(p); }
+                // Don't expand moved containers — foldout snapshot already preserves their state.
+                if (p != null) { selectionState.AddToSelection(window, p); }
             }
             if (newContainerObj != null)
             {
