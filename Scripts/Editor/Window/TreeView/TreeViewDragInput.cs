@@ -31,7 +31,7 @@ namespace SecretZauce.SecondBrain.Editor
         QuickPeekSide quickPeekHoveredSide;
 
         // Width of each peek trigger zone (left edge and right edge of every row)
-        public const float QuickPeekZoneWidth = 13.5f;
+        public const float QuickPeekZoneWidth = 18f;
 
 
         public TreeViewDragInput(TreeView treeView)
