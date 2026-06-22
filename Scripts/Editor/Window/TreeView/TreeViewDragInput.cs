@@ -429,19 +429,30 @@ namespace SecretZauce.SecondBrain.Editor
                 if (ownerTreeView.OwnerWindow != null &&
                     ProFeature.Provider?.IsCrossWindowDragFromThisWindow(ownerTreeView.OwnerWindow) == true)
                 {
-#if UNITY_EDITOR_WIN
-                    // Windows only: suppress just the one startup DragExited. Any later DragExited
-                    // with the internal drag still alive means the OS drag loop ended inside the
-                    // source window (Escape / released over a rejected target) — tear down the
-                    // drag-out session and fall through to cancel so the drag can never get stuck.
+                    // Suppress just the one startup DragExited (fired the instant StartDrag() is
+                    // called on all platforms). Any later DragExited while the internal drag is
+                    // still alive means the OS drag loop ended inside the source window (Escape or
+                    // released over a rejected/incompatible target) — tear down the drag-out session
+                    // and fall through to CancelDrag so the drag can never get stuck on any platform.
                     if (ProFeature.Provider.ConsumeStartupDragExited(ownerTreeView.OwnerWindow))
                         return result;
                     ProFeature.Provider.HandleDragExited(ownerTreeView.OwnerWindow);
-#else
-                    return result;
-#endif
                 }
 #endif
+                dragDropManager.CancelDrag();
+                result.Handled = true;
+                result.Cancelled = true;
+                result.NeedsRepaint = true;
+                e.Use();
+                return result;
+            }
+
+            // Handle DragExited for external drags (drag left the window without dropping).
+            // Without this, IsDragging stays true and the next Project-Browser drag skips
+            // BeginExternalDrag, reusing stale draggedItems from the aborted drag.
+            // CancelDrag here is safe: BeginExternalDrag re-reads objectReferences on re-entry.
+            if (e.type == EventType.DragExited && dragDropManager.IsDragging && dragDropManager.IsExternalDrag)
+            {
                 dragDropManager.CancelDrag();
                 result.Handled = true;
                 result.Cancelled = true;
