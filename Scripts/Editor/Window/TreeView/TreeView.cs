@@ -162,8 +162,9 @@ namespace SecretZauce.SecondBrain.Editor
         static GUIContent s_PeekInfoIcon;
         static GUIContent s_PeekBlockedIcon;
 
-        // MouseMove throttle: only repaint when the cursor enters a different row slot
+        // MouseMove throttle: only repaint when the cursor enters a different row slot or peek zone.
         int _lastHoveredRowSlot = -1;
+        int _lastHoveredPeekZone = 0; // 0=none, 1=left, 2=right
         // Track drag state to reset hover slot and update wantsMouseMove when drag ends
         bool _wasDragging;
 
@@ -225,10 +226,13 @@ namespace SecretZauce.SecondBrain.Editor
             if (OwnerWindow != null)
                 OwnerWindow.wantsMouseMove = !isDraggingNow;
 
-            // When a drag just ended, reset the hover-slot cache so the first MouseMove
-            // after the drag correctly triggers a repaint for the new hover position.
+            // When a drag just ended, reset the hover-slot and peek-zone caches so the first
+            // MouseMove after the drag correctly triggers a repaint for the new hover position.
             if (_wasDragging && !isDraggingNow)
+            {
                 _lastHoveredRowSlot = -1;
+                _lastHoveredPeekZone = 0;
+            }
             _wasDragging = isDraggingNow;
 
             // Forward rename completion to commands
@@ -282,14 +286,35 @@ namespace SecretZauce.SecondBrain.Editor
                 // Skip repaint while renaming to avoid unnecessary UI churn.
                 if (e is { type: EventType.MouseMove } && !Renamer.IsRenamingAny && OwnerWindow != null)
                 {
-                    // Only repaint when the cursor moves into a different row slot.
-                    // This eliminates the per-pixel repaint flood that was the largest
-                    // source of lag as item count grew.
+                    // Repaint when the cursor enters a different row slot or peek zone.
+                    // Row slot uses scroll-view-relative Y so the slot boundary aligns with the
+                    // actual rendered row boundary (not the raw window-space Y which is shifted by
+                    // the search bar + header height above the scroll view).
                     float rowH = BrowserSettings.GetItemRowHeight();
-                    int slot = rowH > 0f ? Mathf.FloorToInt(e.mousePosition.y / rowH) : -1;
-                    if (slot != _lastHoveredRowSlot)
+                    float relY = _scrollViewRect.height > 0f
+                        ? e.mousePosition.y - _scrollViewRect.y + scrollPosition.y
+                        : e.mousePosition.y;
+                    int slot = rowH > 0f ? Mathf.FloorToInt(relY / rowH) : -1;
+
+                    // Detect peek zone (left edge / right edge / none) so that horizontal
+                    // mouse movement into or out of a peek zone immediately triggers a repaint,
+                    // even when the row slot hasn't changed.
+                    int peekZone = 0;
+                    if (IsQuickPeekAvailable() && _scrollViewRect.width > 0f)
+                    {
+                        float pw = TreeViewDragInput.QuickPeekZoneWidth;
+                        float mx = e.mousePosition.x;
+                        float contentRight = _contentAreaWidth > 0f
+                            ? _scrollViewRect.x + _contentAreaWidth
+                            : _scrollViewRect.xMax;
+                        if (mx >= contentRight - pw && mx <= contentRight) peekZone = 2;
+                        else if (mx >= _scrollViewRect.x && mx <= _scrollViewRect.x + pw) peekZone = 1;
+                    }
+
+                    if (slot != _lastHoveredRowSlot || peekZone != _lastHoveredPeekZone)
                     {
                         _lastHoveredRowSlot = slot;
+                        _lastHoveredPeekZone = peekZone;
                         OwnerWindow.Repaint();
                     }
                 }
