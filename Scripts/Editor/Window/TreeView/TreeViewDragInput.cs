@@ -32,6 +32,8 @@ namespace SecretZauce.SecondBrain.Editor
 
         // Width of each peek trigger zone (left edge and right edge of every row)
         public const float QuickPeekZoneWidth = 13.5f;
+        // Dead gap between the row edge and the start of the peek trigger zone
+        public const float QuickPeekZoneEdgeGap = QuickPeekZoneWidth;
 
 
         public TreeViewDragInput(TreeView treeView)
@@ -382,8 +384,8 @@ namespace SecretZauce.SecondBrain.Editor
         public static QuickPeekSide GetPeekZone(Rect rowRect, Vector2 mousePos)
         {
             if (!rowRect.Contains(mousePos)) return QuickPeekSide.None;
-            if (mousePos.x <= rowRect.x + QuickPeekZoneWidth) return QuickPeekSide.Left;
-            if (mousePos.x >= rowRect.xMax - QuickPeekZoneWidth) return QuickPeekSide.Right;
+            if (mousePos.x >= rowRect.x + QuickPeekZoneEdgeGap && mousePos.x <= rowRect.x + QuickPeekZoneEdgeGap + QuickPeekZoneWidth) return QuickPeekSide.Left;
+            if (mousePos.x <= rowRect.xMax - QuickPeekZoneEdgeGap && mousePos.x >= rowRect.xMax - QuickPeekZoneEdgeGap - QuickPeekZoneWidth) return QuickPeekSide.Right;
             return QuickPeekSide.None;
         }
 
@@ -401,8 +403,8 @@ namespace SecretZauce.SecondBrain.Editor
             if (side == QuickPeekSide.Left && skipLeftZone) return;
 
             Rect zoneRect = side == QuickPeekSide.Left
-                ? new Rect(rowRect.x, rowRect.y, QuickPeekZoneWidth, rowRect.height)
-                : new Rect(rowRect.xMax - QuickPeekZoneWidth, rowRect.y, QuickPeekZoneWidth, rowRect.height);
+                ? new Rect(rowRect.x + QuickPeekZoneEdgeGap, rowRect.y, QuickPeekZoneWidth, rowRect.height)
+                : new Rect(rowRect.xMax - QuickPeekZoneEdgeGap - QuickPeekZoneWidth, rowRect.y, QuickPeekZoneWidth, rowRect.height);
 
             EditorGUI.DrawRect(zoneRect, new Color(0.0f, 0.0f, 0.0f, 0.22f));
         }
