@@ -223,7 +223,7 @@ namespace SecretZauce.SecondBrain.Editor
                     // on Scene View, Project Browser, or another BrowserWindow immediately.
                     // On Windows the OS drag loop swallows MouseUp from this point on, so the
                     // in-window reorder commits through DragUpdated/DragPerform instead — see the
-                    // UNITY_EDITOR_WIN blocks in this file (visual mode, AcceptDrag, DragExited).
+                    // DragUpdated visual-mode, AcceptDrag, and DragExited blocks in this file.
                     if (ownerTreeView.OwnerWindow != null && ProFeature.Provider != null)
                     {
                         var extItems = dragDropManager.GetDraggedItems();
@@ -339,13 +339,12 @@ namespace SecretZauce.SecondBrain.Editor
                 if (isRootSpaceDrop)
                 {
                     dragDropManager.SetRootLevelDrop();
-#if UNITY_EDITOR_WIN
-                    // Windows only: when our own drag-out session is active, the drop arrives as
-                    // DragPerform, which Unity only sends when the last DragUpdated set an
-                    // accepting visual mode. On macOS the drop commits via MouseUp instead.
+                    // Signal acceptance so Unity's OS drag loop fires DragPerform (not DragExited)
+                    // on mouse release. Without this, a rejected-drag DragExited is swallowed by
+                    // the OS on both macOS and Windows, and MouseUp is never re-delivered — leaving
+                    // the internal drag state stuck until the user clicks again.
                     if (e.type == EventType.DragUpdated)
                         DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
-#endif
                 }
                 else
                 {
@@ -490,10 +489,9 @@ namespace SecretZauce.SecondBrain.Editor
                         out var dropTargetPath,
                         out var dropPosition))
                 {
-#if SECOND_BRAIN_PRO && UNITY_EDITOR_WIN
-                    // Windows only: an internal drop delivered through our own drag-out session —
-                    // accept the native drag so the OS drag loop ends cleanly (DragExited then
-                    // fires with IsDragging=false and reaches the normal cleanup path).
+#if SECOND_BRAIN_PRO
+                    // Accept the native drag so the OS drag loop ends cleanly on both
+                    // Windows and macOS (DragExited then fires with IsDragging=false).
                     if (!dragDropManager.IsExternalDrag && ownerTreeView.OwnerWindow != null &&
                         ProFeature.Provider?.IsCrossWindowDragFromThisWindow(ownerTreeView.OwnerWindow) == true)
                         DragAndDrop.AcceptDrag();
