@@ -242,7 +242,6 @@ namespace SecretZauce.SecondBrain.Editor
                 EditorApplication.delayCall += ()=>
                 {
                     SceneView.FrameLastActiveSceneView();
-                    SceneView.FrameLastActiveSceneView();
                 };
         }
 

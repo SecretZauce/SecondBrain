@@ -301,7 +301,7 @@ namespace SecretZauce.SecondBrain.Editor
                             {
                                 var go = SceneObjectMap.Resolve(sceneRef.sceneObject?.GlobalId);
                                 if (go != null && System.Array.IndexOf(Selection.objects, go) >= 0)
-                                    EditorApplication.delayCall += () => { SceneView.FrameLastActiveSceneView(); SceneView.FrameLastActiveSceneView(); };
+                                    EditorApplication.delayCall += () => { SceneView.FrameLastActiveSceneView();};
                             }
                         }
                     }
@@ -437,7 +437,7 @@ namespace SecretZauce.SecondBrain.Editor
                             {
                                 var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent?.GlobalId);
                                 if (component != null && System.Array.IndexOf(Selection.objects, component.gameObject) >= 0)
-                                    EditorApplication.delayCall += () => { SceneView.FrameLastActiveSceneView(); SceneView.FrameLastActiveSceneView(); };
+                                    EditorApplication.delayCall += () => { SceneView.FrameLastActiveSceneView(); };
                             }
                         }
                     }
