@@ -672,6 +672,26 @@ namespace SecretZauce.SecondBrain.Editor
             serializedDatabase = Controller.SerializedDatabase;
             collections = Controller.Collections;
 
+            // After a domain reload, the first AssetDatabase.StopAssetEditing() can trigger
+            // a full reimport that destroys the ScriptableObject instance targetRoot points to,
+            // turning it into a Unity "fake null" (non-null C# reference, destroyed native
+            // object). BrowserController.RefreshFromRoot() sees a null root and returns null
+            // Collections. IsAtHome() then returns false (C# null check misses the fake null),
+            // so CheckAndNotify enters the navigated branch, finds targetBase == null via
+            // Unity's overloaded == operator, and triggers a false home navigation.
+            // Detect this and recover by re-loading the target from EditorPrefs.
+            if (collections == null && targetRoot is UnityEngine.Object targetObj && !targetObj)
+            {
+                targetRoot = null;
+                RestoreTargetOnOpen();
+                if (targetRoot != null)
+                {
+                    Controller.ForceRefreshFromRoot();
+                    serializedDatabase = Controller.SerializedDatabase;
+                    collections = Controller.Collections;
+                }
+            }
+
             if (treeView != null)
             {
                 treeView.CancelDrag();

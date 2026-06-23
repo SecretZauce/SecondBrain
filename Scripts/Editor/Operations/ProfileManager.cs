@@ -274,7 +274,18 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         // Navigated view: Collections mirrors targetBase.ChildrenObjects.
                         var targetBase = w.Root as Base;
-                        if (targetBase == null || !profileChildren.Contains(targetBase))
+
+                        // targetBase is null when targetRoot is a Unity "fake null":
+                        // a non-null C# reference whose native ScriptableObject was destroyed
+                        // by a post-domain-reload reimport. IsAtHome() returns false because
+                        // the C# null check misses fake nulls, but Unity's == returns null.
+                        // This is a transient state — BrowserWindow.RefreshSerializedDatabase
+                        // will recover the target. Skip this window to avoid a false home
+                        // navigation; don't set needsRefresh here.
+                        if (targetBase == null)
+                            continue;
+
+                        if (!profileChildren.Contains(targetBase))
                         {
                             // The Base the window was viewing no longer exists in this branch.
                             needsRefresh = true;
