@@ -142,12 +142,14 @@ namespace SecretZauce.SecondBrain.Editor
             GUI.SetNextControlName(renameControlName);
             string newText = EditorGUI.DelayedTextField(textFieldRect, renamingText);
 
-            // On the frame after focus is established, select all text so the user can type a new name immediately.
-            if (selectAllText && GUI.GetNameOfFocusedControl() == renameControlName)
+            // Select all text once the text field has actually received keyboard focus.
+            // Guard keyboardControl != 0: GetNameOfFocusedControl may return the "wanted" name from
+            // FocusTextInControl before the control ID is assigned, so we'd get a dummy TextEditor at ID 0.
+            if (selectAllText && GUI.GetNameOfFocusedControl() == renameControlName && GUIUtility.keyboardControl != 0)
             {
-                selectAllText = false;
                 TextEditor textEditor = (TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
-                textEditor?.SelectAll();
+                textEditor.SelectAll();
+                selectAllText = false;
             }
 
             if (resetIndent)
