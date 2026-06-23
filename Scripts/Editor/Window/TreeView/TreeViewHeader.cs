@@ -758,11 +758,13 @@ namespace SecretZauce.SecondBrain.Editor
             string newText = EditorGUI.TextField(fieldRect, headerRenameText);
             headerRenameText = newText;
 
-            if (selectAllHeaderText && GUI.GetNameOfFocusedControl() == HeaderRenameControlName && GUIUtility.keyboardControl != 0)
+            if (selectAllHeaderText && Event.current.type == EventType.Repaint
+                && GUI.GetNameOfFocusedControl() == HeaderRenameControlName && GUIUtility.keyboardControl != 0)
             {
                 TextEditor textEditor = (TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
                 textEditor.SelectAll();
                 selectAllHeaderText = false;
+                EditorWindow.focusedWindow?.Repaint();
             }
 
             if (enterPressed)
