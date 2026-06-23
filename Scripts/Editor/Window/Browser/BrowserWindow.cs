@@ -682,6 +682,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Detect this and recover by re-loading the target from EditorPrefs.
             if (collections == null && targetRoot is UnityEngine.Object targetObj && !targetObj)
             {
+                var staleRoot = targetRoot;   // keep fake-null as fallback
                 targetRoot = null;
                 RestoreTargetOnOpen();
                 if (targetRoot != null)
@@ -689,6 +690,16 @@ namespace SecretZauce.SecondBrain.Editor
                     Controller.ForceRefreshFromRoot();
                     serializedDatabase = Controller.SerializedDatabase;
                     collections = Controller.Collections;
+                }
+                else
+                {
+                    // AssetDatabase GUID table hasn't settled yet (we're still inside
+                    // StopAssetEditing's synchronous import). Revert to the stale ref so
+                    // IsAtHome() stays false — CheckAndNotify's navigated-branch guard
+                    // (targetBase == null → continue) will skip this window. The deferred
+                    // RefreshSerializedDatabase queued by TryHandleDrop will retry once the
+                    // GUID table is fully updated (next editor frame).
+                    targetRoot = staleRoot;
                 }
             }
 
