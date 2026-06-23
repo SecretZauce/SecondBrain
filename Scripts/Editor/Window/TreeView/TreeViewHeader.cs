@@ -26,6 +26,7 @@ namespace SecretZauce.SecondBrain.Editor
         bool isRenamingHeader;
         string headerRenameText;
         bool focusHeaderRenameField;
+        bool selectAllHeaderText;
         int headerRenameSessionId;
 
         // Cached control name — recomputed only when the session ID changes.
@@ -178,6 +179,7 @@ namespace SecretZauce.SecondBrain.Editor
             isRenamingHeader = false;
             headerRenameText = null;
             focusHeaderRenameField = false;
+            selectAllHeaderText = false;
         }
 
         /// <summary>
@@ -691,6 +693,7 @@ namespace SecretZauce.SecondBrain.Editor
             isRenamingHeader = true;
             headerRenameText = rootObj.name;
             focusHeaderRenameField = true;
+            selectAllHeaderText = true;
             treeView.DragDropManager?.CancelPotentialDrag();
             treeView.CancelDrag();
         }
@@ -754,6 +757,13 @@ namespace SecretZauce.SecondBrain.Editor
             GUI.SetNextControlName(HeaderRenameControlName);
             string newText = EditorGUI.TextField(fieldRect, headerRenameText);
             headerRenameText = newText;
+
+            if (selectAllHeaderText && GUI.GetNameOfFocusedControl() == HeaderRenameControlName)
+            {
+                selectAllHeaderText = false;
+                TextEditor textEditor = (TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
+                textEditor?.SelectAll();
+            }
 
             if (enterPressed)
             {

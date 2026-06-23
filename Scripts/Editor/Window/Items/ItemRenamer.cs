@@ -59,9 +59,10 @@ namespace SecretZauce.SecondBrain.Editor
                 }
 
                 // Allow rename – show the scene object's name (not the asset name "Link to X")
-                renamingPath     = path;
-                renamingText     = sceneRef.sceneObject?.LastKnownName ?? obj.name;
-                focusRenameField = true;
+                renamingPath      = path;
+                renamingText      = sceneRef.sceneObject?.LastKnownName ?? obj.name;
+                focusRenameField  = true;
+                selectAllText     = true;
                 renameSessionId++;
                 renameControlName = $"rename_{string.Join("_", path)}_{renameSessionId}";
                 ownerTreeView.DragDropManager.CancelPotentialDrag();
@@ -130,7 +131,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Focus the field on first draw
             if (focusRenameField)
             {
-                GUI.FocusControl(renameControlName);
+                EditorGUI.FocusTextInControl(renameControlName);
                 focusRenameField = false;
             }
 
