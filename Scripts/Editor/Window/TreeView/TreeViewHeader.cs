@@ -705,9 +705,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (rootObj == null || string.IsNullOrWhiteSpace(headerRenameText))
             {
                 CancelHeaderRename();
-                EditorGUIUtility.editingTextField = false;
-                GUI.FocusControl(null);
-                GUIUtility.keyboardControl = 0;
+                GUIEventUtils.OnRenameDone(false);
                 return;
             }
 
@@ -717,9 +715,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (success)
                 window?.OnRenameCompleted();
 
-            EditorGUIUtility.editingTextField = false;
-            GUI.FocusControl(null);
-            GUIUtility.keyboardControl = 0;
+            GUIEventUtils.OnRenameDone(false); 
             EditorApplication.delayCall += () => EditorWindow.focusedWindow?.Repaint();
         }
 
@@ -732,10 +728,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (Event.current != null && Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
             {
                 CancelHeaderRename();
-                EditorGUIUtility.editingTextField = false;
-                GUI.FocusControl(null);
-                GUIUtility.keyboardControl = 0;
-                Event.current.Use();
+                GUIEventUtils.OnRenameDone(true); 
                 EditorApplication.delayCall += () => EditorWindow.focusedWindow?.Repaint();
                 return;
             }

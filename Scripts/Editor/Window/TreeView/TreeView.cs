@@ -237,10 +237,7 @@ namespace SecretZauce.SecondBrain.Editor
                 Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
             {
                 header.CancelHeaderRename();
-                EditorGUIUtility.editingTextField = false;
-                GUI.FocusControl(null);
-                GUIUtility.keyboardControl = 0;
-                Event.current.Use();
+                GUIEventUtils.OnRenameDone(true);
                 EditorApplication.delayCall += () => OwnerWindow?.Repaint();
             }
 
@@ -249,10 +246,7 @@ namespace SecretZauce.SecondBrain.Editor
                 Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
             {
                 CancelGhostCreation();
-                EditorGUIUtility.editingTextField = false;
-                GUI.FocusControl(null);
-                GUIUtility.keyboardControl = 0;
-                Event.current.Use();
+                GUIEventUtils.OnRenameDone(true); 
                 EditorApplication.delayCall += () => OwnerWindow?.Repaint();
             }
 
@@ -615,9 +609,7 @@ namespace SecretZauce.SecondBrain.Editor
                 if (header.IsRenamingHeader)
                 {
                     header.CancelHeaderRename();
-                    EditorGUIUtility.editingTextField = false;
-                    GUI.FocusControl(null);
-                    GUIUtility.keyboardControl = 0;
+                    GUIEventUtils.OnRenameDone(false); 
                     // Defer repaint to avoid IMGUI timing issues
                     EditorApplication.delayCall += () => OwnerWindow?.Repaint();
                 }
@@ -1389,9 +1381,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (enterPressed)
             {
                 ev.Use();
-                EditorGUIUtility.editingTextField = false;
-                GUI.FocusControl(null);
-                GUIUtility.keyboardControl = 0;
+                GUIEventUtils.OnRenameDone(false);
                 CommitGhostCreation();
                 return;
             }
@@ -1399,9 +1389,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Click outside the row commits (consistent with ItemRenamer behaviour)
             if (ev != null && ev.type == EventType.MouseDown && !rowRect.Contains(ev.mousePosition))
             {
-                EditorGUIUtility.editingTextField = false;
-                GUI.FocusControl(null);
-                GUIUtility.keyboardControl = 0;
+                GUIEventUtils.OnRenameDone(false);
                 CommitGhostCreation();
                 ev.Use();
             }
@@ -1422,9 +1410,7 @@ namespace SecretZauce.SecondBrain.Editor
                 // Empty name → cancel silently (same as pressing Escape)
                 case GhostNameValidationResult.Empty:
                     CancelGhostCreation();
-                    EditorGUIUtility.editingTextField = false;
-                    GUI.FocusControl(null);
-                    GUIUtility.keyboardControl = 0;
+                    GUIEventUtils.OnRenameDone(false); 
                     return;
 
                 // Invalid file-path characters → keep ghost open so the user can fix the name
@@ -1449,9 +1435,7 @@ namespace SecretZauce.SecondBrain.Editor
             var capturedType = ghostSession.ChildType;
             var capturedOption = ghostSession.Option;
             CancelGhostCreation();
-            EditorGUIUtility.editingTextField = false;
-            GUI.FocusControl(null);
-            GUIUtility.keyboardControl = 0;
+            GUIEventUtils.OnRenameDone(false); 
 
             OwnerWindow?.CreateChildWithName(capturedParent, capturedType, name, capturedOption);
         }

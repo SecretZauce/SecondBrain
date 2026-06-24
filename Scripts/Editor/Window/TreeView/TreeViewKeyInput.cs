@@ -49,10 +49,7 @@ namespace SecretZauce.SecondBrain.Editor
                 if (key == KeyCode.Escape)
                 {
                     treeView.CancelHeaderRename();
-                    EditorGUIUtility.editingTextField = false;
-                    GUI.FocusControl(null);
-                    GUIUtility.keyboardControl = 0;
-                    Event.current.Use();
+                    GUIEventUtils.OnRenameDone(true); 
                     result.Handled = true;
                     result.NeedsRepaint = true;
                 }
