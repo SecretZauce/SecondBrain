@@ -53,6 +53,12 @@ namespace SecretZauce.SecondBrain.Editor
                 // Refresh serialized database and collections from root so consumers see fresh data
                 RefreshFromRoot();
                 OnStructureChanged?.Invoke();
+                // When multiple windows view the same Base and one performs a structural change,
+                // only this window's RefreshFromRoot has run. Peer windows still hold a stale
+                // Collections snapshot. ProfileAssetWatcher.CheckAndNotify fires two frames later
+                // and sees the mismatch, incorrectly triggering a home navigation for all windows.
+                // Sync peer windows now (before CheckAndNotify runs) so they reflect current state.
+                hostWindow.SyncPeerWindowCollections();
             };
             LifecycleManager.OnSelectionRequested += (path) => OnSelectionRequested?.Invoke(path);
             LifecycleManager.OnFoldoutStateRestoreRequested += (snapshot) => OnFoldoutStateRestoreRequested?.Invoke(snapshot);
@@ -91,8 +97,6 @@ namespace SecretZauce.SecondBrain.Editor
             var rootObject = Root as Object;
             if (rootObject == null)
             {
-                var rawRoot = hostWindow?.Root;
-                UnityEngine.Debug.Log($"[SB-DEBUG] RefreshFromRoot: rootObject==null. Root type={rawRoot?.GetType().Name ?? "null"} isFakeNull={rawRoot is Object ro && !ro}");
                 SerializedDatabase = null;
                 Collections = null;
                 return;

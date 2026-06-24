@@ -139,6 +139,26 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
+        /// After this window performs a structural change, peer windows viewing the same
+        /// root still hold a stale Collections snapshot (their LifecycleManager never fired).
+        /// Refreshing them here ensures ProfileAssetWatcher.CheckAndNotify sees consistent
+        /// data across all windows two frames later, preventing a false home navigation.
+        /// </summary>
+        internal void SyncPeerWindowCollections()
+        {
+            var root = Root;
+            if (root == null) return;
+            var peers = Resources.FindObjectsOfTypeAll<BrowserWindow>();
+            foreach (var peer in peers)
+            {
+                if (peer == this || peer == null || peer.Controller == null) continue;
+                if (!ReferenceEquals(peer.Root, root)) continue;
+                peer.Controller.ForceRefreshFromRoot();
+                peer.collections = peer.Controller.Collections;
+            }
+        }
+
+        /// <summary>
         /// Navigates this window to the given target. Null means "go home".
         /// Saves foldout state, persists the target to EditorPrefs for this window instance,
         /// and reinitializes the controller for the new root.
@@ -598,7 +618,6 @@ namespace SecretZauce.SecondBrain.Editor
 
         void OnActiveProfileChanged()
         {
-            Debug.Log($"[SB-DEBUG] OnActiveProfileChanged fired — targetRoot was: {(targetRoot == null ? "null(C#)" : (targetRoot is UnityEngine.Object o && !o ? "fake-null" : targetRoot.ToString()))}");
             try
             {
                 // Reset navigation target since we're switching to a different Profile
