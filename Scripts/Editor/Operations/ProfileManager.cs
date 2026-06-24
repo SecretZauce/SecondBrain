@@ -162,6 +162,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         static void NotifyChanged()
         {
+            Debug.Log("[SB-DEBUG] ProfileManager.NotifyChanged called\n" + new System.Diagnostics.StackTrace(true));
             try { OnActiveProfileChanged?.Invoke(); }
             catch (Exception ex) { Debug.LogWarning($"[SecondBrain] ProfileManager notification error: {ex.Message}"); }
         }
@@ -253,11 +254,14 @@ namespace SecretZauce.SecondBrain.Editor
 
                     var wc = w.Collections; // List<IStructure>, rebuilt by RefreshFromRoot
 
+                    Debug.Log($"[SB-DEBUG] CheckAndNotify: IsAtHome={w.IsAtHome()} wc={(wc == null ? "NULL" : wc.Count.ToString())} profileChildren={profileChildren.Count}");
+
                     if (w.IsAtHome())
                     {
                         // Home view: Collections mirrors Profile.Children.
                         if (wc == null || wc.Count != profileChildren.Count)
                         {
+                            Debug.Log($"[SB-DEBUG] HOME branch needsRefresh: wc={(wc == null ? "NULL" : wc.Count.ToString())} profileChildren={profileChildren.Count}");
                             needsRefresh = true;
                             break;
                         }
@@ -265,6 +269,7 @@ namespace SecretZauce.SecondBrain.Editor
                         {
                             if (!ReferenceEquals(wc[i], profileChildren[i]))
                             {
+                                Debug.Log($"[SB-DEBUG] HOME branch ReferenceEquals mismatch at i={i}: wc[i]={wc[i]?.GetType().Name} profileChildren[i]={profileChildren[i]?.GetType().Name}");
                                 needsRefresh = true;
                                 break;
                             }
@@ -274,6 +279,8 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         // Navigated view: Collections mirrors targetBase.ChildrenObjects.
                         var targetBase = w.Root as Base;
+
+                        Debug.Log($"[SB-DEBUG] NAVIGATED branch: targetBase={(targetBase == null ? "NULL(unity==" : targetBase.name)} Root={w.Root?.GetType().Name}");
 
                         // targetBase is null when targetRoot is a Unity "fake null":
                         // a non-null C# reference whose native ScriptableObject was destroyed
@@ -288,6 +295,7 @@ namespace SecretZauce.SecondBrain.Editor
                         if (!profileChildren.Contains(targetBase))
                         {
                             // The Base the window was viewing no longer exists in this branch.
+                            Debug.Log($"[SB-DEBUG] NAVIGATED branch: targetBase not in profileChildren");
                             needsRefresh = true;
                             break;
                         }
@@ -295,6 +303,7 @@ namespace SecretZauce.SecondBrain.Editor
                         var baseChildren = targetBase.Children;
                         if (wc == null || wc.Count != baseChildren.Count)
                         {
+                            Debug.Log($"[SB-DEBUG] NAVIGATED branch count mismatch: wc={(wc == null ? "NULL" : wc.Count.ToString())} baseChildren={baseChildren.Count}");
                             needsRefresh = true;
                             break;
                         }
@@ -302,6 +311,7 @@ namespace SecretZauce.SecondBrain.Editor
                         {
                             if (!ReferenceEquals(wc[i], baseChildren[i]))
                             {
+                                Debug.Log($"[SB-DEBUG] NAVIGATED branch ReferenceEquals mismatch at i={i}: wc[i]={wc[i]?.GetType().Name}/{wc[i]?.GetHashCode()} baseChildren[i]={baseChildren[i]?.GetType().Name}/{baseChildren[i]?.GetHashCode()}");
                                 needsRefresh = true;
                                 break;
                             }
