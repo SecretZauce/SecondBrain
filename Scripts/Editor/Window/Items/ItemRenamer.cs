@@ -91,6 +91,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         void CancelRename()
         {
+            EditorGUIUtility.editingTextField = false;
             renamingPath = null;
             renamingText = null;
             focusRenameField = false;
