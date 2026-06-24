@@ -91,6 +91,8 @@ namespace SecretZauce.SecondBrain.Editor
             var rootObject = Root as Object;
             if (rootObject == null)
             {
+                var rawRoot = hostWindow?.Root;
+                UnityEngine.Debug.Log($"[SB-DEBUG] RefreshFromRoot: rootObject==null. Root type={rawRoot?.GetType().Name ?? "null"} isFakeNull={rawRoot is Object ro && !ro}");
                 SerializedDatabase = null;
                 Collections = null;
                 return;

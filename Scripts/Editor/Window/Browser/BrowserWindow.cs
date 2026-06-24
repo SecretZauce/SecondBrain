@@ -598,6 +598,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         void OnActiveProfileChanged()
         {
+            Debug.Log($"[SB-DEBUG] OnActiveProfileChanged fired — targetRoot was: {(targetRoot == null ? "null(C#)" : (targetRoot is UnityEngine.Object o && !o ? "fake-null" : targetRoot.ToString()))}");
             try
             {
                 // Reset navigation target since we're switching to a different Profile
