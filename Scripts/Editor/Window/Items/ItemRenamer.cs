@@ -142,14 +142,17 @@ namespace SecretZauce.SecondBrain.Editor
             GUI.SetNextControlName(renameControlName);
             string newText = EditorGUI.DelayedTextField(textFieldRect, renamingText);
 
-            // Select all text once the text field has actually received keyboard focus.
-            // Guard keyboardControl != 0: GetNameOfFocusedControl may return the "wanted" name from
-            // FocusTextInControl before the control ID is assigned, so we'd get a dummy TextEditor at ID 0.
-            if (selectAllText && GUI.GetNameOfFocusedControl() == renameControlName && GUIUtility.keyboardControl != 0)
+            // Select all text once the field is drawn during a Repaint (not Layout).
+            // During Layout the TextEditor text is not yet initialized, so SelectAll produces an empty
+            // selection and prematurely clears the flag before Repaint ever runs.
+            // After SelectAll we request an extra repaint so the selection is immediately visible.
+            if (selectAllText && Event.current.type == EventType.Repaint
+                && GUI.GetNameOfFocusedControl() == renameControlName && GUIUtility.keyboardControl != 0)
             {
                 TextEditor textEditor = (TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
                 textEditor.SelectAll();
                 selectAllText = false;
+                EditorWindow.focusedWindow?.Repaint();
             }
 
             if (resetIndent)
