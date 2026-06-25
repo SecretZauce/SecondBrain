@@ -30,8 +30,10 @@ namespace SecretZauce.SecondBrain.Editor
         Rect quickPeekHoveredScreenRect;
         QuickPeekSide quickPeekHoveredSide;
 
-        // Width of each peek trigger zone (left edge and right edge of every row)
-        public const float QuickPeekZoneWidth = 10f;
+        // Width of each peek trigger zone (left edge and right edge of every row) — used for GUI layout and drawing
+        public const float QuickPeekZoneWidth = 18f;
+        // Narrower hit-test threshold — mouse must be this close to the edge to trigger QuickPeek
+        public const float QuickPeekDetectionZoneWidth = 10f;
 
 
         public TreeViewDragInput(TreeView treeView)
@@ -381,8 +383,8 @@ namespace SecretZauce.SecondBrain.Editor
         public static QuickPeekSide GetPeekZone(Rect rowRect, Vector2 mousePos)
         {
             if (!rowRect.Contains(mousePos)) return QuickPeekSide.None;
-            if (mousePos.x <= rowRect.x + QuickPeekZoneWidth) return QuickPeekSide.Left;
-            if (mousePos.x >= rowRect.xMax - QuickPeekZoneWidth) return QuickPeekSide.Right;
+            if (mousePos.x <= rowRect.x + QuickPeekDetectionZoneWidth) return QuickPeekSide.Left;
+            if (mousePos.x >= rowRect.xMax - QuickPeekDetectionZoneWidth) return QuickPeekSide.Right;
             return QuickPeekSide.None;
         }
 
