@@ -318,7 +318,7 @@ namespace SecretZauce.SecondBrain.Editor
                     }
 
                     // Auto-select the first direct match whenever the search text changes
-                    if (searchChanged && IsSearching())
+                    if (searchChanged && IsSearching() && ShouldAutoSelectFirstSearchResult())
                     {
                         var firstMatch = FindFirstDirectMatch();
                         if (firstMatch != null)
@@ -1552,6 +1552,14 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             return visiblePaths[0];
+        }
+
+        bool ShouldAutoSelectFirstSearchResult()
+        {
+            var mode = BrowserSettings.SearchAutoSelect;
+            if (mode == SearchAutoSelectMode.Off) return false;
+            if (mode == SearchAutoSelectMode.QuickBrowseOnly) return OwnerWindow != null && OwnerWindow.IsPopup;
+            return true;
         }
 
         /// <summary>
