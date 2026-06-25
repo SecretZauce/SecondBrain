@@ -10,13 +10,13 @@ namespace SecretZauce.SecondBrain
         List<Object> IStructure.ChildrenObjects => Children?.ConvertAll(child => (Object)child) ?? new List<Object>();
         public List<T> Children { get; }
         
-        AddChildResult IStructure.AddChild(Object child, int index) 
+        AddChildResult IStructure.AddChild(Object child, int index)
         {
             var castedChild = child as T;
             if (castedChild == null)
                 return AddChildResult.FailedInvalidType;
-            
-            if (child is IStructure && ExistsInTree(GetRoot(), castedChild))
+
+            if (child is IStructure && child is not IAllowMultipleParents && ExistsInTree(GetRoot(), castedChild))
                 return AddChildResult.FailedExistsInTree;
 
             if (ExistsInChildren(this, castedChild))
@@ -124,4 +124,10 @@ namespace SecretZauce.SecondBrain
     {
         ChildViewMode PreferredChildView { get; set; }
     }
+
+    /// <summary>
+    /// Opt out of the single-parent constraint: structures implementing this interface
+    /// may be added to the tree even if they already exist elsewhere in the hierarchy.
+    /// </summary>
+    public interface IAllowMultipleParents { }
 }
