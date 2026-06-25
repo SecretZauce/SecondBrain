@@ -1679,6 +1679,33 @@ namespace SecretZauce.SecondBrain.Editor
                 return;
             }
 
+            // Ctrl+G — wrap selected items in a new Container
+            if (keyResult.WrapGroupRequested)
+            {
+                var wrapPaths = selectionState.GetAllPaths();
+                if (wrapPaths.Count > 0)
+                {
+                    Controller.WrapSelectedInContainer(wrapPaths, collections, treeView);
+                    Event.current.Use();
+                    Repaint();
+                }
+
+                return;
+            }
+
+            // Ctrl+N — create new Container (child of selected container, or at root)
+            if (keyResult.CreateContainerRequested)
+            {
+                var primaryPath = selectionState.GetPrimaryPath();
+                var selectedObj = primaryPath is { Length: > 0 } ? treeView.GetObjectAtPath(primaryPath) : null;
+                var parent = selectedObj is IStructure and not Base ? selectedObj : Root as Object;
+                if (parent != null)
+                    CreateChild(parent);
+                Event.current.Use();
+                Repaint();
+                return;
+            }
+
             if (Controller == null)
                 return;
 

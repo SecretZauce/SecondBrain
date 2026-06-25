@@ -1227,6 +1227,138 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
+        /// Wraps all selected items in a new Container.
+        /// When all items share the same parent the new Container is created there;
+        /// otherwise it is created at depth-0 under Root.
+        /// </summary>
+        public void WrapSelectedInContainer(
+            List<int[]> selectedPaths,
+            List<IStructure> collections,
+            TreeView treeView,
+            SelectionStateSO selectionState)
+        {
+            if (selectedPaths == null || selectedPaths.Count == 0 || Root == null) return;
+
+            // Resolve items, filtering out nulls
+            var pairs = new List<(int[] path, Object item)>();
+            foreach (var path in selectedPaths)
+            {
+                var obj = StructureUtils.GetNodeAtPath(path, collections);
+                if (obj != null)
+                    pairs.Add((path, obj));
+            }
+            if (pairs.Count == 0) return;
+
+            SubAssetRefreshUtils.ClearAffectedAssets();
+            Undo.IncrementCurrentGroup();
+            int undoGroup = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName("Wrap in Container");
+
+            var foldoutSnapshot = treeView?.GetFoldoutSnapshot();
+            Undo.RegisterCompleteObjectUndo(selectionState, "Wrap in Container");
+
+            // Determine container parent: common parent if all items share one, else Root
+            IStructure containerParent = null;
+            bool sameParent = true;
+            IStructure firstParent = GetParentAtPath(pairs[0].path, collections);
+            foreach (var (path, _) in pairs)
+            {
+                var p = GetParentAtPath(path, collections);
+                if (p != firstParent) { sameParent = false; break; }
+            }
+            containerParent = sameParent ? firstParent : Root;
+            if (containerParent == null) return;
+
+            // Sort deepest-first to avoid index shifting when removing
+            var sortedPairs = pairs
+                .OrderByDescending(t => t.path.Length)
+                .ThenByDescending(t => string.Join(",", t.path))
+                .ToList();
+
+            // Record undo for all affected parents before any removal
+            var affectedParents = new HashSet<IStructure>();
+            foreach (var (path, _) in sortedPairs)
+            {
+                var parent = GetParentAtPath(path, collections);
+                if (parent != null && affectedParents.Add(parent))
+                    Undo.RegisterCompleteObjectUndo(parent as Object, "Wrap in Container");
+            }
+
+            // Remove items from their current parents
+            foreach (var (path, item) in sortedPairs)
+            {
+                var parent = GetParentAtPath(path, collections);
+                if (parent == null) continue;
+                parent.RemoveChild(item);
+                EditorUtility.SetDirty(parent as Object);
+            }
+
+            // Record container parent before adding the new Container
+            Undo.RegisterCompleteObjectUndo(containerParent as Object, "Wrap in Container");
+
+            // Create new Container under containerParent and add the items to it
+            Object newContainerObj = null;
+            ChildCreationUtils.CreateNewChild(containerParent as Object, (newChild) =>
+            {
+                try { FinalizeNewChild(containerParent as Object, newChild, null); }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"WrapSelectedInContainer: failed to create wrapper container: {ex}");
+                    return;
+                }
+
+                if (newChild is not IStructure newContainer) return;
+                newContainerObj = newChild;
+
+                Undo.RegisterCompleteObjectUndo(newChild, "Wrap in Container");
+
+                // Add items in original tree order (ascending path)
+                foreach (var (_, item) in pairs.OrderBy(t => string.Join(",", t.path)))
+                {
+                    var r = newContainer.AddChild(item, -1);
+                    if (r != AddChildResult.Success)
+                        window.ShowNotification(new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(r)));
+                }
+                EditorUtility.SetDirty(newChild);
+            });
+
+            EditorUtility.SetDirty(containerParent as Object);
+            AssetDatabase.SaveAssets();
+
+            foreach (var parent in affectedParents)
+            {
+                if (parent == null) continue;
+                SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(parent as Object));
+            }
+            SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(containerParent as Object));
+
+            List<IStructure> freshCollections = null;
+            if (Root is { ChildrenObjects: not null })
+                freshCollections = Root.ChildrenObjects.OfType<IStructure>().ToList();
+
+            OnStructureChanged?.Invoke();
+            if (foldoutSnapshot != null)
+                OnFoldoutStateRestoreRequested?.Invoke(foldoutSnapshot);
+
+            selectionState.ClearSelection(window);
+
+            if (newContainerObj != null)
+            {
+                var resolveCollections = freshCollections ?? collections;
+                var p = StructureUtils.FindPathToChild(resolveCollections, newContainerObj);
+                if (p != null)
+                {
+                    selectionState.AddToSelection(window, p);
+                    OnExpansionRequested?.Invoke(p);
+                    OnSelectionRequested?.Invoke(p);
+                }
+            }
+
+            EditorUtility.SetDirty(selectionState);
+            Undo.CollapseUndoOperations(undoGroup);
+        }
+
+        /// <summary>
         /// Adds external Unity Objects (from Project tab) to the specified drop position.
         /// Supports Before, After, and Inside positioning.
         /// </summary>

@@ -10,6 +10,8 @@
 | **Return** | Toggle Container / trigger Enter action on leaf |
 | **Ctrl+A** | Select all visible rows |
 | **Ctrl+D** | Duplicate selected item |
+| **Ctrl+G** | Wrap selected items in a new Container |
+| **Ctrl+N** | Create a new Container |
 | **Ctrl+R** | Rename selected item |
 | **Ctrl+V** | Paste clipboard text as new Text Asset child |
 | **Ctrl+Left** | Navigate back |

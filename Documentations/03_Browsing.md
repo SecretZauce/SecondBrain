@@ -57,6 +57,22 @@ When **Force naming on create** is on (the default), an inline ghost row appears
 
 To create items with an auto-generated name instantly (no ghost row), disable **Force naming on create** in [Settings](04_Styling_And_Settings.md).
 
+### Creating a New Container
+
+Press **Ctrl+N** to create a new Container:
+
+- If a **Container** is selected → a child Container is created inside it.
+- Otherwise (no selection, or a leaf item is selected) → a new Container is created at the root level of the current view.
+
+### Grouping Items
+
+Select one or more items and press **Ctrl+G** to wrap them in a new Container:
+
+- If all selected items share the **same parent** → the new Container is created under that parent, and the items are moved into it.
+- If items come from **different parents** → the new Container is created at root level, and all items are moved into it.
+
+The new Container is automatically selected and expanded after the operation. The action is fully undoable.
+
 ### Pasting from the Clipboard
 
 Press **Ctrl+V** inside the browser to paste the current clipboard text as a new Text Asset child of the selected Container. If the clipboard contains a URL, the asset name is set to the URL's hostname automatically.

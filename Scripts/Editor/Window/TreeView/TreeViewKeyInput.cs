@@ -200,6 +200,26 @@ namespace SecretZauce.SecondBrain.Editor
                     return result;
                 }
 
+                if (ctrlOrCmd && key == KeyCode.G)
+                {
+                    // Wrap all selected items in a new Container
+                    result.Handled = true;
+                    result.WrapGroupRequested = true;
+                    result.NeedsRepaint = true;
+                    Event.current.Use();
+                    return result;
+                }
+
+                if (ctrlOrCmd && key == KeyCode.N)
+                {
+                    // Create new Container — child of selected container or at root
+                    result.Handled = true;
+                    result.CreateContainerRequested = true;
+                    result.NeedsRepaint = true;
+                    Event.current.Use();
+                    return result;
+                }
+
                 // ESC — go home (navigate back to the home root)
                 if (!ctrlOrCmd && !EditorGUIUtility.editingTextField && key == KeyCode.Escape)
                 {
