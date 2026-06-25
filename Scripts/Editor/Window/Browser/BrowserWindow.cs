@@ -2301,6 +2301,15 @@ namespace SecretZauce.SecondBrain.Editor
 #endif
         }
 
+        public bool IsQuickPeekPendingShow()
+        {
+#if SECOND_BRAIN_PRO
+            return QuickPeekWindow.HasPendingShow;
+#else
+            return false;
+#endif
+        }
+
 #if SECOND_BRAIN_PRO
         public void OpenPropertyEditorFor(int[] selectedPath, BrowserWindow window)
         {
