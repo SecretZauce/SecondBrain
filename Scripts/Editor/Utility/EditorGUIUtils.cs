@@ -8,6 +8,20 @@ namespace SecretZauce.SecondBrain.Editor
 {
     public static class EditorGUIUtils
     {
+        // Unity default notification fade duration is 4s; halved here.
+        private const double NotificationDuration = 2.0;
+
+        public static void ShowNotification(EditorWindow window, GUIContent content)
+        {
+            window?.ShowNotification(content, NotificationDuration);
+        }
+
+        public static void ShowNotification(EditorWindow window, string message)
+        {
+            window?.ShowNotification(new GUIContent(message), NotificationDuration);
+        }
+
+
         /// <summary>
         /// Attempts to locate the main Unity Editor window via internal container windows and
         /// returns its position on screen. Uses reflection to inspect internal types and
@@ -151,23 +165,23 @@ namespace SecretZauce.SecondBrain.Editor
                 // If focused is a SceneView, show there.
                 if (focused is SceneView svFocused)
                 {
-                    svFocused.ShowNotification(notif);
+                    svFocused.ShowNotification(notif, NotificationDuration);
                     return;
                 }
 
                 // If focused is the GameView (internal type), show notification there.
                 if (gameViewType != null && gameViewType.IsAssignableFrom(focused.GetType()))
                 {
-                    focused.ShowNotification(notif);
+                    focused.ShowNotification(notif, NotificationDuration);
                     return;
                 }
             }
 
             // If nothing focused, fall back to the last active SceneView if available.
             var lastSv = SceneView.lastActiveSceneView;
-            if (lastSv == null) 
+            if (lastSv == null)
                 return;
-            lastSv.ShowNotification(notif);
+            lastSv.ShowNotification(notif, NotificationDuration);
         }
 
         public static void FocusHierarchyWindowIfPresent()

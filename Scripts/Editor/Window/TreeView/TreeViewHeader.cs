@@ -593,7 +593,7 @@ namespace SecretZauce.SecondBrain.Editor
                         mother.DefaultBase = isDefault ? null : baseObj;
                         EditorUtility.SetDirty(mother);
                         AssetDatabase.SaveAssets();
-                        try { treeView.OwnerWindow?.ShowNotification(new GUIContent(isDefault ? "Cleared Default Base" : "Set Default Base")); } catch { }
+                        try { EditorGUIUtils.ShowNotification(treeView.OwnerWindow, new GUIContent(isDefault ? "Cleared Default Base" : "Set Default Base")); } catch { }
                     }
                 }
                 catch { }

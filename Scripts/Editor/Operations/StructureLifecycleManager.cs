@@ -576,11 +576,11 @@ namespace SecretZauce.SecondBrain.Editor
 
                 if (validItems.Count == 0 && blockedUnsavedScene)
                 {
-                    window.ShowNotification(new GUIContent(SceneObjectRefUtils.UnsavedSceneNotification));
+                    EditorGUIUtils.ShowNotification(window, new GUIContent(SceneObjectRefUtils.UnsavedSceneNotification));
                 }
                 else if (validItems.Count == 0 && blockedEmbedded)
                 {
-                    window.ShowNotification(new GUIContent("Use 'Move to' in Item context menu instead"));
+                    EditorGUIUtils.ShowNotification(window, new GUIContent("Use 'Move to' in Item context menu instead"));
                 }
 
                 OnStructureChanged?.Invoke();
@@ -829,7 +829,7 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (items == null || items.Count == 0 || targetPath == null)
             {
-                window.ShowNotification(new GUIContent("Invalid drag or target."));
+                EditorGUIUtils.ShowNotification(window, new GUIContent("Invalid drag or target."));
                 return;
             }
             
@@ -880,7 +880,7 @@ namespace SecretZauce.SecondBrain.Editor
             
             if (targetParent == null)
             {
-                window.ShowNotification(new GUIContent("Target parent is invalid."));
+                EditorGUIUtils.ShowNotification(window, new GUIContent("Target parent is invalid."));
                 return;
             }
             
@@ -888,7 +888,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Check if the first item can be added to the target parent
             if (!targetParent.CanAcceptChild(items[0]))
             {
-                window.ShowNotification(new GUIContent("Type mismatch")); 
+                EditorGUIUtils.ShowNotification(window, new GUIContent("Type mismatch")); 
                 return;
             }
             
@@ -910,7 +910,7 @@ namespace SecretZauce.SecondBrain.Editor
                     if (it is IStructure && AssetUtils.IsInDifferentAsset(it, targetParent as Object))
                     {
                         string fileName = Path.GetFileName(AssetDatabase.GetAssetPath(it));
-                        window.ShowNotification(new GUIContent($"Use 'Move to' in Item context menu instead"));
+                        EditorGUIUtils.ShowNotification(window, new GUIContent($"Use 'Move to' in Item context menu instead"));
                         // Revert undo group and abort
                         Undo.RevertAllInCurrentGroup();
                         return;
@@ -1153,7 +1153,7 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 var r = Root.AddChild(item, -1);
                 if (r != AddChildResult.Success)
-                    window.ShowNotification(new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(r)));
+                    EditorGUIUtils.ShowNotification(window, new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(r)));
             }
 
             // Wrap leaf items in a new Container at root.
@@ -1183,7 +1183,7 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         var r = newChildStruct.AddChild(leaf, -1);
                         if (r != AddChildResult.Success)
-                            window.ShowNotification(new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(r)));
+                            EditorGUIUtils.ShowNotification(window, new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(r)));
                     }
                     EditorUtility.SetDirty(newChild);
                 });
@@ -1240,7 +1240,7 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (items == null || items.Count == 0 || targetPath == null)
             {
-                window.ShowNotification(new GUIContent("Invalid drag or target."));
+                EditorGUIUtils.ShowNotification(window, new GUIContent("Invalid drag or target."));
                 return;
             }
             
@@ -1292,7 +1292,7 @@ namespace SecretZauce.SecondBrain.Editor
             
             if (targetParent == null)
             {
-                window.ShowNotification(new GUIContent("Target parent is invalid."));
+                EditorGUIUtils.ShowNotification(window, new GUIContent("Target parent is invalid."));
                 return;
             }
             
@@ -1354,15 +1354,15 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 if (blockedUnsavedScene)
                 {
-                    window.ShowNotification(new GUIContent(SceneObjectRefUtils.UnsavedSceneNotification));
+                    EditorGUIUtils.ShowNotification(window, new GUIContent(SceneObjectRefUtils.UnsavedSceneNotification));
                 }
                 else if (blockedEmbedded)
                 {
-                    window.ShowNotification(new GUIContent("Use 'Move to' in Item context menu instead"));
+                    EditorGUIUtils.ShowNotification(window, new GUIContent("Use 'Move to' in Item context menu instead"));
                 }
                 else
                 {
-                    window.ShowNotification(new GUIContent("Type mismatch or duplicated."));
+                    EditorGUIUtils.ShowNotification(window, new GUIContent("Type mismatch or duplicated."));
                 }
                 return;
             }
@@ -1434,7 +1434,7 @@ namespace SecretZauce.SecondBrain.Editor
                 if (objToAdd is IStructure && AssetUtils.IsInDifferentAsset(objToAdd, parent as Object))
                 {
                     string fileName = Path.GetFileName(AssetDatabase.GetAssetPath(objToAdd));
-                    window.ShowNotification(new GUIContent($"Use 'Move to' in Item context menu instead"));
+                    EditorGUIUtils.ShowNotification(window, new GUIContent($"Use 'Move to' in Item context menu instead"));
                     return false;
                 }
             }
@@ -1444,7 +1444,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (result != AddChildResult.Success)
             {
                 // Show notification instead of blocking dialog
-                window.ShowNotification(new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(result)));
+                EditorGUIUtils.ShowNotification(window, new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(result)));
             }
 
             return result == AddChildResult.Success;
@@ -1740,7 +1740,7 @@ namespace SecretZauce.SecondBrain.Editor
             string targetBasePath = AssetDatabase.GetAssetPath(targetBase);
             if (string.IsNullOrEmpty(targetBasePath))
             {
-                window.ShowNotification(new GUIContent("Target Base has no asset path."));
+                EditorGUIUtils.ShowNotification(window, new GUIContent("Target Base has no asset path."));
                 return;
             }
 
@@ -1798,7 +1798,7 @@ namespace SecretZauce.SecondBrain.Editor
                 var baseAsStructure = targetBase as IStructure;
                 if (!baseAsStructure.CanAcceptChild(item))
                 {
-                    window.ShowNotification(new GUIContent($"Cannot move '{item.name}': type not accepted by target Base."));
+                    EditorGUIUtils.ShowNotification(window, new GUIContent($"Cannot move '{item.name}': type not accepted by target Base."));
                     continue;
                 }
 
@@ -1911,7 +1911,7 @@ namespace SecretZauce.SecondBrain.Editor
             string targetAssetPath = AssetDatabase.GetAssetPath(targetContainer);
             if (string.IsNullOrEmpty(targetAssetPath))
             {
-                window.ShowNotification(new GUIContent("Target Container has no asset path."));
+                EditorGUIUtils.ShowNotification(window, new GUIContent("Target Container has no asset path."));
                 return;
             }
 
@@ -1952,7 +1952,7 @@ namespace SecretZauce.SecondBrain.Editor
                 if (parent == null) continue;
                 if (!targetAsStructure.CanAcceptChild(item))
                 {
-                    window.ShowNotification(new GUIContent($"Cannot move '{item.name}': type not accepted by target Container."));
+                    EditorGUIUtils.ShowNotification(window, new GUIContent($"Cannot move '{item.name}': type not accepted by target Container."));
                     continue;
                 }
                 itemsToMove.Add((item, parent, path));
@@ -2397,7 +2397,7 @@ namespace SecretZauce.SecondBrain.Editor
                 if (addResult != AddChildResult.Success)
                 {
                     // Surface a notification to the window when the add failed
-                    try { window.ShowNotification(new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(addResult))); } catch { }
+                    try { EditorGUIUtils.ShowNotification(window, new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(addResult))); } catch { }
                 }
 
                 EditorUtility.SetDirty(parentObj as Object);

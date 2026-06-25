@@ -280,7 +280,7 @@ namespace SecretZauce.SecondBrain.Editor
                                     // scenes that have never been saved — the reference can't be resolved.
                                     if (dragDropManager.HasUnsavedSceneObjects)
                                     {
-                                        ownerTreeView.OwnerWindow?.ShowNotification(
+                                        EditorGUIUtils.ShowNotification(ownerTreeView.OwnerWindow,
                                             new GUIContent(SceneObjectRefUtils.UnsavedSceneNotification));
                                     }
                                 }
