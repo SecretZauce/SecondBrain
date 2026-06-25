@@ -515,6 +515,7 @@ namespace SecretZauce.SecondBrain.Editor
                 List<Object> validItems = new List<Object>();
                 bool blockedEmbedded = false;
                 bool blockedUnsavedScene = false;
+                bool blockedAlreadyInTree = false;
                 foreach (var item in items)
                 {
                     if (item is GameObject go && !EditorUtility.IsPersistent(go))
@@ -553,25 +554,18 @@ namespace SecretZauce.SecondBrain.Editor
                         }
                         catch { }
 
+                        if (item is IStructure && item is not IAllowMultipleParents
+                            && IStructure.ExistsInTree(Root, item))
+                        {
+                            blockedAlreadyInTree = true;
+                            continue;
+                        }
+
                         if (newContainer.CanAcceptChild(item))
                         {
                             validItems.Add(item);
                         }
                     }
-                }
-
-                if (validItems.Count > 0)
-                {
-                    Undo.RegisterCompleteObjectUndo(newChild as Object, "Create Container and Add Items");
-                    foreach (var item in validItems)
-                        newContainer.AddChild(item);
-                    EditorUtility.SetDirty(newChild as Object);
-                    AssetDatabase.SaveAssets();
-                    SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(newChild as Object));
-
-                    // Rebuild fresh collections so item-path lookups reflect the new children
-                    if (Root is { ChildrenObjects: not null })
-                        freshCollections = Root.ChildrenObjects.OfType<IStructure>().ToList();
                 }
 
                 if (validItems.Count == 0 && blockedUnsavedScene)
@@ -582,6 +576,28 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     EditorGUIUtils.ShowNotification(window, new GUIContent("Use 'Move to' in Item context menu instead"));
                 }
+                else if (validItems.Count == 0 && blockedAlreadyInTree)
+                {
+                    EditorGUIUtils.ShowNotification(window, new GUIContent("Already in Tree"));
+                }
+
+                if (validItems.Count == 0)
+                {
+                    Undo.CollapseUndoOperations(undoGroup);
+                    Undo.PerformUndo();
+                    return;
+                }
+
+                Undo.RegisterCompleteObjectUndo(newChild as Object, "Create Container and Add Items");
+                foreach (var item in validItems)
+                    newContainer.AddChild(item);
+                EditorUtility.SetDirty(newChild as Object);
+                AssetDatabase.SaveAssets();
+                SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(newChild as Object));
+
+                // Rebuild fresh collections so item-path lookups reflect the new children
+                if (Root is { ChildrenObjects: not null })
+                    freshCollections = Root.ChildrenObjects.OfType<IStructure>().ToList();
 
                 OnStructureChanged?.Invoke();
                 if (foldoutSnapshot != null)
