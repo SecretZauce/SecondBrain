@@ -14,6 +14,7 @@ namespace SecretZauce.SecondBrain.Editor
         ReorderableList    profileList;
 
         static GUIStyle s_DeleteBtnStyle;
+        static GUIStyle s_RenameBtnStyle;
 
         void OnEnable()
         {
@@ -40,22 +41,38 @@ namespace SecretZauce.SecondBrain.Editor
                     alignment = TextAnchor.MiddleCenter,
                     padding   = new RectOffset(1, 1, 1, 1),
                 };
+                s_RenameBtnStyle ??= new GUIStyle(GUIStyle.none)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    padding   = new RectOffset(1, 1, 1, 1),
+                };
 
                 var element = profilesProp.GetArrayElementAtIndex(index);
                 rect.y      += 2f;
                 rect.height  = EditorGUIUtility.singleLineHeight;
 
-                const float deleteBtnW = 18f;
-                const float gap        = 4f;
-                Rect fieldRect  = new Rect(rect.x, rect.y, rect.width - deleteBtnW - gap, rect.height);
-                Rect deleteRect = new Rect(rect.xMax - deleteBtnW, rect.y, deleteBtnW, rect.height);
+                const float btnW = 18f;
+                const float gap  = 4f;
+                Rect fieldRect  = new Rect(rect.x, rect.y, rect.width - 2 * (btnW + gap), rect.height);
+                Rect renameRect = new Rect(rect.xMax - 2 * btnW - gap, rect.y, btnW, rect.height);
+                Rect deleteRect = new Rect(rect.xMax - btnW, rect.y, btnW, rect.height);
 
                 EditorGUI.ObjectField(fieldRect, element, typeof(Profile), GUIContent.none);
+
+                var profile = element.objectReferenceValue as Profile;
+
+                using (new EditorGUI.DisabledScope(profile == null))
+                {
+                    var renameIcon = EditorGUIUtility.IconContent("d_editicon.sml");
+                    renameIcon.tooltip = "Rename profile asset";
+                    if (GUI.Button(renameRect, renameIcon, s_RenameBtnStyle))
+                        RenameProfileAt(index, profile);
+                }
 
                 var deleteIcon = EditorGUIUtility.IconContent("d_TreeEditor.Trash");
                 deleteIcon.tooltip = "Delete profile asset from disk";
                 if (GUI.Button(deleteRect, deleteIcon, s_DeleteBtnStyle))
-                    DeleteProfileAt(index, element.objectReferenceValue as Profile);
+                    DeleteProfileAt(index, profile);
             };
 
             profileList.onAddDropdownCallback = (buttonRect, _) =>
@@ -109,6 +126,34 @@ namespace SecretZauce.SecondBrain.Editor
                 AssetDatabase.DeleteAsset(path);
 
             GUIUtility.ExitGUI();
+        }
+
+        void RenameProfileAt(int index, Profile profile)
+        {
+            if (profile == null) return;
+
+            string oldName = profile.name;
+            string newName = ProfileNameDialog.Show("Rename Profile", oldName, "Rename");
+            if (string.IsNullOrEmpty(newName) || newName == oldName) return;
+
+            string path  = AssetDatabase.GetAssetPath(profile);
+            string error = AssetDatabase.RenameAsset(path, newName);
+            if (!string.IsNullOrEmpty(error))
+            {
+                EditorUtility.DisplayDialog("Rename Failed", error, "OK");
+                return;
+            }
+
+            // Keep defaultProfileName in sync if it referenced the old name.
+            if (defaultProfileNameProp.stringValue == oldName)
+            {
+                defaultProfileNameProp.stringValue = newName;
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            AssetDatabase.SaveAssets();
+            serializedObject.Update();
+            Repaint();
         }
 
         public override void OnInspectorGUI()

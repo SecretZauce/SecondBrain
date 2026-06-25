@@ -6,6 +6,7 @@ namespace SecretZauce.SecondBrain.Editor
     internal class ProfileNameDialog : EditorWindow
     {
         string inputName = "Profile";
+        string confirmLabel = "Create";
         bool confirmed;
         bool focusField = true;
         const string FieldControlName = "ProfileNameField";
@@ -13,12 +14,13 @@ namespace SecretZauce.SecondBrain.Editor
         // Written by OnDisable (while the instance is still alive) and read by Show after ShowModal returns.
         static string s_Result;
 
-        public static string Show(string title, string defaultName = "Profile")
+        public static string Show(string title, string defaultName = "Profile", string confirmButtonLabel = "Create")
         {
             s_Result = null;
             var dlg = CreateInstance<ProfileNameDialog>();
             dlg.titleContent = new GUIContent(title);
             dlg.inputName    = defaultName;
+            dlg.confirmLabel = confirmButtonLabel;
             dlg.minSize      = new Vector2(300, 90);
             dlg.maxSize      = new Vector2(400, 90);
             dlg.ShowModal();
@@ -49,7 +51,7 @@ namespace SecretZauce.SecondBrain.Editor
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Cancel", GUILayout.Width(70))) Close();
             using (new EditorGUI.DisabledScope(string.IsNullOrWhiteSpace(inputName)))
-                if (GUILayout.Button("Create", GUILayout.Width(70))) { confirmed = true; Close(); }
+                if (GUILayout.Button(confirmLabel, GUILayout.Width(70))) { confirmed = true; Close(); }
             GUILayout.Space(10);
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
