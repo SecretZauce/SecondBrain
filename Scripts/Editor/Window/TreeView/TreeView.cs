@@ -729,16 +729,13 @@ namespace SecretZauce.SecondBrain.Editor
             
             if (s_PeekBlockedIcon == null)
                 s_PeekBlockedIcon = new GUIContent(IconUtils.Load("block"));
-            
+
             if (!OwnerWindow.IsQuickPeekOpenForPath(hoveredPath))
             {
-                DrawPeekIcon(s_PeekBlockedIcon, pw, contentRightEdge, side);
-                return;
-            }
-
-            if (obj is Base)
-            {
-                DrawPeekIcon(s_PeekBlockedIcon, pw, contentRightEdge, side);
+                // Show blocked only when mouse is actually over this window (not stale hover)
+                // and peek is not in the pending-show delay (not yet opened, but will be).
+                if (EditorWindow.mouseOverWindow == OwnerWindow && !OwnerWindow.IsQuickPeekPendingShow())
+                    DrawPeekIcon(s_PeekBlockedIcon, pw, contentRightEdge, side);
                 return;
             }
 

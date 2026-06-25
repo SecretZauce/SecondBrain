@@ -15,6 +15,7 @@ namespace SecretZauce.SecondBrain.Editor
         public abstract bool IsOpenForPath(int[] path);
         public abstract void OpenFor(int[] selectedPath, BrowserWindow window);
         public abstract void DisposeQuickPeek();
+        public abstract bool HasPendingShow { get; }
     }
 }
 #endif
