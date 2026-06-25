@@ -35,6 +35,10 @@ namespace SecretZauce.SecondBrain.Editor
         // (e.g. SceneComponentRef / SceneObjectRef with scene loaded, in non-popup browser).
         public bool OpenPropertyEditorRequested { get; set; }
         public int[] OpenPropertyEditorTargetPath { get; set; }
+        // Request to wrap all selected items in a new Container (Ctrl+G)
+        public bool WrapGroupRequested { get; set; }
+        // Request to create a new Container — child of selected container, or at root if none (Ctrl+N)
+        public bool CreateContainerRequested { get; set; }
     }
 
     // Result of processing global drag-related events inside the tree view

@@ -403,6 +403,12 @@ namespace SecretZauce.SecondBrain.Editor
             LifecycleManager.CreateChildUsingOptionWithName(parent, option, name, treeView);
         }
 
+        public void WrapSelectedInContainer(List<int[]> selectedPaths, List<IStructure> collections, TreeView treeView)
+        {
+            CaptureFoldoutSnapshot(treeView);
+            LifecycleManager.WrapSelectedInContainer(selectedPaths, collections, treeView, selectionState);
+        }
+
         /// <summary>
         /// Try to apply a keyboard-driven selection change.
         /// Validates the candidate path against current Collections and only applies the selection if valid.
