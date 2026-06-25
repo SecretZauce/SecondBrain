@@ -104,6 +104,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Local copies of settings so we can still apply changes from
             // collapsed sections correctly when the user opens them.
             var doubleClickAction = BrowserSettings.DoubleClickAction;
+            var searchAutoSelect = BrowserSettings.SearchAutoSelect;
             bool quickPeek = BrowserSettings.EnableQuickPeek;
 
             if (DrawCollapsibleHeader(ref interactionFoldout, "Interaction", PrefInteraction))
@@ -112,6 +113,10 @@ namespace SecretZauce.SecondBrain.Editor
                 doubleClickAction = (DoubleClickActionType)EditorGUILayout.EnumPopup(
                     new GUIContent("Double Click Action", "What happens when you double-click a TreeView item.\n• Rename: begin inline rename (original behaviour).\n• Enter: trigger the item's enter action (open scene, enter base, execute action, …). Falls back to rename if no enter action."),
                     doubleClickAction);
+
+                searchAutoSelect = (SearchAutoSelectMode)EditorGUILayout.EnumPopup(
+                    new GUIContent("Search Auto-Select", "Controls when typing in the search bar automatically selects the first matching result.\n• Always — always select the first match as you type.\n• Quick Browse Mode (Pro) — only auto-select when using the Quick Browse popup.\n• Off — never auto-select; navigate manually with the arrow keys."),
+                    searchAutoSelect);
 
 #if SECOND_BRAIN_PRO
                 quickPeek = EditorGUILayout.ToggleLeft(
@@ -217,6 +222,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 BrowserSettings.DoubleClickAction = doubleClickAction;
+                BrowserSettings.SearchAutoSelect = searchAutoSelect;
                 BrowserSettings.EnableQuickPeek = quickPeek;
                 BrowserSettings.ShowIconsPerType = icons;
                 BrowserSettings.ForceNamingOnCreate = forceNaming;

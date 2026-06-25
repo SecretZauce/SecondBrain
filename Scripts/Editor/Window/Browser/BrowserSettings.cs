@@ -30,6 +30,19 @@ namespace SecretZauce.SecondBrain.Editor
     }
 
     /// <summary>
+    /// Controls when searching auto-selects the first matching result.
+    /// </summary>
+    public enum SearchAutoSelectMode
+    {
+        /// <summary>Always auto-select the first result when the search text changes.</summary>
+        Always = 0,
+        /// <summary>PRO only — auto-select only when the window is in Quick Browse (popup) mode.</summary>
+        QuickBrowseOnly = 1,
+        /// <summary>Never auto-select; user must navigate manually.</summary>
+        Off = 2,
+    }
+
+    /// <summary>
     /// Simple persistent editor settings for the Browser window.
     /// Settings are stored in EditorPrefs so they persist between editor sessions.
     /// Other parts of the code can listen to OnSettingsChanged to react.
@@ -61,6 +74,7 @@ namespace SecretZauce.SecondBrain.Editor
         const string KeyItemSize = "Browser_ItemSize_v1";
         const string KeyItemFontSize = "Browser_ItemFontSize_v1";
         const string KeyExpandAllOnEnterBase = "Browser_ExpandAllOnEnterBase_v1";
+        const string KeySearchAutoSelect = "Browser_SearchAutoSelect_v1";
 
         public const int MinItemFontSize = 9;
         public const int MaxItemFontSize = 15;
@@ -136,6 +150,21 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 if (EnableQuickPeek == value) return;
                 EditorPrefs.SetBool(KeyEnableQuickPeek, value);
+                OnSettingsChanged?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Controls when searching auto-selects the first matching result.
+        /// QuickBrowseOnly requires the PRO edition.
+        /// </summary>
+        public static SearchAutoSelectMode SearchAutoSelect
+        {
+            get => (SearchAutoSelectMode)EditorPrefs.GetInt(KeySearchAutoSelect, (int)SearchAutoSelectMode.Always);
+            set
+            {
+                if (SearchAutoSelect == value) return;
+                EditorPrefs.SetInt(KeySearchAutoSelect, (int)value);
                 OnSettingsChanged?.Invoke();
             }
         }
