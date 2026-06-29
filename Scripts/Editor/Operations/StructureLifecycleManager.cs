@@ -2329,37 +2329,59 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     // ── UNDO detected ─────────────────────────────────────────────────
                     // Items are no longer in the target Base's children list.
-                    // Reverse the sub-asset migration in REVERSE order so that parents are
-                    // returned to the source file before their children (safe removal order).
-                    for (int i = record.migratedObjects.Count - 1; i >= 0; i--)
-                    {
-                        var (obj, fromPath) = record.migratedObjects[i];
-                        if (obj == null || string.IsNullOrEmpty(fromPath)) continue;
-                        string currentPath = AssetDatabase.GetAssetPath(obj);
-                        if (string.IsNullOrEmpty(currentPath) || currentPath == fromPath) continue;
-                        AssetDatabase.RemoveObjectFromAsset(obj);
-                        AssetDatabase.AddObjectToAsset(obj, fromPath);
-                    }
-                    AssetDatabase.SaveAssets();
+                    // Flip the logical flag NOW (so rapid undo/redo reads correct state),
+                    // but DEFER the AssetDatabase relocation by one editor frame.
+                    //
+                    // CRITICAL: RemoveObjectFromAsset / AddObjectToAsset / SaveAssets MUST NOT
+                    // run synchronously inside undoRedoPerformed. At this point Unity's internal
+                    // sub-asset / native-object registry has NOT yet settled the objects the undo
+                    // just destroyed/restored. Mutating it here corrupts native asset state; the
+                    // corruption surfaces later as a native heap crash ("Size overflow in
+                    // allocator" in DragAndDrop::FetchDataFromDrag) on the NEXT drag — the
+                    // transfer→undo→drag repro. BrowserWindow.OnUndoRedoPerformed defers its own
+                    // SaveAssets for exactly this reason; this handler must do the same.
                     record.isCurrentlyInTarget = false;
-                    EditorApplication.delayCall += () => self.OnStructureChanged?.Invoke();
+                    var migrated = record.migratedObjects;
+                    EditorApplication.delayCall += () =>
+                    {
+                        // Reverse the sub-asset migration in REVERSE order so that parents are
+                        // returned to the source file before their children (safe removal order).
+                        for (int i = migrated.Count - 1; i >= 0; i--)
+                        {
+                            var (obj, fromPath) = migrated[i];
+                            if (obj == null || string.IsNullOrEmpty(fromPath)) continue;
+                            string currentPath = AssetDatabase.GetAssetPath(obj);
+                            if (string.IsNullOrEmpty(currentPath) || currentPath == fromPath) continue;
+                            AssetDatabase.RemoveObjectFromAsset(obj);
+                            AssetDatabase.AddObjectToAsset(obj, fromPath);
+                        }
+                        AssetDatabase.SaveAssets();
+                        self.OnStructureChanged?.Invoke();
+                    };
                 }
                 else if (!record.isCurrentlyInTarget && allItemsInTarget)
                 {
                     // ── REDO detected ─────────────────────────────────────────────────
                     // Items are back in the target Base's children list.
-                    // Re-apply the sub-asset migration in children-first order.
-                    foreach (var (obj, _) in record.migratedObjects)
-                    {
-                        if (obj == null) continue;
-                        string currentPath = AssetDatabase.GetAssetPath(obj);
-                        if (string.IsNullOrEmpty(currentPath) || currentPath == record.targetBasePath) continue;
-                        AssetDatabase.RemoveObjectFromAsset(obj);
-                        AssetDatabase.AddObjectToAsset(obj, record.targetBasePath);
-                    }
-                    AssetDatabase.SaveAssets();
+                    // Flip the flag now; defer the relocation (see UNDO branch for why a
+                    // synchronous AssetDatabase mutation here corrupts native state).
                     record.isCurrentlyInTarget = true;
-                    EditorApplication.delayCall += () => self.OnStructureChanged?.Invoke();
+                    var migrated = record.migratedObjects;
+                    string targetBasePath = record.targetBasePath;
+                    EditorApplication.delayCall += () =>
+                    {
+                        // Re-apply the sub-asset migration in children-first order.
+                        foreach (var (obj, _) in migrated)
+                        {
+                            if (obj == null) continue;
+                            string currentPath = AssetDatabase.GetAssetPath(obj);
+                            if (string.IsNullOrEmpty(currentPath) || currentPath == targetBasePath) continue;
+                            AssetDatabase.RemoveObjectFromAsset(obj);
+                            AssetDatabase.AddObjectToAsset(obj, targetBasePath);
+                        }
+                        AssetDatabase.SaveAssets();
+                        self.OnStructureChanged?.Invoke();
+                    };
                 }
                 // else: unrelated undo/redo event — nothing to do.
             }
