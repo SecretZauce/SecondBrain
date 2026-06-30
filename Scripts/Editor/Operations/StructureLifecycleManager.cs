@@ -26,7 +26,7 @@ namespace SecretZauce.SecondBrain.Editor
         public StructureLifecycleManager(BrowserWindow window, UndoHelper undoHelper)
         {
             this.window = window;
-            deletionHelper = new DeletionHelper(undoHelper, window);
+            deletionHelper = new DeletionHelper(window);
         }
 
         /// <summary>
@@ -484,147 +484,153 @@ namespace SecretZauce.SecondBrain.Editor
             Dictionary<object, bool> foldoutSnapshot = treeView?.GetFoldoutSnapshot();
 
             // Create a new Container child under the base
-            ChildCreationUtils.CreateNewChild(baseRoot as Object, (newChild) =>
+            ChildCreationUtils.CreateNewChild(baseRoot, (newChild) =>
             {
-                // Finalize persistence so the container is embedded/registered before adding external items
-                try
-                {
-                    FinalizeNewChild(baseRoot as Object, newChild, null);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"Error finalizing container creation: {ex}");
-                }
-
-                if (newChild is not IStructure newContainer)
-                    return;
-
-                // Build fresh collections after container creation
-                List<IStructure> freshCollections = null;
-                if (Root is { ChildrenObjects: not null })
-                    freshCollections = Root.ChildrenObjects.OfType<IStructure>().ToList();
-
-                if (freshCollections == null || freshCollections.Count == 0)
-                    return;
-
-                // Find the path to the new container inside the freshly built collections
-                int[] containerPath = StructureUtils.FindPathToChild(freshCollections, newChild);
-
-                // Add external items to the new container
-                string parentAssetFolder = AssetUtils.GetAssetFolder(newChild as Object);
-                List<Object> validItems = new List<Object>();
-                bool blockedEmbedded = false;
-                bool blockedUnsavedScene = false;
-                bool blockedAlreadyInTree = false;
-                foreach (var item in items)
-                {
-                    if (item is GameObject go && !EditorUtility.IsPersistent(go))
-                    {
-                        if (SceneObjectRefUtils.IsSceneObjectFromUnsavedScene(item))
-                        {
-                            blockedUnsavedScene = true;
-                            continue;
-                        }
-
-                        var sceneRef = SceneObjectRefUtils.CreateSceneObjectRef(go, parentAssetFolder, newChild as Object);
-                        if (sceneRef != null && newContainer.CanAcceptChild(sceneRef))
-                            validItems.Add(sceneRef);
-                    }
-                    else if (item is Component component && !EditorUtility.IsPersistent(component))
-                    {
-                        if (SceneObjectRefUtils.IsSceneObjectFromUnsavedScene(item))
-                        {
-                            blockedUnsavedScene = true;
-                            continue;
-                        }
-
-                        var sceneComponentRef = SceneComponentRefUtils.CreateSceneComponentRef(component, parentAssetFolder, newChild as Object);
-                        if (sceneComponentRef != null && newContainer.CanAcceptChild(sceneComponentRef))
-                            validItems.Add(sceneComponentRef);
-                    }
-                    else
-                    {
-                        try
-                        {
-                            if (item is IStructure && AssetUtils.IsInDifferentAsset(item, newChild as Object))
-                            {
-                                blockedEmbedded = true;
-                                continue;
-                            }
-                        }
-                        catch { }
-
-                        if (item is IStructure && item is not IAllowMultipleParents
-                            && IStructure.ExistsInTree(Root, item))
-                        {
-                            blockedAlreadyInTree = true;
-                            continue;
-                        }
-
-                        if (newContainer.CanAcceptChild(item))
-                        {
-                            validItems.Add(item);
-                        }
-                    }
-                }
-
-                if (validItems.Count == 0 && blockedUnsavedScene)
-                {
-                    EditorGUIUtils.ShowNotification(window, new GUIContent(SceneObjectRefUtils.UnsavedSceneNotification));
-                }
-                else if (validItems.Count == 0 && blockedEmbedded)
-                {
-                    EditorGUIUtils.ShowNotification(window, new GUIContent("Use 'Move to' in Item context menu instead"));
-                }
-                else if (validItems.Count == 0 && blockedAlreadyInTree)
-                {
-                    EditorGUIUtils.ShowNotification(window, new GUIContent("Already in Tree"));
-                }
-
-                if (validItems.Count == 0)
-                {
-                    Undo.CollapseUndoOperations(undoGroup);
-                    Undo.PerformUndo();
-                    return;
-                }
-
-                Undo.RegisterCompleteObjectUndo(newChild as Object, "Create Container and Add Items");
-                foreach (var item in validItems)
-                    newContainer.AddChild(item);
-                EditorUtility.SetDirty(newChild as Object);
-                AssetDatabase.SaveAssets();
-                SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(newChild as Object));
-
-                // Rebuild fresh collections so item-path lookups reflect the new children
-                if (Root is { ChildrenObjects: not null })
-                    freshCollections = Root.ChildrenObjects.OfType<IStructure>().ToList();
-
-                OnStructureChanged?.Invoke();
-                if (foldoutSnapshot != null)
-                    OnFoldoutStateRestoreRequested?.Invoke(foldoutSnapshot);
-
-                // Expand the new container and select the first added item (or the container)
-                if (containerPath != null)
-                    OnExpansionRequested?.Invoke(containerPath);
-
-                if (validItems.Count > 0)
-                {
-                    Undo.RegisterCompleteObjectUndo(selectionState, "Create Container and Add Items");
-                    selectionState.ClearSelection(window);
-                    foreach (var item in validItems)
-                    {
-                        var itemPath = StructureUtils.FindPathToChild(freshCollections, item);
-                        if (itemPath != null)
-                        {
-                            selectionState.AddToSelection(window, itemPath);
-                            OnExpansionRequested?.Invoke(itemPath);
-                        }
-                    }
-                    EditorUtility.SetDirty(selectionState);
-                }
-
-                Undo.CollapseUndoOperations(undoGroup);
+                OnChildCreated(items, selectionState, baseRoot, newChild, undoGroup, foldoutSnapshot);
             });
+        }
+
+        void OnChildCreated(List<Object> items, SelectionStateSO selectionState, Base baseRoot, Object newChild, int undoGroup,
+            Dictionary<object, bool> foldoutSnapshot)
+        {
+            // Finalize persistence so the container is embedded/registered before adding external items
+            try
+            {
+                FinalizeNewChild(baseRoot as Object, newChild, null);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error finalizing container creation: {ex}");
+            }
+
+            if (newChild is not IStructure newContainer)
+                return;
+
+            // Build fresh collections after container creation
+            List<IStructure> freshCollections = null;
+            if (Root is { ChildrenObjects: not null })
+                freshCollections = Root.ChildrenObjects.OfType<IStructure>().ToList();
+
+            if (freshCollections == null || freshCollections.Count == 0)
+                return;
+
+            // Find the path to the new container inside the freshly built collections
+            int[] containerPath = StructureUtils.FindPathToChild(freshCollections, newChild);
+
+            // Add external items to the new container
+            string parentAssetFolder = AssetUtils.GetAssetFolder(newChild as Object);
+            List<Object> validItems = new List<Object>();
+            bool blockedEmbedded = false;
+            bool blockedUnsavedScene = false;
+            bool blockedAlreadyInTree = false;
+            foreach (var item in items)
+            {
+                if (item is GameObject go && !EditorUtility.IsPersistent(go))
+                {
+                    if (SceneObjectRefUtils.IsSceneObjectFromUnsavedScene(item))
+                    {
+                        blockedUnsavedScene = true;
+                        continue;
+                    }
+
+                    var sceneRef = SceneObjectRefUtils.CreateSceneObjectRef(go, parentAssetFolder, newChild as Object);
+                    if (sceneRef != null && newContainer.CanAcceptChild(sceneRef))
+                        validItems.Add(sceneRef);
+                }
+                else if (item is Component component && !EditorUtility.IsPersistent(component))
+                {
+                    if (SceneObjectRefUtils.IsSceneObjectFromUnsavedScene(item))
+                    {
+                        blockedUnsavedScene = true;
+                        continue;
+                    }
+
+                    var sceneComponentRef = SceneComponentRefUtils.CreateSceneComponentRef(component, parentAssetFolder, newChild as Object);
+                    if (sceneComponentRef != null && newContainer.CanAcceptChild(sceneComponentRef))
+                        validItems.Add(sceneComponentRef);
+                }
+                else
+                {
+                    try
+                    {
+                        if (item is IStructure && AssetUtils.IsInDifferentAsset(item, newChild as Object))
+                        {
+                            blockedEmbedded = true;
+                            continue;
+                        }
+                    }
+                    catch { }
+
+                    if (item is IStructure && item is not IAllowMultipleParents
+                                           && IStructure.ExistsInTree(Root, item))
+                    {
+                        blockedAlreadyInTree = true;
+                        continue;
+                    }
+
+                    if (newContainer.CanAcceptChild(item))
+                    {
+                        validItems.Add(item);
+                    }
+                }
+            }
+
+            if (validItems.Count == 0 && blockedUnsavedScene)
+            {
+                EditorGUIUtils.ShowNotification(window, new GUIContent(SceneObjectRefUtils.UnsavedSceneNotification));
+            }
+            else if (validItems.Count == 0 && blockedEmbedded)
+            {
+                EditorGUIUtils.ShowNotification(window, new GUIContent("Use 'Move to' in Item context menu instead"));
+            }
+            else if (validItems.Count == 0 && blockedAlreadyInTree)
+            {
+                EditorGUIUtils.ShowNotification(window, new GUIContent("Already in Tree"));
+            }
+
+            if (validItems.Count == 0)
+            {
+                Undo.CollapseUndoOperations(undoGroup);
+                Undo.PerformUndo();
+                return;
+            }
+
+            Undo.RegisterCompleteObjectUndo(newChild as Object, "Create Container and Add Items");
+            foreach (var item in validItems)
+                newContainer.AddChild(item);
+            EditorUtility.SetDirty(newChild as Object);
+            AssetDatabase.SaveAssets();
+            SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(newChild as Object));
+
+            // Rebuild fresh collections so item-path lookups reflect the new children
+            if (Root is { ChildrenObjects: not null })
+                freshCollections = Root.ChildrenObjects.OfType<IStructure>().ToList();
+
+            OnStructureChanged?.Invoke();
+            if (foldoutSnapshot != null)
+                OnFoldoutStateRestoreRequested?.Invoke(foldoutSnapshot);
+
+            // Expand the new container and select the first added item (or the container)
+            if (containerPath != null)
+                OnExpansionRequested?.Invoke(containerPath);
+
+            if (validItems.Count > 0)
+            {
+                Undo.RegisterCompleteObjectUndo(selectionState, "Create Container and Add Items");
+                selectionState.ClearSelection(window);
+                foreach (var item in validItems)
+                {
+                    var itemPath = StructureUtils.FindPathToChild(freshCollections, item);
+                    if (itemPath != null)
+                    {
+                        selectionState.AddToSelection(window, itemPath);
+                        OnExpansionRequested?.Invoke(itemPath);
+                    }
+                }
+                EditorUtility.SetDirty(selectionState);
+            }
+
+            Undo.CollapseUndoOperations(undoGroup);
         }
 
         /// <summary>
@@ -955,7 +961,6 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     if (it is IStructure && AssetUtils.IsInDifferentAsset(it, targetParent as Object))
                     {
-                        string fileName = Path.GetFileName(AssetDatabase.GetAssetPath(it));
                         EditorGUIUtils.ShowNotification(window, new GUIContent($"Use 'Move to' in Item context menu instead"));
                         // Revert undo group and abort
                         Undo.RevertAllInCurrentGroup();
@@ -1575,7 +1580,6 @@ namespace SecretZauce.SecondBrain.Editor
             if (foldoutSnapshot != null)
                 OnFoldoutStateRestoreRequested?.Invoke(foldoutSnapshot);
             
-            
             // Select the added items - record selection as part of the same undo group.
             // Use RegisterCompleteObjectUndo (not RecordObject) because RecordObject computes
             // its diff lazily, which would miss the CollapseUndoOperations below.
@@ -1611,7 +1615,6 @@ namespace SecretZauce.SecondBrain.Editor
                 // Prevent adding structure assets that belong to a different .asset file than the parent.
                 if (objToAdd is IStructure && AssetUtils.IsInDifferentAsset(objToAdd, parent as Object))
                 {
-                    string fileName = Path.GetFileName(AssetDatabase.GetAssetPath(objToAdd));
                     EditorGUIUtils.ShowNotification(window, new GUIContent($"Use 'Move to' in Item context menu instead"));
                     return false;
                 }
@@ -2600,13 +2603,13 @@ namespace SecretZauce.SecondBrain.Editor
                     try { EditorGUIUtils.ShowNotification(window, new GUIContent(OperationErrorUtils.GetDisplayedAddChildErrorMessage(addResult))); } catch { }
                 }
 
-                EditorUtility.SetDirty(parentObj as Object);
+                EditorUtility.SetDirty(parentObj);
                 AssetDatabase.SaveAssets();
 
                 // Targeted import so the Project window reflects the updated sub-assets
                 try
                 {
-                    var parentPath = AssetDatabase.GetAssetPath(parentObj as Object);
+                    var parentPath = AssetDatabase.GetAssetPath(parentObj);
                     if (!string.IsNullOrEmpty(parentPath))
                         SubAssetRefreshUtils.ImportAndRegister(parentPath);
                 }
