@@ -123,11 +123,6 @@ namespace SecretZauce.SecondBrain.Editor
             return new string(chars);
         }
 
-        public static void GoToSceneObject(string globalId, string sceneName, string lastKnownPath)
-        {
-            GoToSceneObject(globalId, sceneName, null, lastKnownPath);
-        }
-
         public static void GoToSceneObject(string globalId, string sceneName, string sceneGuid, string lastKnownPath)
         {
             EditorGUIUtils.ShowNotificationOnActiveView(new GUIContent("Go to '" + lastKnownPath + "' in scene '" + sceneName + "'"));

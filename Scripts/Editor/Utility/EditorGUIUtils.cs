@@ -21,7 +21,6 @@ namespace SecretZauce.SecondBrain.Editor
             window?.ShowNotification(new GUIContent(message), NotificationDuration);
         }
 
-
         /// <summary>
         /// Attempts to locate the main Unity Editor window via internal container windows and
         /// returns its position on screen. Uses reflection to inspect internal types and

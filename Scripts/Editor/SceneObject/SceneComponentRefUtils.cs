@@ -172,11 +172,6 @@ namespace SecretZauce.SecondBrain.Editor
             return path.Split('/').LastOrDefault() ?? string.Empty;
         }
 
-        public static void GoToSceneComponent(string globalId, string sceneName, string lastKnownPath)
-        {
-            GoToSceneComponent(globalId, sceneName, null, lastKnownPath);
-        }
-
         public static void GoToSceneComponent(string globalId, string sceneName, string sceneGuid, string lastKnownPath)
         {
             EditorGUIUtils.ShowNotificationOnActiveView(new GUIContent("Go to component in scene '" + sceneName + "'"));
