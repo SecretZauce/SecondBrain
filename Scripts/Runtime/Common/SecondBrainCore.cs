@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
+
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEditor;
@@ -22,7 +22,6 @@ namespace SecretZauce.SecondBrain
     /// Stored at Assets/Resources/SecondBrainCore.asset — included in player builds.
     /// Editor-only data (init flow, profile registry) is guarded by UNITY_EDITOR.
     /// </summary>
-    [MovedFrom(true, "SecretZauce.SecondBrain.Editor", "SecretZauce.SecondBrain.Editor")]
     public class SecondBrainCore : ScriptableObject
     {
         const string ResourcePath = "SecondBrainCore";

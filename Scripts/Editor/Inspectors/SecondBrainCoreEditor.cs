@@ -1,5 +1,4 @@
 using System.Linq;
-using SecretZauce.SecondBrain;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;

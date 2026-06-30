@@ -2,9 +2,12 @@ using System.Collections.Generic;
 using System;
 using UnityEditor;
 using UnityEngine;
-using System.Linq;
 using Object = UnityEngine.Object;
+
+#if UNITY_EDITOR_WIN
+using System.Linq;
 using System.Runtime.InteropServices;
+#endif
 
 namespace SecretZauce.SecondBrain.Editor
 {

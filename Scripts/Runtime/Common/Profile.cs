@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
+
 using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -26,7 +26,6 @@ namespace SecretZauce.SecondBrain
     /// Root ScriptableObject that acts as the top-level workspace container.
     /// Formerly known as Motherbase; renamed to Profile to support multi-profile switching.
     /// </summary>
-    [MovedFrom(true, "SecretZauce.SecondBrain", "SecretZauce.SecondBrain", "Motherbase")]
     public class Profile : ScriptableObject, IStructure<Base>
     {
         const string PROFILE_NAME = "Default Profile";
