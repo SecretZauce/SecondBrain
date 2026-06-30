@@ -2,7 +2,7 @@
 
 Go to **Window → Second Brain (Home)** in the Unity menu bar.
 
-The browser opens to the top-level view (Home). From here, double-click a Base workspace (or click the **▶** arrow beside it) to navigate in. The window remembers your last open location between editor sessions and survives domain reloads.
+The browser opens to the top-level view (Home). From here, double-click a Base workspace (or click the **>** arrow beside it) to navigate in. The window remembers your last open location between editor sessions and survives domain reloads.
 
 > [!NOTE]
 > In the free tier, only one browser window can be open at a time, and you have one Profile with one Base.
