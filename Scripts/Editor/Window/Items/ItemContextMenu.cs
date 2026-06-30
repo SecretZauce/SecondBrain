@@ -70,7 +70,20 @@ namespace SecretZauce.SecondBrain.Editor
 #endif
 
             if (!isIStructure)
-                menu.AddItem(new GUIContent("Duplicate"), false, window.DuplicateSelectedItems);
+            {
+                bool canDuplicate = true;
+                string objAssetPath = AssetDatabase.GetAssetPath(obj);
+                if (!string.IsNullOrEmpty(objAssetPath) && AssetDatabase.IsValidFolder(objAssetPath))
+                    canDuplicate = false;
+                if (canDuplicate && path.Length > 1)
+                {
+                    var parentObj = window.Controller?.GetObjectAtPath(path[..^1]);
+                    if (AssetUtils.IsInDifferentAsset(obj, parentObj))
+                        canDuplicate = false;
+                }
+                if (canDuplicate)
+                    menu.AddItem(new GUIContent("Duplicate"), false, window.DuplicateSelectedItems);
+            }
             if (obj is not SceneObjectRef && obj is not SceneComponentRef)
                 menu.AddItem(new GUIContent("Rename"), false, window.BeginRenamingSelectedItem);
 

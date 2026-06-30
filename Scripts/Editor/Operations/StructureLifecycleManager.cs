@@ -800,10 +800,19 @@ namespace SecretZauce.SecondBrain.Editor
             var item = StructureUtils.GetNodeAtPath(path, collections);
             if (item == null || item is IStructure) // Structure duplication not allowed
                 return null;
-            
+
+            // Block folder assets (DefaultAsset directories)
+            string itemAssetPath = AssetDatabase.GetAssetPath(item);
+            if (!string.IsNullOrEmpty(itemAssetPath) && AssetDatabase.IsValidFolder(itemAssetPath))
+                return null;
+
             // Get the parent
             IStructure parent = GetParentAtPath(path, collections);
             if (parent == null)
+                return null;
+
+            // Block sub-assets that live in an external file (e.g. AudioMixerGroup inside an AudioMixer)
+            if (AssetUtils.IsInDifferentAsset(item, parent as Object))
                 return null;
             
             // Get the insertion index (right after the original)
