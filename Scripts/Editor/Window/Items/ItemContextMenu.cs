@@ -99,10 +99,10 @@ namespace SecretZauce.SecondBrain.Editor
             // and other Bases exist to move to
             if (isIStructure && window.Root is Base currentBase)
             {
-                var motherbase = Profile.Active;
-                if (motherbase?.Children != null)
+                var profile = Profile.Active;
+                if (profile?.Children != null)
                 {
-                    var otherBases = motherbase.Children
+                    var otherBases = profile.Children
                         .Where(b => b != null && b != currentBase)
                         .ToList();
 

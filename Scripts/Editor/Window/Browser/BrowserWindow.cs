@@ -75,7 +75,7 @@ namespace SecretZauce.SecondBrain.Editor
         IStructure targetRoot;
 
         /// <summary>
-        /// The default root for this window type (e.g. Motherbase.Instance, APIDatabase.Instance).
+        /// The default root for this window type (e.g. Profile.Instance, APIDatabase.Instance).
         /// Subclasses must implement this instead of Root.
         /// </summary>
         protected abstract IStructure HomeRoot { get; }

@@ -842,7 +842,7 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Clears the DefaultBase reference on the Motherbase if it points to the provided base.
+        /// Clears the DefaultBase reference on the Profile if it points to the provided base.
         /// </summary>
         public void ClearDefaultBase(Base baseObj)
         {
@@ -881,7 +881,7 @@ namespace SecretZauce.SecondBrain.Editor
 
 #if !SECOND_BRAIN_PRO
         /// <summary>
-        /// Returns true (and shows the PRO upgrade dialog) when the parent is <see cref="Motherbase"/>
+        /// Returns true (and shows the PRO upgrade dialog) when the parent is <see cref="Profile"/>
         /// and it already contains at least one Base — enforcing the free-tier single-Base limit.
         /// </summary>
         static bool IsSecondBaseBlocked(Object parent)

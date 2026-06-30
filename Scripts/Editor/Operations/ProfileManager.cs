@@ -7,7 +7,7 @@ namespace SecretZauce.SecondBrain.Editor
 {
     /// <summary>
     /// Editor-only utility for managing Profiles (the root workspace containers,
-    /// formerly known as Motherbase). Handles multi-profile discovery, creation,
+    /// Handles multi-profile discovery, creation,
     /// switching, and storage-location migration.
     /// </summary>
     public static class ProfileManager

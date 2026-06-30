@@ -24,7 +24,6 @@ namespace SecretZauce.SecondBrain
 
     /// <summary>
     /// Root ScriptableObject that acts as the top-level workspace container.
-    /// Formerly known as Motherbase; renamed to Profile to support multi-profile switching.
     /// </summary>
     public class Profile : ScriptableObject, IStructure<Base>
     {
