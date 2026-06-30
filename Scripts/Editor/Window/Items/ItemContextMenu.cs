@@ -74,7 +74,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (obj is not SceneObjectRef && obj is not SceneComponentRef)
                 menu.AddItem(new GUIContent("Rename"), false, window.BeginRenamingSelectedItem);
 
-            menu.AddItem(new GUIContent("Remove"), false, window.DeleteSelectedItems);
+            menu.AddItem(new GUIContent("Remove from Base"), false, window.DeleteSelectedItems);
 
             // ── Group 3: Properties ───────────────────────────────────────────
             menu.AddSeparator("");

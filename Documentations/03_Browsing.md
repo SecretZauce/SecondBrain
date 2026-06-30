@@ -132,11 +132,11 @@ Duplication is only available for leaf items (assets, references). Containers an
 
 ### Removing Items
 
-Right-click any item and choose **Remove**, or select it and press **Delete** / **Backspace**.
+Right-click any item and choose **Remove from Base**, or select it and press **Delete** / **Backspace**.
 
 What happens depends on how the item is stored:
 
-| Item type | What Remove does |
+| Item type | What Remove from Base does |
 |---|---|
 | Container, Action Item, or any asset embedded directly in the profile | Destroyed and removed from the profile file |
 | A linked asset with its own file (e.g. a Scene Object ref saved as a separate `.asset`) | Unlinked only — the file stays on disk |
