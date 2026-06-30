@@ -71,11 +71,6 @@ namespace SecretZauce.SecondBrain.Editor
                 }
             }
 
-            // Do not add a placeholder "No types found" entry here. Caller merges multiple
-            // sources (attribute-discovered types and per-instance options) and decides
-            // whether to show a fallback. Adding a disabled placeholder here caused the
-            // submenu to appear even when other sources (IHasCreateChildOption) provided items.
-
             return hasAny;
         }
     }

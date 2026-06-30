@@ -1,7 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
-using SecretZauce.SecondBrain;
 using UnityEditor;
 using UnityEngine;
 

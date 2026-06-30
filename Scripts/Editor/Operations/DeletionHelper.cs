@@ -10,13 +10,11 @@ namespace SecretZauce.SecondBrain.Editor
     /// </summary>
     public class DeletionHelper
     {
-        readonly UndoHelper undoHelper;
         readonly BrowserWindow window;
         IStructure Root => window?.Root;
 
-        public DeletionHelper(UndoHelper undoHelper, BrowserWindow window)
+        public DeletionHelper(BrowserWindow window)
         {
-            this.undoHelper = undoHelper;
             this.window = window;
         }
 

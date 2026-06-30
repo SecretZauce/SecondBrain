@@ -1,6 +1,5 @@
 ﻿#if SECOND_BRAIN_PRO
 using System.Collections.Generic;
-using SecretZauce.SecondBrain;
 using Object = UnityEngine.Object;
 
 namespace SecretZauce.SecondBrain.Editor

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SecretZauce.SecondBrain;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
