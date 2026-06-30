@@ -26,7 +26,7 @@ namespace SecretZauce.SecondBrain.Editor
         IStructure Root => ownerTreeView?.OwnerWindow?.Root;
 
         // Drag threshold to prevent accidental drags
-        const float DRAG_THRESHOLD = 5f; // pixels
+        const float DRAG_THRESHOLD = 2f; // pixels
         bool isPotentialDrag; // True when mouse is down but hasn't exceeded threshold yet
         Vector2 mouseDownPos; 
 
