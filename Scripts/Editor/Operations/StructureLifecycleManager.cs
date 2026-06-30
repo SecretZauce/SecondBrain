@@ -817,25 +817,46 @@ namespace SecretZauce.SecondBrain.Editor
             
             // Get the insertion index (right after the original)
             int insertIndex = path[^1] + 1;
-            var duplicate = Object.Instantiate(item);
             string uniqueName = AssetUtils.GenerateUniqueName(item.name, parent);
-            duplicate.name = uniqueName;
+            Object duplicate;
 
-            AssetUtils.CreateDuplicatedAsset(item, uniqueName, duplicate);
+            if (item is GameObject)
+            {
+                // Prefabs are GameObjects; AssetDatabase.CreateAsset can't save them.
+                // Copy the source .prefab file on disk instead.
+                string srcPath = AssetDatabase.GetAssetPath(item);
+                if (string.IsNullOrEmpty(srcPath)) return null;
+                string folder = System.IO.Path.GetDirectoryName(srcPath)?.Replace("\\", "/") ?? "Assets";
+                string newPath = $"{folder}/{uniqueName}.prefab";
+                int fileCounter = 1;
+                while (System.IO.File.Exists(newPath) && fileCounter < 1000)
+                    newPath = $"{folder}/{uniqueName} {fileCounter++}.prefab";
+                if (!AssetDatabase.CopyAsset(srcPath, newPath)) return null;
+                AssetDatabase.ImportAsset(newPath);
+                duplicate = AssetDatabase.LoadAssetAtPath<GameObject>(newPath);
+                if (duplicate == null) return null;
+                Undo.RegisterCreatedObjectUndo(duplicate, "Duplicate Item");
+            }
+            else
+            {
+                duplicate = Object.Instantiate(item);
+                duplicate.name = uniqueName;
+                AssetUtils.CreateDuplicatedAsset(item, uniqueName, duplicate);
+            }
 
             // Add to parent
             Undo.RegisterCompleteObjectUndo(parent as Object, "Duplicate Item");
             TryAddChild(parent, duplicate, insertIndex);
-            
+
             // Set the name AFTER adding to parent to ensure it sticks
             duplicate.name = uniqueName;
-            
+
             EditorUtility.SetDirty(parent as Object);
             EditorUtility.SetDirty(duplicate);
             AssetDatabase.SaveAssets();
             // Targeted refresh so the Project window reflects the new duplicate immediately.
             SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(parent as Object));
-            
+
             return duplicate;
         }
 
