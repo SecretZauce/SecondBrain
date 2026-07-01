@@ -5,6 +5,7 @@ using UnityEngine;
 namespace SecretZauce.SecondBrain.Editor
 {
     [CustomEditor(typeof(SceneComponentRef))]
+    [CanEditMultipleObjects]
     public class SceneComponentRefEditor : UnityEditor.Editor
     {
         UnityEditor.Editor resolvedEditor;

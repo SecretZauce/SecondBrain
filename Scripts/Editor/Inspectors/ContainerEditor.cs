@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -8,8 +10,13 @@ namespace SecretZauce.SecondBrain.Editor
     /// Custom inspector for <see cref="Container"/>.
     /// Each control is a single horizontal row: label on the left, toolbar buttons on the right.
     /// Emoji icon and Label Color are shown on the same row via the shared base class helper.
+    /// Supports multi-object editing: toolbar rows show a "mixed" state (no option highlighted)
+    /// when selected containers disagree, and applying a value updates every selected container.
+    /// The children list is only shown when a single container is selected, since each
+    /// container's children are inherently distinct.
     /// </summary>
     [CustomEditor(typeof(Container))]
+    [CanEditMultipleObjects]
     public class ContainerEditor : StructureInspectorBase
     {
         private static readonly string[] ChildViewLabels    = { "Foldouts", "Tabs" };
@@ -18,53 +25,72 @@ namespace SecretZauce.SecondBrain.Editor
         private ReorderableList childrenList;
         private SerializedProperty childrenProp;
 
+        private Container[] Containers => targets.Cast<Container>().ToArray();
+
         public override void OnInspectorGUI()
         {
             var container = (Container)target;
+            var containers = Containers;
             serializedObject.Update();
 
             DrawIconColorRow();
             EditorGUILayout.Space(30);
 
-            DrawOneLineToolbar("Container Expand", ExpandOptionLabels, (int)container.DefaultExpand, i =>
+            DrawOneLineToolbar("Container Expand", ExpandOptionLabels, (int)container.DefaultExpand,
+                IsMixed(containers, c => (int)c.DefaultExpand), i =>
             {
-                Undo.RecordObject(container, "Change Container Expand");
-                container.DefaultExpand = (DefaultExpandOption)i;
-                EditorUtility.SetDirty(container);
-                AssetDatabase.SaveAssets();
+                ApplyToAll(containers, "Change Container Expand", c => c.DefaultExpand = (DefaultExpandOption)i);
             });
 
             EditorGUILayout.Space(8);
             EditorGUILayout.LabelField("Child View / Quick Peek", EditorStyles.boldLabel);
 
-            DrawOneLineToolbar("Preferred Child View", ChildViewLabels, (int)container.PreferredChildView, i =>
+            DrawOneLineToolbar("Preferred Child View", ChildViewLabels, (int)container.PreferredChildView,
+                IsMixed(containers, c => (int)c.PreferredChildView), i =>
             {
-                Undo.RecordObject(container, "Change Preferred Child View");
-                container.PreferredChildView = (ChildViewMode)i;
-                EditorUtility.SetDirty(container);
-                AssetDatabase.SaveAssets();
+                ApplyToAll(containers, "Change Preferred Child View", c => c.PreferredChildView = (ChildViewMode)i);
             });
 
-            DrawOneLineToolbar("Child View Expand", ExpandOptionLabels, (int)container.ChildViewExpand, i =>
+            DrawOneLineToolbar("Child View Expand", ExpandOptionLabels, (int)container.ChildViewExpand,
+                IsMixed(containers, c => (int)c.ChildViewExpand), i =>
             {
-                Undo.RecordObject(container, "Change Child View Expand");
-                container.ChildViewExpand = (DefaultExpandOption)i;
-                EditorUtility.SetDirty(container);
-                AssetDatabase.SaveAssets();
+                ApplyToAll(containers, "Change Child View Expand", c => c.ChildViewExpand = (DefaultExpandOption)i);
             });
 
             EditorGUILayout.Space(6);
 
 #if SECOND_BRAIN_PRO
-            DrawDisableQuickPeek(container);
+            DrawDisableQuickPeek(containers);
 #endif
             EditorGUILayout.Space(10);
 
-            DrawChildrenList();
+            if (containers.Length > 1)
+                EditorGUILayout.HelpBox("Children list editing is not available when multiple containers are selected.", MessageType.Info);
+            else
+                DrawChildrenList();
+
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawOneLineToolbar(string label, string[] options, int current, System.Action<int> onChange)
+        private static bool IsMixed(Container[] containers, Func<Container, int> selector)
+        {
+            if (containers.Length < 2) return false;
+            int first = selector(containers[0]);
+            return containers.Any(c => selector(c) != first);
+        }
+
+        private static void ApplyToAll(Container[] containers, string undoLabel, Action<Container> apply)
+        {
+            foreach (var c in containers)
+            {
+                Undo.RecordObject(c, undoLabel);
+                apply(c);
+                EditorUtility.SetDirty(c);
+            }
+            AssetDatabase.SaveAssets();
+        }
+
+        private void DrawOneLineToolbar(string label, string[] options, int current, bool mixed, System.Action<int> onChange)
         {
             // Responsive toolbar: show a Popup when the inspector is too narrow for a tab-style toolbar
             const float controlMinWidth = 180f; // minimum width needed to display toolbar comfortably
@@ -83,20 +109,24 @@ namespace SecretZauce.SecondBrain.Editor
 
             EditorGUILayout.LabelField(label, GUILayout.Width(labelWidth));
 
+            // When values disagree across the selection, show no option as active; any click
+            // then unambiguously applies that option to every selected container.
+            int displayCurrent = mixed ? -1 : current;
+
             int selected;
             if (availableForControl < controlMinWidth)
             {
                 // Narrow: use a Popup (dropdown)
-                selected = EditorGUILayout.Popup(current, options, GUILayout.ExpandWidth(true));
+                selected = EditorGUILayout.Popup(displayCurrent, options, GUILayout.ExpandWidth(true));
             }
             else
             {
                 // Wide enough: use the tab-style toolbar
-                selected = GUILayout.Toolbar(current, options, GUILayout.MinWidth(90f));
+                selected = GUILayout.Toolbar(displayCurrent, options, GUILayout.MinWidth(90f));
             }
 
             EditorGUILayout.EndHorizontal();
-            if (selected != current)
+            if (selected != displayCurrent)
                 onChange(selected);
         }
 
@@ -136,19 +166,21 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
 #if SECOND_BRAIN_PRO
-        void DrawDisableQuickPeek(Container container)
+        void DrawDisableQuickPeek(Container[] containers)
         {
+            bool first = containers[0].DisableQuickPeek;
+            bool mixed = containers.Any(c => c.DisableQuickPeek != first);
+
+            EditorGUI.showMixedValue = mixed;
             EditorGUI.BeginChangeCheck();
             bool newVal = EditorGUILayout.Toggle(
                 new GUIContent("Disable Quick Peek",
                     "When enabled, Quick Peek is disabled for this container and all its children."),
-                container.DisableQuickPeek);
+                first);
+            EditorGUI.showMixedValue = false;
             if (EditorGUI.EndChangeCheck())
             {
-                Undo.RecordObject(container, "Toggle Disable Quick Peek");
-                container.DisableQuickPeek = newVal;
-                EditorUtility.SetDirty(container);
-                AssetDatabase.SaveAssets();
+                ApplyToAll(containers, "Toggle Disable Quick Peek", c => c.DisableQuickPeek = newVal);
             }
         }
 #endif
