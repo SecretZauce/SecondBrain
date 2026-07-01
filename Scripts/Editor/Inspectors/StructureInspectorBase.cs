@@ -25,17 +25,23 @@ namespace SecretZauce.SecondBrain.Editor
                 float iconSize = Mathf.Clamp(usable * 0.12f, 28f, 56f);
                 float colorSize = Mathf.Clamp(usable * 0.12f, 28f, 56f);
 
-                var colorTarget = target as IHasColor;
+                var emojiTargets = new List<IHasEmoji>();
+                var colorTargets = new List<IHasColor>();
+                foreach (var t in targets)
+                {
+                    if (t is IHasEmoji e) emojiTargets.Add(e);
+                    if (t is IHasColor c) colorTargets.Add(c);
+                }
 
-                if (target is IHasEmoji emojiTarget)
-                    DrawEmojiButton(emojiTarget, iconSize);
+                if (emojiTargets.Count > 0)
+                    DrawEmojiButton(emojiTargets, iconSize);
                 else
                     GUILayout.Space(iconSize);
 
                 GUILayout.Space(8);
 
-                if (colorTarget != null)
-                    DrawColorButton(colorTarget, colorSize);
+                if (colorTargets.Count > 0)
+                    DrawColorButton(colorTargets, colorSize);
                 else
                     GUILayout.Space(colorSize);
 
@@ -43,12 +49,17 @@ namespace SecretZauce.SecondBrain.Editor
             }
         }
 
-        void DrawEmojiButton(IHasEmoji emojiTarget, float iconSize)
+        void DrawEmojiButton(List<IHasEmoji> emojiTargets, float iconSize)
         {
-            string emojiValue = emojiTarget.EmojiIcon;
-            GUIContent btnContent;
+            string emojiValue = emojiTargets[0].EmojiIcon;
+            bool mixed = emojiTargets.Exists(t => t.EmojiIcon != emojiValue);
 
-            if (!string.IsNullOrEmpty(emojiValue) && EmojiIconUtils.IsEditorIcon(emojiValue))
+            GUIContent btnContent;
+            if (mixed)
+            {
+                btnContent = new GUIContent("—", "Multiple different icons — click to set for all selected");
+            }
+            else if (!string.IsNullOrEmpty(emojiValue) && EmojiIconUtils.IsEditorIcon(emojiValue))
             {
                 Texture tex = EmojiIconUtils.GetEditorIconTexture(emojiValue);
                 btnContent = tex != null ? new GUIContent(tex, "Click to change icon") : new GUIContent("?", "Click to change icon");
@@ -74,16 +85,23 @@ namespace SecretZauce.SecondBrain.Editor
             if (GUI.Button(btnRect, btnContent, emojiStyle))
             {
                 var screenPos = GUIUtility.GUIToScreenPoint(new Vector2(btnRect.x, btnRect.yMax));
-                EmojiTray.ShowForObject((Object)emojiTarget, screenPos);
+                EmojiTray.ShowForObjects(emojiTargets, screenPos);
             }
 
             var labelStyle = new GUIStyle(EditorStyles.miniLabel) { alignment = TextAnchor.MiddleCenter };
             EditorGUI.LabelField(new Rect(btnRect.x, btnRect.yMax + 1, btnRect.width, 14), "Icon", labelStyle);
         }
 
-        void DrawColorButton(IHasColor colorTarget, float colorSize)
+        void DrawColorButton(List<IHasColor> colorTargets, float colorSize)
         {
-            Color swatchColor = colorTarget.HasLabelColor ? colorTarget.LabelColor : (EditorGUIUtility.isProSkin ? new Color(0.3f, 0.3f, 0.3f) : new Color(0.75f, 0.75f, 0.75f));
+            var first = colorTargets[0];
+            bool mixed = colorTargets.Exists(t =>
+                t.HasLabelColor != first.HasLabelColor ||
+                (first.HasLabelColor && t.LabelColor != first.LabelColor));
+
+            Color swatchColor = !mixed && first.HasLabelColor
+                ? first.LabelColor
+                : (EditorGUIUtility.isProSkin ? new Color(0.3f, 0.3f, 0.3f) : new Color(0.75f, 0.75f, 0.75f));
 
             Rect btnRect = GUILayoutUtility.GetRect(colorSize, colorSize, GUILayout.Width(colorSize), GUILayout.Height(colorSize));
 
@@ -92,10 +110,15 @@ namespace SecretZauce.SecondBrain.Editor
             Rect inner = new Rect(btnRect.x + 1, btnRect.y + 1, btnRect.width - 2, btnRect.height - 2);
             EditorGUI.DrawRect(inner, swatchColor);
 
+            if (mixed)
+            {
+                var mixedStyle = new GUIStyle(EditorStyles.miniLabel) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold };
+                EditorGUI.LabelField(inner, "?", mixedStyle);
+            }
+
             if (GUI.Button(btnRect, GUIContent.none, GUIStyle.none))
             {
                 var screenPos = GUIUtility.GUIToScreenPoint(new Vector2(btnRect.x, btnRect.yMax));
-                var colorTargets = new List<IHasColor> { colorTarget };
                 ColorTray.ShowForObjects(colorTargets, screenPos);
             }
 

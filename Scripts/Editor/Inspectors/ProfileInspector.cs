@@ -10,6 +10,7 @@ namespace SecretZauce.SecondBrain.Editor
     /// PRO mode   : full default inspector.
     /// </summary>
     [CustomEditor(typeof(Profile))]
+    [CanEditMultipleObjects]
     internal class ProfileInspector : UnityEditor.Editor
     {
         SerializedProperty baseListProp;
@@ -19,7 +20,10 @@ namespace SecretZauce.SecondBrain.Editor
         {
             baseListProp = serializedObject.FindProperty("baseList");
 #if !SECOND_BRAIN_PRO
-            BuildReadOnlyList();
+            // The read-only base list is bound to a single Profile's array; it doesn't make
+            // sense to show a merged view when multiple Profiles are selected.
+            if (targets.Length == 1)
+                BuildReadOnlyList();
 #endif
         }
 
@@ -62,8 +66,15 @@ namespace SecretZauce.SecondBrain.Editor
 
             EditorGUILayout.Space(6);
 
-            if (readOnlyList == null) BuildReadOnlyList();
-            readOnlyList?.DoLayoutList();
+            if (targets.Length > 1)
+            {
+                EditorGUILayout.HelpBox("Base list editing is not available when multiple Profiles are selected.", MessageType.Info);
+            }
+            else
+            {
+                if (readOnlyList == null) BuildReadOnlyList();
+                readOnlyList?.DoLayoutList();
+            }
 #endif
             serializedObject.ApplyModifiedProperties();
         }

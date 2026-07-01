@@ -10,19 +10,20 @@ namespace SecretZauce.SecondBrain.Editor
     /// run the action directly from the Inspector
     /// </summary>
     [CustomEditor(typeof(ActionItem), true)]
+    [CanEditMultipleObjects]
     public class ActionItemEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
-            var actionItem = (ActionItem)target;
-
             EditorGUILayout.Space(4);
 
+            string buttonLabel = targets.Length > 1 ? $"▶  Execute ({targets.Length})" : "▶  Execute";
             using (new EditorGUI.DisabledScope(false))
             {
-                if (GUILayout.Button("▶  Execute", GUILayout.Height(28)))
+                if (GUILayout.Button(buttonLabel, GUILayout.Height(28)))
                 {
-                    actionItem.Execute();
+                    foreach (var t in targets)
+                        (t as ActionItem)?.Execute();
                 }
             }
 
