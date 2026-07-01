@@ -8,6 +8,9 @@ namespace SecretZauce.SecondBrain.Editor
     {
         protected override IStructure HomeRoot => Profile.Active;
 
+#if SECOND_BRAIN_PRO
+        // Pro supports multiple Profiles/Bases, so both entry points are useful.
+
         // Menu item: open Home (no default-base navigation)
         [MenuItem("Window/Second Brain (Home)")]
         static void OpenHomeMenu()
@@ -21,6 +24,15 @@ namespace SecretZauce.SecondBrain.Editor
         {
             OpenDefaultOrHome();
         }
+#else
+        // Free supports only a single Profile/Base, so there's nothing to browse at Home —
+        // always jump straight into the one Base that exists.
+        [MenuItem("Window/Second Brain Window")]
+        static void OpenWindowMenu()
+        {
+            OpenDefaultBase();
+        }
+#endif
 
         // Shortcut: Shift+Q — focus existing window, or open one if none exists
         [Shortcut("Second Brain/Focus Window", KeyCode.W, ShortcutModifiers.Shift)]
@@ -61,6 +73,7 @@ namespace SecretZauce.SecondBrain.Editor
             }
         }
 
+#if SECOND_BRAIN_PRO
         static void OpenDefaultOrHome()
         {
             try
@@ -71,6 +84,34 @@ namespace SecretZauce.SecondBrain.Editor
                 if (profile != null && profile.DefaultBase != null)
                 {
                     try { wnd.SetTarget(profile.DefaultBase); } catch { }
+                }
+            }
+            catch
+            {
+                BrowserWindow.OpenWindow<SecondBrainWindow>();
+            }
+        }
+#endif
+
+        /// <summary>
+        /// Opens (or reveals) the window and navigates straight into the active Profile's
+        /// Default Base, falling back to its first Base if no default is assigned. Uses
+        /// SetTarget directly (no undo) — this is an entry point, not an in-window navigation
+        /// action, and Free only ever has the one Base to land on.
+        /// </summary>
+        internal static void OpenDefaultBase()
+        {
+            try
+            {
+                var profile = Profile.Active;
+                BrowserWindow.OpenWindow<SecondBrainWindow>();
+                var wnd = EditorWindow.GetWindow<SecondBrainWindow>();
+                var target = profile != null ? profile.DefaultBase : null;
+                if (target == null && profile != null && profile.Children.Count > 0)
+                    target = profile.Children[0];
+                if (target != null)
+                {
+                    try { wnd.SetTarget(target); } catch { }
                 }
             }
             catch

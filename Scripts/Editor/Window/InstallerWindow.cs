@@ -204,7 +204,7 @@ namespace SecretZauce.SecondBrain.Editor
             GUILayout.BeginVertical(EditorStyles.helpBox);
 
             if (GUILayout.Button("Open SecondBrain Window", GUILayout.Height(30)))
-                GetWindow<SecondBrainWindow>();
+                SecondBrainWindow.OpenDefaultBase();
 
             GUILayout.EndVertical();
         }
