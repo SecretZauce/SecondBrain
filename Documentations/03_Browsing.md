@@ -2,8 +2,6 @@
 
 ### Entering a Base
 
-<img alt="Entering a Base by double-clicking or clicking the arrow" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/enter-base.gif" width="600"/>
-
 Double-click a Base, click the **>** arrow on the right side of its row, or select it and press **Return** to navigate into it. The window title and toolbar update to show the Base name — including its emoji if one is set.
 
 > [!NOTE]
@@ -45,8 +43,6 @@ Drag any asset from Unity's **Project** window onto a Container or Base. You can
 - **Across tabs** — hover the SecondBrain tab in the dock while dragging (without needing to focus it first) and drop at the target position inside the tree.
 
 ### Creating Items
-
-<img alt="Creating a child item via right-click context menu" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/create-items.gif" width="600"/>
 
 Right-click any Container or Base and choose **Create Child**. A submenu lists all valid child types for that node. You can also click the **+** button that appears at the right side of a selected row to create a new child Container directly.
 
@@ -156,8 +152,6 @@ All operations — create, rename, delete, duplicate, reparent, move, and naviga
 ## Drag & Drop
 
 ### Reordering Within the Tree
-
-<img alt="Reordering items with drag and drop" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/reorder.gif" width="600"/>
 
 Drag any row to reorder it within its parent or move it into a different Container. A drop indicator shows the exact insertion point. The drag only activates after you exceed a short distance threshold, so single-click selection is not affected.
 

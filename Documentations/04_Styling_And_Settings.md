@@ -1,7 +1,7 @@
 ## Styling — Emoji and Colors
 
 Styling options are available on Containers and Bases. Right-click a node to access them. When multiple nodes are selected, the style is applied to all of them simultaneously.
-<img alt="Color styles on tree rows" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/pngs/visual-styling.png" width="600"/>
+<img alt="Color styles on tree rows" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/visual-styling.gif" width="600"/>
 
 ### Emoji / Icon
 

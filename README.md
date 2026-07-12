@@ -17,7 +17,7 @@
 SecondBrain brings a powerful second hierarchy window to the Unity Editor, giving you a structured and searchable way to organize Assets, Prefabs, Scenes, GameObjects, Components, and Executable Actions.
 Packed with productivity boosts to help you navigate complex projects with ease, and get more done.
 
-<img alt="Your second hierarchy window" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/hierarchy-preview.png" width="600"/>
+<img alt="Your second hierarchy window" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/pngs/hierarchy-preview.png" width="600"/>
 
 ## Table of Contents
 
@@ -104,7 +104,7 @@ Hover over the **left or right edge** of any row to see a floating inspector pop
 
 ### Scene Linking *(PRO)*
 
-<img alt="Scene Linking — a Base auto-opens when its linked scene loads" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/scene-linking.png" width="600"/>
+<img alt="Scene Linking — a Base auto-opens when its linked scene loads" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/scene-linking.gif" width="600"/>
 
 Link a Base to a scene. When that scene opens in the editor, SecondBrain opens straight to that workspace automatically.
 
@@ -141,7 +141,7 @@ See the full [Keyboard Shortcuts](https://github.com/SecretZauce/SecondBrain/wik
 
 ### Visual Styling
 
-<img alt="Visual Styling — emoji icons and color styles on tree rows" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/visual-styling.png" width="600"/>
+<img alt="Visual Styling — emoji icons and color styles on tree rows" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/visual-styling.gif" width="600"/>
 
 Right-click any Container or Base to set an emoji (or any built-in Unity editor icon) and a label color. Four color styles let you decide how prominent the highlight is:
 

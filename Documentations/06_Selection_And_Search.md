@@ -16,8 +16,6 @@ Selection is cleared automatically when you navigate to a different node.
 
 ## Search
 
-<img alt="Real-time search filtering the tree" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/search.gif" width="600"/>
-
 Type in the search bar at the top of the toolbar to filter the tree in real time. Search is:
 - **Case-insensitive**
 - **Substring match** — matches any part of a node's name

@@ -58,8 +58,6 @@ Hover over the **left or right side** of a tree row to see a floating preview pa
 
 ### Tabs and Foldouts mode
 
-<img alt="Quick Peek Tabs and Foldouts mode" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/quick-peek-tabs-foldouts.gif" width="600"/>
-
 The panel header contains a layout toggle (tab icon / foldout icon) to switch between **Tabs** and **Foldouts** mode.
 
 **Tabs mode** — each child or component is a selectable tab. The selected tab index is remembered per item between sessions.
@@ -67,8 +65,6 @@ The panel header contains a layout toggle (tab icon / foldout icon) to switch be
 **Foldouts mode** — children are shown as expandable foldout rows. An **Expand / Collapse All** button appears in the panel header.
 
 **Other behavior:**
-
-<img alt="Quick Peek behavior" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/quick-peek-behavior.gif" width="600"/>
 
 - Moving the cursor away from both the row and the panel dismisses Quick Peek.
 - Quick Peek is suppressed while a drag is in progress.
