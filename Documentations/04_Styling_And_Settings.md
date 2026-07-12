@@ -1,6 +1,7 @@
 ## Styling — Emoji and Colors
 
 Styling options are available on Containers and Bases. Right-click a node to access them. When multiple nodes are selected, the style is applied to all of them simultaneously.
+<br>
 <img alt="Color styles on tree rows" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/visual-styling.gif" width="480" height="270"/>
 
 ### Emoji / Icon
@@ -48,8 +49,6 @@ Selecting a Base or Container and opening the Unity **Inspector** shows a dedica
 
 ### Container Inspector
 
-<img alt="Container Inspector" src="pngs/container-inspector.png" width="600"/>
-
 - Set emoji and color.
 - Set **Preferred Child View** (Foldouts or Tabs) — controls how children appear in [Quick Peek](05_Pro_Features.md#quick-peek).
 - Set **Container Expand** and **Child View Expand** — each uses the same three options:
@@ -66,8 +65,6 @@ Selecting a Base or Container and opening the Unity **Inspector** shows a dedica
 - Enable **Disable Quick Peek** *(PRO)* to suppress hover previews for this Container and all its descendants.
 
 ### Base Inspector
-
-<img alt="Base Inspector" src="pngs/base-inspector.png" width="600"/>
 
 - Set emoji and color.
 - *(PRO)* Set the **Scene Link** — object picker or **Open Scenes** dropdown. See [PRO: Scene Linking](05_Pro_Features.md#scene-linking).

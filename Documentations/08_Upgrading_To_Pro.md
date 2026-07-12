@@ -18,7 +18,8 @@ Purchase and download links are available through the Installer Window (**Tools 
 
 The **Pro Installer** window opens automatically and shows a warning. Click **Accept — Add Package** to install the free base package directly from the Package Manager. Unity recompiles and both packages become active.
 
-> [!NOTE] You can also reopen this window via **Tools → Second Brain → Pro Installer**.
+> [!NOTE] 
+> You can also reopen this window via **Tools > Second Brain > Pro Installer**.
 
 ---
 
