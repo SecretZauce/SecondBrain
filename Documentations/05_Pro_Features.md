@@ -8,7 +8,7 @@ A **Profile** is the top-level root of the SecondBrain hierarchy — it holds al
 
 ### Switching Profiles
 
-<img alt="Profile dropdown in the browser header" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/profile-dropdown.gif" width="600"/>
+<img alt="Profile dropdown in the browser header" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/profile-dropdown.gif" width="480" height="270"/>
 
 The **profile dropdown** in the browser header shows the currently active profile. Click it to switch or create a new one.
 
@@ -34,7 +34,7 @@ Click the ⚙ icon next to the profile dropdown to open the **SecondBrain Core**
 
 ## Multiple Tabs
 
-<img alt="Multiple Tabs Support" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/multiple-windows.gif" width="600"/>
+<img alt="Multiple Tabs Support" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/multiple-windows.gif" width="480" height="270"/>
 
 Click the **new tab button** in the toolbar to open a new tab on the same layout. Each tab / window tracks its own navigation history, foldout state, and selection independently.
 
@@ -42,7 +42,7 @@ Click the **new tab button** in the toolbar to open a new tab on the same layout
 
 ## Quick Peek
 
-<img alt="Quick Peek triggered by hovering the left or right edge of a row" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/quick-peek.gif" width="600"/>
+<img alt="Quick Peek triggered by hovering the left or right edge of a row" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/quick-peek.gif" width="480" height="270"/>
 
 Hover over the **left or right side** of a tree row to see a floating preview panel alongside it — without navigating away. Hovering the center of a row does not trigger Quick Peek.
 
@@ -86,7 +86,7 @@ The panel header contains a layout toggle (tab icon / foldout icon) to switch be
 
 ## Quick Browse
 
-<img alt="Quick Browse floating popup opened with Alt+W" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/quick-browse.gif" width="600"/>
+<img alt="Quick Browse floating popup opened with Alt+W" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/quick-browse.gif" width="480" height="270"/>
 
 **Alt+W** *(Win/Linux)* / **Option+W** *(Mac)* opens a floating browser window centered on the Unity editor — from anywhere, any time.
 

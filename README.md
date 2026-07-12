@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./Resources/Editor/Branding/SecondBrain_Transparent.png" alt="SecondBrain" width="420"/>
+  <img src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/pngs/SecondBrain_SocialMedia.png" alt="SecondBrain" width="720"/>
 </p>
 
 <p align="center">
@@ -19,7 +19,10 @@ Packed with productivity boosts to help you navigate complex projects with ease,
 
 This repository contains the free version of SecondBrain. Upgrade to [**PRO version**](https://assetstore.unity.com/packages/slug/383598) on the Unity Asset Store for more features, unlimited functionality, and long-term support.
 
-<img alt="Your second hierarchy window" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/pngs/hierarchy-preview.png" width="600"/>
+<p>
+<img src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/pngs/SecondBrain_Slideshow_1.png" width="500"/>
+<img src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/pngs/SecondBrain_Slideshow_2.png" width="500"/>
+</p>
 
 ## Table of Contents
 
@@ -40,7 +43,7 @@ This repository contains the free version of SecondBrain. Upgrade to [**PRO vers
 
 Drag or add anything from your project into the SecondBrain window to create a reference to it.
 
-<img alt="Try Dragging any objects or assets into SecondBrain window" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/drag-items.gif" width="600"/>
+<img alt="Try Dragging any objects or assets into SecondBrain window" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/drag-items.gif" width="480" height="270"/>
 
 | What you add                                            | Source                             | What is stored                                                                    | Productivity Features                                                                                                                                     |
 |---------------------------------------------------------|------------------------------------|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -88,7 +91,7 @@ Navigate your project faster with these productivity boosts.
 
 ### Quick Peek *(PRO)*
 
-<img alt="Take a glance at your item on hovering" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/quick-peek.gif" width="600"/>
+<img alt="Take a glance at your item on hovering" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/quick-peek.gif" width="480" height="270"/>
 
 Hover over the **left or right edge** of any row to see a floating inspector popup of each asset / object if available.
 - GameObjects show their components in a tabbed or foldout layout.
@@ -97,7 +100,7 @@ Hover over the **left or right edge** of any row to see a floating inspector pop
 
 ### Quick Browse *(PRO)*
 
-<img alt="Quickly navigate to frequently used items" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/quick-browse.gif" width="600"/>
+<img alt="Quickly navigate to frequently used items" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/quick-browse.gif" width="480" height="270"/>
 
 **Alt+W** *(Win/Linux)* / **Option+W** *(Mac)* opens a floating browser window centered on the editor — from anywhere, any time.
 - Start typing and the search bar is already focused.
@@ -106,7 +109,7 @@ Hover over the **left or right edge** of any row to see a floating inspector pop
 
 ### Scene Linking *(PRO)*
 
-<img alt="Scene Linking — a Base auto-opens when its linked scene loads" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/scene-linking.gif" width="600"/>
+<img alt="Scene Linking — a Base auto-opens when its linked scene loads" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/scene-linking.gif" width="480" height="270"/>
 
 Link a Base to a scene. When that scene opens in the editor, SecondBrain opens straight to that workspace automatically.
 
@@ -143,7 +146,7 @@ See the full [Keyboard Shortcuts](https://github.com/SecretZauce/SecondBrain/wik
 
 ### Visual Styling
 
-<img alt="Visual Styling — emoji icons and color styles on tree rows" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/visual-styling.gif" width="600"/>
+<img alt="Visual Styling — emoji icons and color styles on tree rows" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/visual-styling.gif" width="480" height="270"/>
 
 Right-click any Container or Base to set an emoji (or any built-in Unity editor icon) and a label color. Four color styles let you decide how prominent the highlight is:
 

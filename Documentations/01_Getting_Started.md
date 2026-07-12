@@ -39,7 +39,7 @@ The Installer Window opens automatically after setup. You can also reopen it any
 
 ## Getting Around
 
-<img alt="Dragging items into SecondBrain from various sources" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/drag-items.gif" width="600"/>
+<img alt="Dragging items into SecondBrain from various sources" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/drag-items.gif" width="480" height="270"/>
 
 Once the window is open, you can start filling it immediately:
 

@@ -34,7 +34,7 @@ When you are inside a Base, a tag bar appears at the bottom of the window:
 
 ### Adding Existing Assets
 
-<img alt="Dragging assets from Project, Hierarchy, and Inspector" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/drag-drop.gif" width="600"/>
+<img alt="Dragging assets from Project, Hierarchy, and Inspector" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/drag-drop.gif" width="480" height="270"/>
 
 Drag any asset from Unity's **Project** window onto a Container or Base. You can also drag from:
 
@@ -92,7 +92,7 @@ Pressing **Return** (or double-clicking when **Double-Click Action** is set to *
 
 ### Focus Toggles
 
-<img alt="Focus toggle" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/focus-toggle.gif" width="600"/>
+<img alt="Focus toggle" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/focus-toggle.gif" width="480" height="270"/>
 
 Several item types display a small focus icon on the right side of their row. Clicking it toggles focus-on-select behaviour for that specific item. The icon turns blue when enabled.
 
@@ -170,7 +170,7 @@ Scene GameObjects dragged from the Hierarchy are wrapped in a Scene Object refer
 
 ### Dragging Out *(PRO)*
 
-<img alt="Dragging an item from SecondBrain into the Scene View" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/drag-out.gif" width="600"/>
+<img alt="Dragging an item from SecondBrain into the Scene View" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/gifs/drag-out.gif" width="480" height="270"/>
 
 Items can be dragged back out of SecondBrain to other Unity windows:
 
