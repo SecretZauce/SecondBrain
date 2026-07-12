@@ -225,7 +225,7 @@ On first launch, SecondBrain runs a one-time setup and automatically opens the *
 
 1. Purchase and download SecondBrain PRO from the [Unity Asset Store](https://assetstore.unity.com/packages/slug/383598).
 2. Import the PRO `.unitypackage` into your project (the installer will prompt you to install the free package from GitHub if it is not already present).
-3. Unity recompiles and PRO features activate automatically — no license key required.
+3. Unity recompiles and PRO features activate automatically — no license key required. On completion, the **Installer Window** opens automatically, same as the Free setup flow.
 
 > [!NOTE]
 > Both packages must be at matching versions. A **Version Mismatch** dialog appears if they fall out of sync and links you to the correct update.

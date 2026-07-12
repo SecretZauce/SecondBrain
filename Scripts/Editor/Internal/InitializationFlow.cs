@@ -120,10 +120,10 @@ namespace SecretZauce.SecondBrain.Editor
             AssetDatabase.SaveAssets();
 
             Progress.Report(progressId, 0.9f, "Opening SecondBrain...");
-            Debug.Log("[SecondBrain] SecondBrain Pro is ready. Opening window.");
+            Debug.Log("[SecondBrain] SecondBrain Pro is ready. Opening installer.");
             Progress.Finish(progressId, Progress.Status.Succeeded);
 
-            EditorApplication.delayCall += () => EditorWindow.GetWindow<SecondBrainWindow>();
+            EditorApplication.delayCall += InstallerWindow.Open;
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────────
