@@ -17,7 +17,8 @@
 SecondBrain brings a powerful second hierarchy window to the Unity Editor, giving you a structured and searchable way to organize Assets, Prefabs, Scenes, GameObjects, Components, and Executable Actions.
 Packed with productivity boosts to help you navigate complex projects with ease, and get more done.
 
-> [!NOTE] This repository contains the free version of SecondBrain. Upgrade to [PRO version](https://assetstore.unity.com/packages/slug/383598) on the Unity Asset Store for more features, unlimited functionality, and long-term support.
+> [!NOTE] This repository contains the free version of SecondBrain. Upgrade to [PRO version](https://assetstore.unity.com/packages/slug/383598) 
+> on the Unity Asset Store for more features, unlimited functionality, and long-term support.
 
 <img alt="Your second hierarchy window" src="https://github.com/SecretZauce/SecondBrainDocAssets/blob/main/pngs/hierarchy-preview.png" width="600"/>
 
