@@ -39,6 +39,15 @@ namespace SecretZauce.SecondBrain.Editor
         // from user/external selection changes without relying on delayed resets or unsubscribing handlers.
         HashSet<Object> expectedUnitySelection;
 
+        // Snapshot of selectionState's paths as of the last time we deliberately synced them to
+        // Unity's Selection (or deliberately cleared them). WindowFocusManager.CurrentWindow stays
+        // pinned to this window indefinitely once any tree item has been selected, so it cannot by
+        // itself tell OnUndoRedoPerformed whether a given undo/redo actually touched selectionState.
+        // Comparing against this snapshot lets RestoreSelection skip re-applying Selection.objects
+        // for unrelated undo/redo events (e.g. undoing a plain Hierarchy selection change), instead
+        // of unconditionally stomping whatever Unity's own undo just restored.
+        List<int[]> lastSyncedSelectionPaths = new List<int[]>();
+
         public BrowserController(BrowserWindow window, UndoHelper undoHelper, SelectionStateSO existingSelectionState = null)
         {
             this.undoHelper = undoHelper ?? new UndoHelper(Root);
@@ -46,7 +55,12 @@ namespace SecretZauce.SecondBrain.Editor
 
             // If an existing selection state is provided (preserved across reinit), reuse it.
             if (existingSelectionState != null)
+            {
                 selectionState = existingSelectionState;
+                // Seed the sync snapshot from the reused state so RestoreSelection's change
+                // detection starts accurate instead of treating the first undo/redo as a change.
+                lastSyncedSelectionPaths = selectionState.GetAllPaths();
+            }
 
             LifecycleManager = new StructureLifecycleManager(window, this.undoHelper);
             LifecycleManager.OnStructureChanged += () => {
@@ -149,13 +163,21 @@ namespace SecretZauce.SecondBrain.Editor
             }
             
             var undoneWindow = WindowFocusManager.GetCurrentWindow();
-          
+
             // Only update Unity selection if this window is the one that should be active
             // This prevents multiple windows from fighting over Unity's selection
             // Also check that undoneWindow still exists (it might have been closed)
             if (undoneWindow != null && undoneWindow == hostWindow)
             {
-                UpdateUnitySelection(selectionState.GetAllPaths());
+                // WindowFocusManager.CurrentWindow stays pinned to this window for the rest of the
+                // session once any tree item has been selected here, so its equality with hostWindow
+                // does NOT mean this particular undo/redo touched our selection. Only push to Unity's
+                // Selection if selectionState's paths actually differ from what we last synced -
+                // otherwise we'd stomp a legitimate, unrelated native selection undo/redo (e.g. a
+                // plain Hierarchy selection change) with our stale, unrelated selection snapshot.
+                var currentPaths = selectionState.GetAllPaths();
+                if (!SelectionPathsEqual(currentPaths, lastSyncedSelectionPaths))
+                    UpdateUnitySelection(currentPaths);
             }
             
             // Always repaint THIS window to show its own selection state
@@ -180,6 +202,8 @@ namespace SecretZauce.SecondBrain.Editor
 
         void UpdateUnitySelection(List<int[]> selectedPaths)
         {
+            lastSyncedSelectionPaths = selectedPaths ?? new List<int[]>();
+
             if (selectedPaths == null || selectedPaths.Count == 0)
             {
                 expectedUnitySelection = new HashSet<Object>();
@@ -251,6 +275,20 @@ namespace SecretZauce.SecondBrain.Editor
                 };
         }
 
+        static bool SelectionPathsEqual(List<int[]> a, List<int[]> b)
+        {
+            int aCount = a?.Count ?? 0;
+            int bCount = b?.Count ?? 0;
+            if (aCount != bCount)
+                return false;
+
+            for (int i = 0; i < aCount; i++)
+                if (!StructureUtils.ArePathsEqual(a[i], b[i]))
+                    return false;
+
+            return true;
+        }
+
         public Object GetObjectAtPath(int[] path)
         {
             return StructureUtils.GetNodeAtPath(path, Collections);
@@ -285,6 +323,9 @@ namespace SecretZauce.SecondBrain.Editor
             // Clear the browser's selection state without modifying Unity's selection.
             selectionState.ClearSelectionWithoutNotify();
             EditorUtility.SetDirty(selectionState);
+            // Keep the sync snapshot in step so a later unrelated undo/redo doesn't see this
+            // now-empty selectionState as "changed" and force-clear Unity's selection again.
+            lastSyncedSelectionPaths = new List<int[]>();
 
             // Request a repaint of the host window so the tree reflects the cleared selection
             hostWindow?.Repaint();
