@@ -278,9 +278,8 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     Debug.LogError(
                         $"[SecondBrain] Skipped orphaned sub-asset cleanup for '{Path.GetFileName(path)}' — " +
-                        $"all {scriptableObjectSubAssetCount} embedded sub-asset(s) appeared unreferenced, " +
-                        "which usually means the active Profile was resolved incorrectly rather than the " +
-                        "file genuinely being empty. No data was removed; please verify this file manually.");
+                        $"all {scriptableObjectSubAssetCount} ScriptableObject sub-asset(s) appeared unreferenced, " +
+                        "which usually means the active Profile was resolved incorrectly rather than the file genuinely containing only orphans. No data was removed; please verify this file manually.");
                     continue;
                 }
 
