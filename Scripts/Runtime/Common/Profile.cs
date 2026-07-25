@@ -125,10 +125,46 @@ namespace SecretZauce.SecondBrain
                     return asset;
             }
 
+            // ── 2b. Safety net: Resources.Load relies on Unity's resource index, which can be
+            // transiently stale right after a domain reload (e.g. immediately following a
+            // scripting-define change such as Pro activation). Before concluding no Profile
+            // exists, do a direct path-based load — this bypasses the resource index entirely
+            // and catches the case where the file is present on disk but Resources.Load missed it.
+            foreach (var folder in searchPaths)
+            {
+                string directPath = $"{folder}/{PROFILE_NAME}.asset";
+                var asset = AssetDatabase.LoadAssetAtPath<Profile>(directPath);
+                if (asset != null)
+                {
+                    Debug.LogWarning(
+                        $"[SecondBrain] Resources.Load missed an existing Profile at '{directPath}' " +
+                        "(stale resource index after reload) — recovered it via direct path load " +
+                        "instead of creating a new one.");
+                    return asset;
+                }
+            }
+
             // ── 3. Create a new Profile asset in EditorResources (default) ──────────
             EnsureFolderPath(FOLDER_EDITOR_RESOURCES);
+            string newPath = $"{FOLDER_EDITOR_RESOURCES}/{PROFILE_NAME}.asset";
+
+            // Guard against AssetDatabase.CreateAsset silently clobbering a file that already
+            // exists at this path (which would happen if the checks above still failed to find
+            // a Profile that is genuinely there, e.g. it exists but is a different/corrupt type).
+            // Fall back to a uniquely-numbered path instead of overwriting whatever is there —
+            // callers rely on Profile.Active always being non-null, so we still return a usable
+            // Profile, just without touching the pre-existing file.
+            if (AssetDatabase.LoadMainAssetAtPath(newPath) != null)
+            {
+                Debug.LogError(
+                    $"[SecondBrain] An asset already exists at '{newPath}' but could not be loaded " +
+                    "as a Profile — creating a new Profile under a different name instead of " +
+                    "overwriting it. Please check the existing file manually.");
+                newPath = AssetDatabase.GenerateUniqueAssetPath(newPath);
+            }
+
             var newAsset = CreateInstance<Profile>();
-            AssetDatabase.CreateAsset(newAsset, $"{FOLDER_EDITOR_RESOURCES}/{PROFILE_NAME}.asset");
+            AssetDatabase.CreateAsset(newAsset, newPath);
             AssetDatabase.SaveAssets();
             EditorUtility.SetDirty(newAsset);
             AssetDatabase.Refresh();

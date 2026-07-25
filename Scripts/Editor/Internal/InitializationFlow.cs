@@ -251,13 +251,41 @@ namespace SecretZauce.SecondBrain.Editor
                 catch { continue; }
                 if (allAtPath == null) continue;
 
+                // Collect candidates first instead of destroying inline. This lets us apply a
+                // whole-file safety check before touching anything.
+                var candidates = new List<Object>();
+                int scriptableObjectSubAssetCount = 0;
                 foreach (var asset in allAtPath)
                 {
                     if (asset == null) continue;
                     if (!AssetDatabase.IsSubAsset(asset)) continue;
                     if (asset is not ScriptableObject) continue;
-                    if (referencedIds.Contains(asset.GetInstanceID())) continue;
 
+                    scriptableObjectSubAssetCount++;
+                    if (!referencedIds.Contains(asset.GetInstanceID()))
+                        candidates.Add(asset);
+                }
+
+                if (candidates.Count == 0) continue;
+
+                // Safety check: if every single sub-asset in this file would be deleted, the
+                // live tree we walked is almost certainly incomplete or resolved to the wrong
+                // Profile/Base (e.g. a transient mis-resolution right after a domain reload)
+                // rather than the file genuinely being all-orphaned. Refuse to wipe an entire
+                // file in one pass — leave it untouched and surface it loudly so it can be
+                // investigated instead of silently destroying data.
+                if (candidates.Count == scriptableObjectSubAssetCount)
+                {
+                    Debug.LogError(
+                        $"[SecondBrain] Skipped orphaned sub-asset cleanup for '{Path.GetFileName(path)}' — " +
+                        $"all {scriptableObjectSubAssetCount} embedded sub-asset(s) appeared unreferenced, " +
+                        "which usually means the active Profile was resolved incorrectly rather than the " +
+                        "file genuinely being empty. No data was removed; please verify this file manually.");
+                    continue;
+                }
+
+                foreach (var asset in candidates)
+                {
                     Debug.Log($"[SecondBrain] Removing orphaned sub-asset '{asset.name}' ({asset.GetType().Name}) from {Path.GetFileName(path)}");
                     AssetDatabase.RemoveObjectFromAsset(asset);
                     Object.DestroyImmediate(asset, true);
