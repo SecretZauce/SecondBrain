@@ -64,6 +64,13 @@ namespace SecretZauce.SecondBrain.Editor
                 Texture tex = EmojiIconUtils.GetEditorIconTexture(emojiValue);
                 btnContent = tex != null ? new GUIContent(tex, "Click to change icon") : new GUIContent("?", "Click to change icon");
             }
+            else if (!string.IsNullOrEmpty(emojiValue) && !EmojiSupport.IsSupported)
+            {
+                // The glyph would draw at zero width here, leaving an empty-looking button.
+                var warn = EditorGUIUtility.IconContent("console.warnicon.sml").image;
+                string tip = EmojiSupport.UnsupportedTooltip + " Click to change icon.";
+                btnContent = warn != null ? new GUIContent(warn, tip) : new GUIContent("!", tip);
+            }
             else if (!string.IsNullOrEmpty(emojiValue))
             {
                 btnContent = new GUIContent(emojiValue, "Click to change icon");

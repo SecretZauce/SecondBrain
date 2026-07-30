@@ -142,7 +142,10 @@ namespace SecretZauce.SecondBrain.Editor
             // Upgrade to PRO
             using (new EditorGUI.DisabledGroupScope(string.IsNullOrEmpty(upgradeUrl)))
             {
-                if (GUILayout.Button("Upgrade to PRO ✨", GUILayout.Height(30)))
+                // ✨ (U+2728) is missing from the editor font and draws at zero width
+                // before Unity 6, which would leave a dangling space in the label.
+                string upgradeLabel = EmojiSupport.IsSupported ? "Upgrade to PRO ✨" : "Upgrade to PRO";
+                if (GUILayout.Button(upgradeLabel, GUILayout.Height(30)))
                 {
                     if (!string.IsNullOrEmpty(upgradeUrl))
                         Application.OpenURL(upgradeUrl);

@@ -331,9 +331,20 @@ namespace SecretZauce.SecondBrain.Editor
             if (settingsHover && interactive)
                 EditorGUI.DrawRect(settingsRect, new Color(0.3f, 0.3f, 0.3f, 0.5f));
 
-            GUIContent settingsContent = s_CoreSettingsIcon != null
-                ? new GUIContent(s_CoreSettingsIcon, "SecondBrain Core Settings")
-                : new GUIContent("⚙", "SecondBrain Core Settings");
+            // ⚙ (U+2699) is not in the editor font and draws at zero width before Unity 6,
+            // so fall back to a builtin icon there instead of an invisible button.
+            GUIContent settingsContent;
+            if (s_CoreSettingsIcon != null)
+                settingsContent = new GUIContent(s_CoreSettingsIcon, "SecondBrain Core Settings");
+            else if (EmojiSupport.IsSupported)
+                settingsContent = new GUIContent("⚙", "SecondBrain Core Settings");
+            else
+            {
+                var popupIcon = EditorGUIUtility.IconContent("_Popup").image;
+                settingsContent = popupIcon != null
+                    ? new GUIContent(popupIcon, "SecondBrain Core Settings")
+                    : new GUIContent("...", "SecondBrain Core Settings");
+            }
 
             if (GUI.Button(settingsRect, settingsContent, s_HamStyle))
             {

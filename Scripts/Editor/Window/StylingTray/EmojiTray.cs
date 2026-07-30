@@ -51,7 +51,17 @@ namespace SecretZauce.SecondBrain.Editor
         const int Padding = 2;
         const int GridColumns = 18;
 
-        private static readonly string[] ModeLabels = { "😀 Emojis", "🎨 Editor Icons" };
+        private static readonly string[] ModeLabelsWithEmoji = { "😀 Emojis", "🎨 Editor Icons" };
+        private static readonly string[] ModeLabelsPlain = { "Emojis", "Editor Icons" };
+
+        // Editors older than Unity 6 cannot draw emoji, so the tab labels must not use them.
+        private static string[] ModeLabels => EmojiSupport.IsSupported ? ModeLabelsWithEmoji : ModeLabelsPlain;
+
+        /// <summary>Emoji mode is useless when the editor cannot draw emoji — open on Editor Icons.</summary>
+        private static int DefaultMode => EmojiSupport.IsSupported ? 0 : 1;
+
+        // Lets a user on an older editor still assign emoji (for teammates on Unity 6).
+        private bool _showEmojiAnyway;
 
         private IHasEmoji _target;
         private List<IHasEmoji> _targets;
@@ -68,6 +78,7 @@ namespace SecretZauce.SecondBrain.Editor
             _currentTray = window;
             window._target = target as IHasEmoji;
             window._targets = null;
+            window.selectedMode = DefaultMode;
             var pos = screenPosition ?? new Vector2(Screen.width / 2, Screen.height / 2);
             const int width = (EmojiSize * GridColumns) + Padding * 2;
             window.ShowAsFloatingDialog(pos, width, 360);
@@ -83,6 +94,7 @@ namespace SecretZauce.SecondBrain.Editor
             _currentTray = window;
             window._targets = targets != null ? new System.Collections.Generic.List<IHasEmoji>(targets) : null;
             window._target = null;
+            window.selectedMode = DefaultMode;
             var pos = screenPosition ?? new Vector2(Screen.width / 2, Screen.height / 2);
             const int width = (EmojiSize * GridColumns) + Padding * 2;
             window.ShowAsFloatingDialog(pos, width, 360);
@@ -161,6 +173,34 @@ namespace SecretZauce.SecondBrain.Editor
                     EditorGUILayout.HelpBox("Emoji database could not be loaded.", MessageType.Error);
                     return;
                 }
+
+                // On editors without emoji support the grid would be thousands of blank
+                // buttons. Explain why, point at Editor Icons, and keep the grid behind
+                // an opt-in toggle for anyone authoring data for a Unity 6 project.
+                if (!EmojiSupport.IsSupported)
+                {
+                    EmojiSupport.DrawUnsupportedHelpBox();
+
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button("Use Editor Icons instead", GUILayout.Height(22)))
+                    {
+                        selectedMode = 1;
+                        scrollPos = Vector2.zero;
+                        GUILayout.EndHorizontal();
+                        return;
+                    }
+                    _showEmojiAnyway = GUILayout.Toggle(_showEmojiAnyway, "Pick anyway",
+                        EditorStyles.miniButton, GUILayout.Width(90), GUILayout.Height(22));
+                    GUILayout.EndHorizontal();
+
+                    if (!_showEmojiAnyway)
+                        return;
+
+                    EditorGUILayout.LabelField(
+                        "Emoji below are blank in this editor — hover a cell to read its name.",
+                        EditorStyles.miniLabel);
+                }
+
                 // Search (above tabs)
                 _emojiSearchBar.Draw();
                 GUILayout.Space(4);

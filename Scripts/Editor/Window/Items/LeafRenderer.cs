@@ -603,20 +603,24 @@ namespace SecretZauce.SecondBrain.Editor
                     Texture fallback = this.icon;
                     bool isRegularEmoji = !EmojiIconUtils.IsEditorIcon(hasEmoji.EmojiIcon);
                     bool isBaseAtHome = node is Base && (treeView?.OwnerWindow?.IsAtHome() ?? false);
-                    if (isRegularEmoji && isBaseAtHome)
+                    // Keep the per-type icon when the emoji itself cannot be drawn,
+                    // otherwise the row would lose every visual marker.
+                    if (isRegularEmoji && isBaseAtHome && EmojiSupport.IsSupported)
                         fallback = null;
 
                     labelContent = EmojiIconUtils.BuildLabelContent(this.node.name, hasEmoji.EmojiIcon, fallback);
                 }
                 else
                 {
-                    if (isURL)
+                    if (isURL && EmojiSupport.IsSupported)
                     {
                         displayName = "🔗 " + this.node.name;
                     }
 
-                    // Don't show icon before label at all for Base with no custom emoji
-                    var isShowIcon = BrowserSettings.ShowIconsPerType && !isURL && !(node is Base);
+                    // Don't show icon before label at all for Base with no custom emoji.
+                    // URL rows normally replace the icon with the 🔗 glyph — when emoji
+                    // cannot be drawn, fall back to the per-type icon instead.
+                    var isShowIcon = BrowserSettings.ShowIconsPerType && !(isURL && EmojiSupport.IsSupported) && !(node is Base);
                     labelContent = new GUIContent(displayName, isShowIcon ? this.icon : null);
                 }
 

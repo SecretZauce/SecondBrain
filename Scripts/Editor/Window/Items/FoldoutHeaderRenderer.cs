@@ -269,7 +269,7 @@ namespace SecretZauce.SecondBrain.Editor
                     }
                     else
                     {
-                        EditorGUI.LabelField(labelRect, new GUIContent(hasEmoji2.EmojiIcon + " " + name), labelStyle);
+                        EditorGUI.LabelField(labelRect, EmojiIconUtils.BuildLabelContent(name, hasEmoji2.EmojiIcon), labelStyle);
                     }
                 }
                 else
@@ -300,7 +300,9 @@ namespace SecretZauce.SecondBrain.Editor
                     }
                     else
                     {
-                        return EditorGUI.Foldout(foldoutHeaderRect, currentFold, new GUIContent(hasEmoji.EmojiIcon + " " + name), false, workingFoldStyle);
+                        return EditorGUI.Foldout(foldoutHeaderRect, currentFold,
+                            new GUIContent(EmojiSupport.Prefix(hasEmoji.EmojiIcon, name),
+                                EmojiSupport.IsSupported ? null : icon), false, workingFoldStyle);
                     }
                 }
 

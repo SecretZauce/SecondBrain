@@ -178,6 +178,11 @@ namespace SecretZauce.SecondBrain.Editor
                     return new GUIContent(nodeName, iconTex ?? fallbackImage);
                 }
 
+                // Editors older than Unity 6 lay emoji out with zero width: prefixing the
+                // name would only add a blank gap. Drop the glyph and explain via tooltip.
+                if (!EmojiSupport.IsSupported)
+                    return new GUIContent(nodeName, fallbackImage, EmojiSupport.UnsupportedTooltip);
+
                 return new GUIContent(emojiIconValue + " " + nodeName, fallbackImage);
             }
 

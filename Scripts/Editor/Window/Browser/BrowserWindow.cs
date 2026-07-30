@@ -342,7 +342,7 @@ namespace SecretZauce.SecondBrain.Editor
             var targetName = targetObj != null ? (targetObj == (Object)HomeRoot ? "Home" : targetObj.name) : null;
             if (Root is IHasEmoji hasEmoji && !string.IsNullOrEmpty(hasEmoji.EmojiIcon)
                 && !EmojiIconUtils.IsEditorIcon(hasEmoji.EmojiIcon))
-                targetName = hasEmoji.EmojiIcon + " " + targetName;
+                targetName = EmojiSupport.Prefix(hasEmoji.EmojiIcon, targetName);
             string newTitle = targetName;
             titleContent = new GUIContent(newTitle, IsAtHome() ? s_WindowIcon : null);
         }

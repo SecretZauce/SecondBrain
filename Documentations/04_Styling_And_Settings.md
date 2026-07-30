@@ -16,6 +16,16 @@ Right-click → **Set Emoji Icon** opens the icon picker.
 
 The emoji/icon lists are loaded from JSON files at `Assets/SecretZauce/SecondBrain/Resources/Editor/Icons/`. You can edit `unity_editor_icons.json` and `unity_icons_emojis.json` to add, remove, or rename entries.
 
+> **Emoji require Unity 6 (6000.0) or newer.**
+> Unity 2022.3 and older generate Editor UI text through the legacy path, which has no OS font fallback: any glyph missing from the Editor font (Inter) is laid out with an advance of `0`, so emoji render as nothing at all — not even a placeholder box. Unity 6 renders IMGUI text through TextCore, which decodes surrogate pairs and falls back to the system emoji font.
+>
+> On unsupported editors SecondBrain detects this automatically and:
+> - opens the icon picker on the **Editor Icons** tab and hides the emoji grid behind a **Pick anyway** toggle,
+> - drops the emoji prefix from tree rows, foldouts and the window title so no blank gap is left,
+> - keeps the per-type icon on rows whose emoji cannot be drawn, and explains the situation via tooltip.
+>
+> Emoji already assigned are never modified — they stay in the asset and display correctly once the project is opened in Unity 6. Use **Editor Icons** for icons that must be visible on every supported editor version.
+
 ### Label Color
 
 Right-click → **Set Color** opens the color tray.
