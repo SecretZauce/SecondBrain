@@ -13,11 +13,6 @@ namespace SecretZauce.SecondBrain.Editor
         public event Action<int[], bool, bool> OnItemSelected; // path, isMultiSelect (Ctrl/Cmd), isRangeSelect (Shift)
         public event Action RecordSelectionChange;
 
-        // Resolved once per draw pass. A DrawContext is rebuilt on every OnGUI, so this stays
-        // current, and IsPathSelected — which runs once per visible row per GUI event — no longer
-        // pays for the lookup on each call.
-        readonly BrowserWindow focusedWindow;
-
         public DrawContext(
             List<IStructure> items,
             SelectionStateSO selectionState,
@@ -26,7 +21,6 @@ namespace SecretZauce.SecondBrain.Editor
         {
             Collections = items;
             SelectedPaths = selectionState.GetAllPaths() ?? new List<int[]>();
-            focusedWindow = WindowFocusManager.GetCurrentWindow();
             if (onItemSelected != null) OnItemSelected += onItemSelected;
             if (recordSelectionChange != null) RecordSelectionChange += recordSelectionChange;
         }
@@ -42,6 +36,12 @@ namespace SecretZauce.SecondBrain.Editor
             if (path == null || SelectedPaths == null || SelectedPaths.Count == 0)
                 return false;
 
+            // Resolved live, NOT cached per draw pass. Selection handlers call
+            // WindowFocusManager.SetCurrentWindow mid-OnGUI (see SelectionStateSO), so a value
+            // captured when this DrawContext was built goes stale within the very pass that uses
+            // it — which is exactly when a cross-window drag decides what to pick up. The lookup
+            // is a short walk over the open-window registry, so calling it per row is cheap.
+            var focusedWindow = WindowFocusManager.GetCurrentWindow();
             if (focusedWindow != null && focusedWindow != window)
                 return false;
 

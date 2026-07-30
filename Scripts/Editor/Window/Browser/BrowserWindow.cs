@@ -45,18 +45,17 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// All live browser windows, in registration order. The returned list is the live backing
-        /// store — read it, never mutate it, and do not hold it across operations that may close
-        /// a window.
+        /// All live browser windows, in registration order.
+        ///
+        /// Returns a fresh snapshot, never the backing store. Callers iterate this while doing
+        /// things that open, close or reparent windows — a cross-window drop closes the source
+        /// QuickBrowse popup, and peer syncing re-enters through OnStructureChanged — and any
+        /// registry access during that iteration runs Prune(), which mutates the backing list and
+        /// would invalidate an in-flight enumerator. Handing back a copy keeps the same semantics
+        /// as the Resources.FindObjectsOfTypeAll call this replaced, which also returned a fresh
+        /// array on every call.
         /// </summary>
-        public static IReadOnlyList<BrowserWindow> All
-        {
-            get
-            {
-                Prune();
-                return Windows;
-            }
-        }
+        public static List<BrowserWindow> All => AllOfType<BrowserWindow>();
 
         /// <summary>
         /// All live browser windows of type <typeparamref name="T"/>, allocated fresh so callers
@@ -67,8 +66,13 @@ namespace SecretZauce.SecondBrain.Editor
             Prune();
             var result = new List<T>(Windows.Count);
             for (int i = 0; i < Windows.Count; i++)
-                if (Windows[i] is T typed)
+            {
+                // Re-check for null per entry: Prune only catches windows already destroyed when
+                // this call began, and a window can die between calls.
+                var window = Windows[i];
+                if (window != null && window is T typed)
                     result.Add(typed);
+            }
 
             return result;
         }
@@ -83,8 +87,11 @@ namespace SecretZauce.SecondBrain.Editor
 
             Prune();
             for (int i = 0; i < Windows.Count; i++)
-                if (Windows[i].GetInstanceID() == instanceID)
-                    return Windows[i];
+            {
+                var window = Windows[i];
+                if (window != null && window.GetInstanceID() == instanceID)
+                    return window;
+            }
 
             return null;
         }
