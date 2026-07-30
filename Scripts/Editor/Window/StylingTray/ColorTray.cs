@@ -327,6 +327,7 @@ namespace SecretZauce.SecondBrain.Editor
                     target.LabelColorFoldoutOnly = _selectedFoldoutOnly;
 
                     EditorUtility.SetDirty(obj);
+                    SubAssetRefreshUtils.RegisterPendingSave(obj);
                 }
             }
 
@@ -370,6 +371,7 @@ namespace SecretZauce.SecondBrain.Editor
                     target.LabelColorStyle = _selectedStyle;
                     target.LabelColorFoldoutOnly = _selectedFoldoutOnly;
                     EditorUtility.SetDirty(obj);
+                    SubAssetRefreshUtils.RegisterPendingSave(obj);
                 }
             }
 
@@ -443,6 +445,7 @@ namespace SecretZauce.SecondBrain.Editor
                     container.LabelColorStyle = _selectedStyle;
                     container.LabelColorFoldoutOnly = _selectedFoldoutOnly;
                     EditorUtility.SetDirty(asObj);
+                    SubAssetRefreshUtils.RegisterPendingSave(asObj);
                     changed++;
                 }
             }

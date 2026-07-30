@@ -52,8 +52,8 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Marks the object dirty, saves all dirty assets, and force-imports the object's
-        /// asset path so the Project window reflects the change immediately.
+        /// Marks the object dirty, saves that one asset, and force-imports its path so the
+        /// Project window reflects the change immediately.
         /// Also registers the path as affected for undo/redo tracking.
         /// </summary>
         public static void MarkDirtyAndSave(Object obj)
@@ -63,8 +63,48 @@ namespace SecretZauce.SecondBrain.Editor
             string path = RegisterAffectedAsset(obj);
             if (!string.IsNullOrEmpty(path))
             {
-                AssetDatabase.SaveAssets();
+                // SaveAssetIfDirty, not SaveAssets: see the note on SaveOnly below.
+                AssetDatabase.SaveAssetIfDirty(obj);
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            }
+        }
+
+        /// <summary>
+        /// Writes only the given asset paths, and only if they are actually dirty.
+        ///
+        /// Every save in this class routes through here rather than calling
+        /// <c>AssetDatabase.SaveAssets()</c>. SaveAssets is project-global: it flushes EVERY
+        /// dirty asset in the project, not just SecondBrain's own. That made the window
+        /// reach far outside its own data — an undo performed with the window open would
+        /// write and reimport whatever unrelated asset happened to be dirty at that moment
+        /// (a RenderTexture, a material), which looked like SecondBrain randomly reimporting
+        /// one specific asset. It also silently persisted edits the user had not chosen to save.
+        ///
+        /// Wrapped in StartAssetEditing/StopAssetEditing so the writes flush as one atomic
+        /// import pass, for the reasons documented on <see cref="RefreshAffectedAssets"/>.
+        /// </summary>
+        static void SaveOnly(IEnumerable<string> assetPaths)
+        {
+            if (assetPaths == null) return;
+
+            AssetDatabase.StartAssetEditing();
+            try
+            {
+                foreach (var path in assetPaths)
+                {
+                    if (string.IsNullOrEmpty(path)) continue;
+
+                    var mainAsset = AssetDatabase.LoadMainAssetAtPath(path);
+                    if (mainAsset == null) continue;
+
+                    // No-ops when the asset is clean, which is what keeps a selection-only
+                    // undo from touching the disk at all.
+                    AssetDatabase.SaveAssetIfDirty(mainAsset);
+                }
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
             }
         }
 
@@ -82,6 +122,10 @@ namespace SecretZauce.SecondBrain.Editor
 
         // Guard flag for SaveDirtyAssetsDeferred — collapses a burst of edits into one save.
         static bool _deferredSaveScheduled;
+
+        // Assets awaiting the next deferred save. Kept separate from _affectedParentPaths, which
+        // persists across undo/redo cycles; this set is consumed and cleared on each flush.
+        static readonly HashSet<string> _pendingSavePaths = new HashSet<string>();
 
         /// <summary>
         /// Saves dirty assets once on the next editor tick, with automatic import suspended.
@@ -110,19 +154,28 @@ namespace SecretZauce.SecondBrain.Editor
             EditorApplication.delayCall += ExecuteDeferredSave;
         }
 
+        /// <summary>
+        /// Records the asset owning <paramref name="obj"/> as needing a deferred save.
+        /// Call this alongside EditorUtility.SetDirty before SaveDirtyAssetsDeferred so the
+        /// save stays scoped to SecondBrain's own assets — see <see cref="SaveOnly"/>.
+        /// </summary>
+        public static void RegisterPendingSave(Object obj)
+        {
+            if (obj == null) return;
+            string path = AssetDatabase.GetAssetPath(obj);
+            if (!string.IsNullOrEmpty(path))
+                _pendingSavePaths.Add(path);
+        }
+
         static void ExecuteDeferredSave()
         {
             _deferredSaveScheduled = false;
 
-            AssetDatabase.StartAssetEditing();
-            try
-            {
-                AssetDatabase.SaveAssets();
-            }
-            finally
-            {
-                AssetDatabase.StopAssetEditing();
-            }
+            if (_pendingSavePaths.Count == 0)
+                return;
+
+            SaveOnly(_pendingSavePaths);
+            _pendingSavePaths.Clear();
         }
 
         /// <summary>
@@ -159,15 +212,28 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Saves all dirty assets and refreshes the Project window for all registered affected paths.
+        /// Saves the registered affected assets — and only those — refreshing the Project window
+        /// for them.
         ///
-        /// Why StartAssetEditing / StopAssetEditing:
-        ///   • SaveAssets() not only writes files to disk but also triggers Unity's internal
+        /// Why the save is scoped to the tracked paths:
+        ///   • This runs from OnUndoRedoPerformed on EVERY undo, including one that only moved
+        ///     the selection. The path set is deliberately never cleared here so repeated
+        ///     undo/redo cycles keep working, which means it stays populated for the rest of the
+        ///     session after the first structural edit — so this method really does run on plain
+        ///     selection undos.
+        ///   • It previously called AssetDatabase.SaveAssets(), which is project-global. On a
+        ///     selection undo none of SecondBrain's own assets were dirty, but any unrelated
+        ///     dirty asset in the user's project got written and reimported as collateral.
+        ///   • Saving per-path via SaveAssetIfDirty makes a selection-only undo a no-op, since
+        ///     nothing SecondBrain owns is dirty.
+        ///
+        /// Why StartAssetEditing / StopAssetEditing (inside <see cref="SaveOnly"/>):
+        ///   • Saving does not only write files to disk, it also triggers Unity's internal
         ///     NativeFormatImporter on each saved file immediately.  When an undo operation
         ///     removes a sub-asset, the importer detects that the sub-asset set in the file
         ///     now differs from the GUID-database cache and emits
         ///     "NativeFormatImporter generated inconsistent result".
-        ///   • Wrapping SaveAssets() in StartAssetEditing()/StopAssetEditing() suspends all
+        ///   • Wrapping the writes in StartAssetEditing()/StopAssetEditing() suspends all
         ///     automatic import during the save, then flushes the queued imports atomically
         ///     in StopAssetEditing().  Unity reconciles the GUID database and the on-disk
         ///     sub-asset list in one pass during that flush, which avoids the warning.
@@ -181,18 +247,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (_affectedParentPaths.Count == 0)
                 return;
 
-            // Suspend automatic import so SaveAssets() only writes to disk.
-            AssetDatabase.StartAssetEditing();
-            try
-            {
-                AssetDatabase.SaveAssets();
-            }
-            finally
-            {
-                // Flush all queued imports in one atomic pass.
-                // Unity reconciles the GUID database here without the "inconsistent result" warning.
-                AssetDatabase.StopAssetEditing();
-            }
+            SaveOnly(_affectedParentPaths);
         }
     }
 }

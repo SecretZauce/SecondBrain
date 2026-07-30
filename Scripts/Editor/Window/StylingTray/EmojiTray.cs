@@ -524,6 +524,7 @@ namespace SecretZauce.SecondBrain.Editor
                     Undo.RecordObject(t as Object, "Set Icon");
                     t.EmojiIcon = iconValue;
                     EditorUtility.SetDirty(t as UnityEngine.Object);
+                    SubAssetRefreshUtils.RegisterPendingSave(t as UnityEngine.Object);
                 }
                 // Deferred + batched: a synchronous SaveAssets here reimported the owning asset
                 // on every icon click, stalling the editor and flashing the Project window.
@@ -536,6 +537,7 @@ namespace SecretZauce.SecondBrain.Editor
                 Undo.RecordObject(_target as Object, "Set Icon");
                 _target.EmojiIcon = iconValue;
                 EditorUtility.SetDirty(_target as Object);
+                SubAssetRefreshUtils.RegisterPendingSave(_target as Object);
                 SubAssetRefreshUtils.SaveDirtyAssetsDeferred();
                 RepaintOpenBrowserWindows();
                 Close();
