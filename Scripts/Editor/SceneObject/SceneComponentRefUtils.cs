@@ -81,7 +81,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         public static Component Resolve(SceneComponent sceneComponent)
         {
-            return SceneObjectMap.ResolveComponent(sceneComponent?.GlobalId);
+            return SceneObjectMap.Resolve(sceneComponent);
         }
 
         public static Type GetComponentType(SceneComponent sceneComponent)

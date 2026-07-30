@@ -223,7 +223,7 @@ namespace SecretZauce.SecondBrain.Editor
                     // open scene, select the GameObject directly for a better UX.
                     if (obj is SceneObjectRef sceneObjRef && sceneObjRef.sceneObject != null)
                     {
-                        var go = SceneObjectMap.Resolve(sceneObjRef.sceneObject.GlobalId);
+                        var go = SceneObjectMap.Resolve(sceneObjRef.sceneObject);
                         if (go != null)
                         {
                             if (sceneObjRef.isFocusOnSelect)
@@ -233,7 +233,7 @@ namespace SecretZauce.SecondBrain.Editor
                     }
                     else if (obj is SceneComponentRef sceneComponentRef && sceneComponentRef.sceneComponent != null)
                     {
-                        var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent.GlobalId);
+                        var component = SceneObjectMap.Resolve(sceneComponentRef.sceneComponent);
                         if (component != null)
                         {
                             if (sceneComponentRef.isFocusOnSelect)

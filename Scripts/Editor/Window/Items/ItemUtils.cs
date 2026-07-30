@@ -45,7 +45,7 @@ namespace SecretZauce.SecondBrain.Editor
 
             if (node is SceneComponentRef sceneComponentRef)
             {
-                var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent?.GlobalId);
+                var component = SceneObjectMap.Resolve(sceneComponentRef.sceneComponent);
                 if (component != null)
                 {
                     // Resolved: cache icon by live component type.

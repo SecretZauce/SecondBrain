@@ -231,7 +231,7 @@ namespace SecretZauce.SecondBrain.Editor
                 return false;
 
             var sceneObj = sceneRef.sceneObject;
-            var go = SceneObjectMap.Resolve(sceneObj?.GlobalId);
+            var go = SceneObjectMap.Resolve(sceneObj);
             if (go == null)
             {
                 EditorUtility.DisplayDialog("Rename Failed", "Could not locate the scene object. Make sure its scene is open.", "OK");
