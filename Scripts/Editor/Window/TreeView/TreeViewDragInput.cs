@@ -366,18 +366,7 @@ namespace SecretZauce.SecondBrain.Editor
         /// Returns true when the current DragAndDrop state contains content that SecondBrain can receive.
         /// Covers both objectReferences (Project tab drags) and .unity paths (Hierarchy scene header drags).
         /// </summary>
-        static bool HasDraggableContent()
-        {
-            if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
-                return true;
-            if (DragAndDrop.paths != null)
-            {
-                foreach (var p in DragAndDrop.paths)
-                    if (!string.IsNullOrEmpty(p) && p.EndsWith(".unity", System.StringComparison.OrdinalIgnoreCase))
-                        return true;
-            }
-            return false;
-        }
+        static bool HasDraggableContent() => DragAndDropManager.HasExternalDragContent();
 
         /// <summary>Returns which Quick Peek zone the mouse is in for a given row rect.</summary>
         public static QuickPeekSide GetPeekZone(Rect rowRect, Vector2 mousePos)

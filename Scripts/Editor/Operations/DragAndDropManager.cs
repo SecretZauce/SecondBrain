@@ -175,40 +175,68 @@ namespace SecretZauce.SecondBrain.Editor
             draggedPaths.Clear();
             draggedItems.Clear();
 
-            // Get objects from Unity's DragAndDrop
-            if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+            draggedItems.AddRange(CollectExternalDragObjects());
+
+            // Flag if any dragged GameObject belongs to a scene that has never been saved.
+            // Such scenes have an empty path and cannot produce a stable GlobalObjectId.
+            hasUnsavedSceneObjects = draggedItems.Any(SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
+
+            isDragging = draggedItems.Count > 0;
+        }
+
+        /// <summary>
+        /// Collects every object in the current Unity DragAndDrop payload that SecondBrain can receive.
+        /// Covers <see cref="DragAndDrop.objectReferences"/> (Project tab and Hierarchy GameObject drags)
+        /// as well as .unity entries in <see cref="DragAndDrop.paths"/> — dragging a scene header from the
+        /// Hierarchy window populates only the paths and leaves objectReferences empty, so the SceneAsset
+        /// has to be loaded from disk for it to flow through the normal drop pipeline.
+        /// </summary>
+        public static List<Object> CollectExternalDragObjects()
+        {
+            var items = new List<Object>();
+
+            if (DragAndDrop.objectReferences != null)
             {
                 foreach (var obj in DragAndDrop.objectReferences)
                 {
                     if (obj != null)
-                    {
-                        draggedItems.Add(obj);
-                        // Flag if any dragged GameObject belongs to a scene that has never been saved.
-                        // Such scenes have an empty path and cannot produce a stable GlobalObjectId.
-                        if (SceneObjectRefUtils.IsSceneObjectFromUnsavedScene(obj))
-                        {
-                            hasUnsavedSceneObjects = true;
-                        }
-                    }
+                        items.Add(obj);
                 }
             }
 
-            // When dragging a scene header from the Hierarchy window, Unity may populate only
-            // DragAndDrop.paths with the .unity file path and leave objectReferences empty.
-            // Load the SceneAsset from the path so it flows through the normal drop pipeline.
             if (DragAndDrop.paths != null)
             {
                 foreach (var path in DragAndDrop.paths)
                 {
-                    if (string.IsNullOrEmpty(path) || !path.EndsWith(".unity", System.StringComparison.OrdinalIgnoreCase))
+                    if (string.IsNullOrEmpty(path) || !path.EndsWith(".unity", StringComparison.OrdinalIgnoreCase))
                         continue;
                     var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(path);
-                    if (sceneAsset != null && !draggedItems.Contains(sceneAsset))
-                        draggedItems.Add(sceneAsset);
+                    if (sceneAsset != null && !items.Contains(sceneAsset))
+                        items.Add(sceneAsset);
                 }
             }
 
-            isDragging = draggedItems.Count > 0;
+            return items;
+        }
+
+        /// <summary>
+        /// Returns true when the current DragAndDrop payload contains anything SecondBrain can receive.
+        /// Scene header drags from the Hierarchy window arrive as .unity paths with no objectReferences,
+        /// so callers must never gate on objectReferences alone.
+        /// </summary>
+        public static bool HasExternalDragContent()
+        {
+            if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+                return true;
+            if (DragAndDrop.paths != null)
+            {
+                foreach (var path in DragAndDrop.paths)
+                {
+                    if (!string.IsNullOrEmpty(path) && path.EndsWith(".unity", StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>

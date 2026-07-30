@@ -982,9 +982,9 @@ namespace SecretZauce.SecondBrain.Editor
             if (Root is Base && (collections == null || collections.Count == 0))
             {
                 if (Event.current.type == EventType.DragUpdated &&
-                    DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+                    DragAndDropManager.HasExternalDragContent())
                 {
-                    bool hasUnsavedScene = DragAndDrop.objectReferences.Any(
+                    bool hasUnsavedScene = DragAndDropManager.CollectExternalDragObjects().Any(
                         SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
                     DragAndDrop.visualMode = hasUnsavedScene
                         ? DragAndDropVisualMode.Rejected
@@ -994,12 +994,10 @@ namespace SecretZauce.SecondBrain.Editor
                 }
 
                 if (Event.current.type == EventType.DragPerform &&
-                    DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+                    DragAndDropManager.HasExternalDragContent())
                 {
                     DragAndDrop.AcceptDrag();
-                    var droppedItems = DragAndDrop.objectReferences
-                        .Where(o => o != null)
-                        .ToList();
+                    var droppedItems = DragAndDropManager.CollectExternalDragObjects();
 
                     bool hasUnsavedScene = droppedItems.Any(
                         SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
@@ -1029,7 +1027,7 @@ namespace SecretZauce.SecondBrain.Editor
             // External drag over empty space in a non-empty Base: show Copy/Move cursor so the
             // user knows they can drop here (the tree still has rows, but the mouse is below them).
             if (Root is Base && Event.current.type == EventType.DragUpdated
-                && DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0
+                && DragAndDropManager.HasExternalDragContent()
                 && treeView.DragDropManager.IsExternalDrag && !treeView.DragInput.HasHover)
             {
 #if SECOND_BRAIN_PRO
@@ -1041,7 +1039,7 @@ namespace SecretZauce.SecondBrain.Editor
                 else
 #endif
                 {
-                    bool hasUnsaved = DragAndDrop.objectReferences.Any(
+                    bool hasUnsaved = DragAndDropManager.CollectExternalDragObjects().Any(
                         SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
                     DragAndDrop.visualMode = hasUnsaved
                         ? DragAndDropVisualMode.Rejected

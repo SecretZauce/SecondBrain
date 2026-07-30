@@ -278,7 +278,7 @@ namespace SecretZauce.SecondBrain.Editor
 
                 if (e is { type: EventType.DragUpdated })
                 {
-                    if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+                    if (DragAndDropManager.HasExternalDragContent())
                     {
                         // Initialize external drag if not already dragging
                         // Do not start external drag while an item is being renamed
@@ -397,7 +397,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Signal Copy visual mode while dragging external assets over an empty Base
             Event e = Event.current;
             if (isBase && e != null && e.type == EventType.DragUpdated &&
-                DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+                DragAndDropManager.HasExternalDragContent())
             {
                 DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
                 OwnerWindow?.Repaint();
