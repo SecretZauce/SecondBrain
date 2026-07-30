@@ -276,7 +276,7 @@ namespace SecretZauce.SecondBrain.Editor
                         var main = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
                         if (main is Base bMain)
                         {
-                            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(bMain as ScriptableObject, out var g2, out var local2))
+                            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(bMain as ScriptableObject, out string g2, out long local2))
                             {
                                 if (g2 == guid && local2 == localId)
                                 {
@@ -295,7 +295,7 @@ namespace SecretZauce.SecondBrain.Editor
                             if (obj is Base b)
                             {
                                 if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(
-                                        b as ScriptableObject, out var g2, out var local2))
+                                        b as ScriptableObject, out string g2, out long local2))
                                 {
                                     if (g2 == guid && local2 == localId)
                                     {
