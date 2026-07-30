@@ -495,6 +495,20 @@ namespace SecretZauce.SecondBrain.Editor
             SaveLastUsedList(key, list);
         }
 
+        /// <summary>
+        /// Repaints every open BrowserWindow so the new icon shows up immediately.
+        /// The emoji is read live from the node during each draw, so no rebuild is needed —
+        /// only the window title caches it, which RefreshStyling refreshes.
+        /// </summary>
+        private static void RepaintOpenBrowserWindows()
+        {
+            foreach (var w in BrowserWindowRegistry.AllOfType<BrowserWindow>())
+            {
+                try { w.RefreshStyling(); }
+                catch { }
+            }
+        }
+
         private void ApplyIcon(string iconValue)
         {
             // Record the selection in last-used history (emoji vs editor icon)
@@ -511,7 +525,10 @@ namespace SecretZauce.SecondBrain.Editor
                     t.EmojiIcon = iconValue;
                     EditorUtility.SetDirty(t as UnityEngine.Object);
                 }
-                AssetDatabase.SaveAssets();
+                // Deferred + batched: a synchronous SaveAssets here reimported the owning asset
+                // on every icon click, stalling the editor and flashing the Project window.
+                SubAssetRefreshUtils.SaveDirtyAssetsDeferred();
+                RepaintOpenBrowserWindows();
                 Close();
             }
             else if (_target != null)
@@ -519,7 +536,8 @@ namespace SecretZauce.SecondBrain.Editor
                 Undo.RecordObject(_target as Object, "Set Icon");
                 _target.EmojiIcon = iconValue;
                 EditorUtility.SetDirty(_target as Object);
-                AssetDatabase.SaveAssets();
+                SubAssetRefreshUtils.SaveDirtyAssetsDeferred();
+                RepaintOpenBrowserWindows();
                 Close();
             }
             else

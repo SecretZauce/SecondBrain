@@ -330,51 +330,28 @@ namespace SecretZauce.SecondBrain.Editor
                 }
             }
 
-            AssetDatabase.SaveAssets();
+            // Deferred + batched: a synchronous SaveAssets here reimported the owning asset on
+            // every swatch click, which is what made picking a colour feel like an asset import.
+            SubAssetRefreshUtils.SaveDirtyAssetsDeferred();
 
-            // Preserve current foldout state for all open BrowserWindows BEFORE they refresh.
-            try
-            {
-                var openWindows = BrowserWindowRegistry.AllOfType<BrowserWindow>();
-                foreach (var w in openWindows)
-                {
-                    try
-                    {
-                        // Save foldout state to EditorPrefs so the refresh can restore it
-                        w.SaveFoldoutStateToEditor();
-                    }
-                    catch { }
-                }
-            }
-            catch { }
-
-            // Ensure any BrowserWindow instances refresh to pick up the updated color settings.
-            EditorApplication.delayCall += () =>
-            {
-                try
-                {
-                    var open = BrowserWindowRegistry.AllOfType<BrowserWindow>();
-                    foreach (var w in open)
-                    {
-                        try
-                        {
-                            // Reinitialize the BrowserWindow so it rebuilds its TreeView and reads new properties
-                            w.ReinitializeForRootChange();
-                            // If the new controller carries a LastFoldoutSnapshot (set by lifecycle ops), apply it
-                            if (w.Controller?.LastFoldoutSnapshot != null && w.TreeView != null)
-                            {
-                                try { w.TreeView.SetFoldoutSnapshot(w.Controller.LastFoldoutSnapshot); }
-                                catch { }
-                            }
-                        }
-                        catch { }
-                    }
-                }
-                catch { }
-            };
+            // Colour is read live from the node during each draw, so a repaint is all that is
+            // needed — no controller/TreeView rebuild, and therefore no foldout save/restore.
+            RepaintOpenBrowserWindows();
 
             if (closeAfter)
                 Close();
+        }
+
+        /// <summary>
+        /// Repaints every open BrowserWindow so styling edits show up immediately.
+        /// </summary>
+        private static void RepaintOpenBrowserWindows()
+        {
+            foreach (var w in BrowserWindowRegistry.AllOfType<BrowserWindow>())
+            {
+                try { w.RefreshStyling(); }
+                catch { }
+            }
         }
 
         private void ApplySettings(bool closeAfter)
@@ -396,47 +373,8 @@ namespace SecretZauce.SecondBrain.Editor
                 }
             }
 
-            AssetDatabase.SaveAssets();
-
-            // Refresh open BrowserWindow instances so TreeView reads updated properties
-            // Preserve current foldout state for all open BrowserWindows BEFORE they refresh.
-            try
-            {
-                var openWindows = BrowserWindowRegistry.AllOfType<BrowserWindow>();
-                foreach (var w in openWindows)
-                {
-                    try
-                    {
-                        // Save foldout state to EditorPrefs so the refresh can restore it
-                        w.SaveFoldoutStateToEditor();
-                    }
-                    catch { }
-                }
-            }
-            catch { }
-
-            // Refresh open BrowserWindow instances so TreeView reads updated properties
-            EditorApplication.delayCall += () =>
-            {
-                try
-                {
-                    var open = BrowserWindowRegistry.AllOfType<BrowserWindow>();
-                    foreach (var w in open)
-                    {
-                        try
-                        {
-                            w.ReinitializeForRootChange();
-                            if (w.Controller?.LastFoldoutSnapshot != null && w.TreeView != null)
-                            {
-                                try { w.TreeView.SetFoldoutSnapshot(w.Controller.LastFoldoutSnapshot); }
-                                catch { }
-                            }
-                        }
-                        catch { }
-                    }
-                }
-                catch { }
-            };
+            SubAssetRefreshUtils.SaveDirtyAssetsDeferred();
+            RepaintOpenBrowserWindows();
 
             if (closeAfter)
                 Close();
@@ -511,42 +449,9 @@ namespace SecretZauce.SecondBrain.Editor
             catch { }
 
             if (changed > 0)
-                AssetDatabase.SaveAssets();
+                SubAssetRefreshUtils.SaveDirtyAssetsDeferred();
 
-            // Preserve foldout state then refresh relevant BrowserWindow instances
-            try
-            {
-                var openWindows = BrowserWindowRegistry.AllOfType<BrowserWindow>();
-                foreach (var w in openWindows)
-                {
-                    try { w.SaveFoldoutStateToEditor(); } catch { }
-                }
-            }
-            catch { }
-
-            EditorApplication.delayCall += () =>
-            {
-                try
-                {
-                    var open = BrowserWindowRegistry.AllOfType<BrowserWindow>();
-                    foreach (var w in open)
-                    {
-                        try
-                        {
-                            if (w.Root as Base == targetBase)
-                            {
-                                w.ReinitializeForRootChange();
-                                if (w.Controller?.LastFoldoutSnapshot != null && w.TreeView != null)
-                                {
-                                    try { w.TreeView.SetFoldoutSnapshot(w.Controller.LastFoldoutSnapshot); } catch { }
-                                }
-                            }
-                        }
-                        catch { }
-                    }
-                }
-                catch { }
-            };
+            RepaintOpenBrowserWindows();
         }
 
         private static void DrawBorder(Rect rect, Color color, float thickness)

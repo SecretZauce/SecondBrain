@@ -438,6 +438,23 @@ namespace SecretZauce.SecondBrain.Editor
             titleContent = new GUIContent(newTitle, IsAtHome() ? s_WindowIcon : null);
         }
 
+        /// <summary>
+        /// Refreshes the window after a purely visual change to a node — label colour, colour
+        /// style, or emoji icon.
+        ///
+        /// Deliberately does NOT go through <see cref="ReinitializeForRootChange"/>. Styling is
+        /// read straight off the node on every draw (TreeView resolves IHasColor, the renderers
+        /// resolve IHasEmoji), so nothing is cached and there is nothing to rebuild. Tearing down
+        /// the controller, SerializedObject, TreeView and event subscriptions just to recolour a
+        /// row cost a visible hitch and forced the foldout state to be saved and restored around
+        /// it. The only cached piece is the title, which embeds the root's emoji.
+        /// </summary>
+        public void RefreshStyling()
+        {
+            UpdateWindowTitle();
+            Repaint();
+        }
+
         protected virtual void OnEnable()
         {
             BrowserWindowRegistry.Register(this);

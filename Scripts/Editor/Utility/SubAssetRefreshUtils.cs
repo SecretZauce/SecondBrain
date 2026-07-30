@@ -80,6 +80,51 @@ namespace SecretZauce.SecondBrain.Editor
             AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
         }
 
+        // Guard flag for SaveDirtyAssetsDeferred — collapses a burst of edits into one save.
+        static bool _deferredSaveScheduled;
+
+        /// <summary>
+        /// Saves dirty assets once on the next editor tick, with automatic import suspended.
+        ///
+        /// Use this for lightweight property edits made from interactive UI — label colours,
+        /// emoji icons — where the old behaviour of calling <c>AssetDatabase.SaveAssets()</c>
+        /// synchronously on every click was the cause of a visible asset import per click:
+        ///   • SaveAssets() writes the owning asset and immediately runs NativeFormatImporter
+        ///     on it. For a Profile holding many sub-assets that reimport is slow enough to
+        ///     stall the editor and flash the Project window on each colour swatch pressed.
+        ///   • Deferring to delayCall means click-dragging across a palette, or applying a
+        ///     style to every container in a Base, produces exactly one save instead of N.
+        ///   • StartAssetEditing/StopAssetEditing suspends import during the write and flushes
+        ///     it atomically afterwards, for the same reasons documented on
+        ///     <see cref="RefreshAffectedAssets"/>.
+        ///
+        /// The edit is already live in memory and recorded with Undo before this runs, so the
+        /// window reflects the change immediately regardless of when the save lands.
+        /// </summary>
+        public static void SaveDirtyAssetsDeferred()
+        {
+            if (_deferredSaveScheduled)
+                return;
+
+            _deferredSaveScheduled = true;
+            EditorApplication.delayCall += ExecuteDeferredSave;
+        }
+
+        static void ExecuteDeferredSave()
+        {
+            _deferredSaveScheduled = false;
+
+            AssetDatabase.StartAssetEditing();
+            try
+            {
+                AssetDatabase.SaveAssets();
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
+        }
+
         /// <summary>
         /// Schedules a deferred call to RefreshAffectedAssets() via EditorApplication.delayCall.
         ///
