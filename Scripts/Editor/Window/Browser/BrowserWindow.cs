@@ -7,6 +7,97 @@ using Object = UnityEngine.Object;
 
 namespace SecretZauce.SecondBrain.Editor
 {
+    /// <summary>
+    /// Tracks every live <see cref="BrowserWindow"/> so callers never have to reach for
+    /// <c>Resources.FindObjectsOfTypeAll</c>. That API walks Unity's entire loaded-object table
+    /// (every GameObject and Component in every open scene) before filtering by type, so its cost
+    /// scales with scene size. Several of the call sites it replaced ran once per tree row per GUI
+    /// event, which made the window unusable in large scenes regardless of how few items it showed.
+    ///
+    /// Windows register in <see cref="BrowserWindow.OnEnable"/> and unregister in
+    /// <see cref="BrowserWindow.OnDestroy"/>. Unity re-runs OnEnable on every live EditorWindow
+    /// after a domain reload, so the list rebuilds itself automatically.
+    /// </summary>
+    public static class BrowserWindowRegistry
+    {
+        static readonly List<BrowserWindow> Windows = new List<BrowserWindow>();
+
+        internal static void Register(BrowserWindow window)
+        {
+            if (window == null)
+                return;
+
+            Prune();
+            for (int i = 0; i < Windows.Count; i++)
+                if (ReferenceEquals(Windows[i], window))
+                    return;
+
+            Windows.Add(window);
+        }
+
+        internal static void Unregister(BrowserWindow window)
+        {
+            for (int i = Windows.Count - 1; i >= 0; i--)
+                if (ReferenceEquals(Windows[i], window))
+                    Windows.RemoveAt(i);
+
+            Prune();
+        }
+
+        /// <summary>
+        /// All live browser windows, in registration order. The returned list is the live backing
+        /// store — read it, never mutate it, and do not hold it across operations that may close
+        /// a window.
+        /// </summary>
+        public static IReadOnlyList<BrowserWindow> All
+        {
+            get
+            {
+                Prune();
+                return Windows;
+            }
+        }
+
+        /// <summary>
+        /// All live browser windows of type <typeparamref name="T"/>, allocated fresh so callers
+        /// may close or reparent windows while iterating.
+        /// </summary>
+        public static List<T> AllOfType<T>() where T : BrowserWindow
+        {
+            Prune();
+            var result = new List<T>(Windows.Count);
+            for (int i = 0; i < Windows.Count; i++)
+                if (Windows[i] is T typed)
+                    result.Add(typed);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the live window whose instance ID matches, or null when it no longer exists.
+        /// </summary>
+        public static BrowserWindow FindByInstanceID(int instanceID)
+        {
+            if (instanceID == 0)
+                return null;
+
+            Prune();
+            for (int i = 0; i < Windows.Count; i++)
+                if (Windows[i].GetInstanceID() == instanceID)
+                    return Windows[i];
+
+            return null;
+        }
+
+        /// <summary>Drops entries whose native object has been destroyed.</summary>
+        static void Prune()
+        {
+            for (int i = Windows.Count - 1; i >= 0; i--)
+                if (Windows[i] == null)
+                    Windows.RemoveAt(i);
+        }
+    }
+
     public abstract class BrowserWindow : EditorWindow
     {
         Vector2 leftScroll;
@@ -148,7 +239,7 @@ namespace SecretZauce.SecondBrain.Editor
         {
             var root = Root;
             if (root == null) return;
-            var peers = Resources.FindObjectsOfTypeAll<BrowserWindow>();
+            var peers = BrowserWindowRegistry.All;
             foreach (var peer in peers)
             {
                 if (peer == this || peer == null || peer.Controller == null) continue;
@@ -349,6 +440,8 @@ namespace SecretZauce.SecondBrain.Editor
 
         protected virtual void OnEnable()
         {
+            BrowserWindowRegistry.Register(this);
+
 #if !SECOND_BRAIN_PRO
             // Free mode: only one BrowserWindow instance is allowed.
             // Schedule a delayed check so all windows have finished their own OnEnable
@@ -357,8 +450,14 @@ namespace SecretZauce.SecondBrain.Editor
             EditorApplication.delayCall += () =>
             {
                 if (selfRef == null) return;
-                var all = Resources.FindObjectsOfTypeAll(selfRef.GetType());
-                if (all.Length > 1)
+                var selfType = selfRef.GetType();
+                int sameTypeCount = 0;
+                var all = BrowserWindowRegistry.All;
+                for (int i = 0; i < all.Count; i++)
+                    if (all[i].GetType() == selfType)
+                        sameTypeCount++;
+
+                if (sameTypeCount > 1)
                 {
                     selfRef.Close();
                     return;
@@ -405,6 +504,10 @@ namespace SecretZauce.SecondBrain.Editor
             catch { }
 #endif
             DeinitializeControllerAndState();
+
+            // Unregister last: the teardown above may still query peer windows.
+            // OnEnable re-registers after a domain reload, so this is safe for reload as well.
+            BrowserWindowRegistry.Unregister(this);
         }
 
         public void ReinitializeForRootChange()

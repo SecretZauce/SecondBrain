@@ -335,7 +335,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Preserve current foldout state for all open BrowserWindows BEFORE they refresh.
             try
             {
-                var openWindows = Resources.FindObjectsOfTypeAll<BrowserWindow>();
+                var openWindows = BrowserWindowRegistry.AllOfType<BrowserWindow>();
                 foreach (var w in openWindows)
                 {
                     try
@@ -353,7 +353,7 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 try
                 {
-                    var open = Resources.FindObjectsOfTypeAll<BrowserWindow>();
+                    var open = BrowserWindowRegistry.AllOfType<BrowserWindow>();
                     foreach (var w in open)
                     {
                         try
@@ -402,7 +402,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Preserve current foldout state for all open BrowserWindows BEFORE they refresh.
             try
             {
-                var openWindows = Resources.FindObjectsOfTypeAll<BrowserWindow>();
+                var openWindows = BrowserWindowRegistry.AllOfType<BrowserWindow>();
                 foreach (var w in openWindows)
                 {
                     try
@@ -420,7 +420,7 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 try
                 {
-                    var open = Resources.FindObjectsOfTypeAll<BrowserWindow>();
+                    var open = BrowserWindowRegistry.AllOfType<BrowserWindow>();
                     foreach (var w in open)
                     {
                         try
@@ -455,7 +455,7 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         if (t is Container c)
                         {
-                            var open = Resources.FindObjectsOfTypeAll<BrowserWindow>();
+                            var open = BrowserWindowRegistry.AllOfType<BrowserWindow>();
                             foreach (var w in open)
                             {
                                 try
@@ -516,7 +516,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Preserve foldout state then refresh relevant BrowserWindow instances
             try
             {
-                var openWindows = Resources.FindObjectsOfTypeAll<BrowserWindow>();
+                var openWindows = BrowserWindowRegistry.AllOfType<BrowserWindow>();
                 foreach (var w in openWindows)
                 {
                     try { w.SaveFoldoutStateToEditor(); } catch { }
@@ -528,7 +528,7 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 try
                 {
-                    var open = Resources.FindObjectsOfTypeAll<BrowserWindow>();
+                    var open = BrowserWindowRegistry.AllOfType<BrowserWindow>();
                     foreach (var w in open)
                     {
                         try

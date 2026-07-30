@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace SecretZauce.SecondBrain.Editor
 {
@@ -10,10 +9,15 @@ namespace SecretZauce.SecondBrain.Editor
     public class DrawContext
     {
         public List<IStructure> Collections { get; }
-        public List<int[]> SelectedPaths { get; } 
+        public List<int[]> SelectedPaths { get; }
         public event Action<int[], bool, bool> OnItemSelected; // path, isMultiSelect (Ctrl/Cmd), isRangeSelect (Shift)
         public event Action RecordSelectionChange;
-        
+
+        // Resolved once per draw pass. A DrawContext is rebuilt on every OnGUI, so this stays
+        // current, and IsPathSelected — which runs once per visible row per GUI event — no longer
+        // pays for the lookup on each call.
+        readonly BrowserWindow focusedWindow;
+
         public DrawContext(
             List<IStructure> items,
             SelectionStateSO selectionState,
@@ -22,23 +26,46 @@ namespace SecretZauce.SecondBrain.Editor
         {
             Collections = items;
             SelectedPaths = selectionState.GetAllPaths() ?? new List<int[]>();
+            focusedWindow = WindowFocusManager.GetCurrentWindow();
             if (onItemSelected != null) OnItemSelected += onItemSelected;
             if (recordSelectionChange != null) RecordSelectionChange += recordSelectionChange;
         }
-        
+
         /// <summary>
         /// Checks if a path is selected
         /// </summary>
         public bool IsPathSelected(BrowserWindow window, int[] path)
         {
-            var currentWindow = WindowFocusManager.GetCurrentWindow();
-            if (currentWindow != window && currentWindow != null)
+            // Cheapest rejections first: with an empty selection — the common case — nothing else
+            // needs to be evaluated. The manual comparison loop avoids the LINQ closure and
+            // enumerator that would otherwise be allocated for every row, every GUI event.
+            if (path == null || SelectedPaths == null || SelectedPaths.Count == 0)
                 return false;
-            
-            if (path == null || SelectedPaths == null)
+
+            if (focusedWindow != null && focusedWindow != window)
                 return false;
-            
-            return SelectedPaths.Any(p => p != null && p.SequenceEqual(path));
+
+            for (int i = 0; i < SelectedPaths.Count; i++)
+            {
+                var candidate = SelectedPaths[i];
+                if (candidate == null || candidate.Length != path.Length)
+                    continue;
+
+                bool equal = true;
+                for (int j = 0; j < path.Length; j++)
+                {
+                    if (candidate[j] == path[j])
+                        continue;
+
+                    equal = false;
+                    break;
+                }
+
+                if (equal)
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>

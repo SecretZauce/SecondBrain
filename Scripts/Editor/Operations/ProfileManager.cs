@@ -239,8 +239,8 @@ namespace SecretZauce.SecondBrain.Editor
                 var profileChildren = profile.Children; // List<Base>
 
                 // Find all open BrowserWindows and check whether any has stale Collections.
-                var windows = Resources.FindObjectsOfTypeAll<BrowserWindow>();
-                if (windows == null || windows.Length == 0)
+                var windows = BrowserWindowRegistry.AllOfType<BrowserWindow>();
+                if (windows.Count == 0)
                     return;
 
                 bool needsRefresh = false;

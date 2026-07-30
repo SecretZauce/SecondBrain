@@ -22,25 +22,19 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 if (currentWindowInstanceID == 0)
                     return null;
-                
+
                 try
                 {
-                    // Look up the EditorWindow by instance ID
-                    var allWindows = Resources.FindObjectsOfTypeAll<BrowserWindow>();
-                    foreach (var window in allWindows)
-                    {
-                        if (window != null && window.GetInstanceID() == currentWindowInstanceID)
-                            return window;
-                    }
+                    // Resolved through the registry rather than Resources.FindObjectsOfTypeAll:
+                    // this getter sits on the per-row draw path, and the old scan walked every
+                    // loaded object in the project (all scene GameObjects included) on each call.
+                    return BrowserWindowRegistry.FindByInstanceID(currentWindowInstanceID);
                 }
                 catch
                 {
                     // In case of errors during lookup (e.g., during domain reload), return null
                     return null;
                 }
-                
-                // Window with stored ID no longer exists
-                return null;
             }
         }
 

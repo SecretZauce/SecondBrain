@@ -38,8 +38,8 @@ namespace SecretZauce.SecondBrain.Editor
         [Shortcut("Second Brain/Focus Window", KeyCode.W, ShortcutModifiers.Shift)]
         static void FocusWindow()
         {
-            var existing = Resources.FindObjectsOfTypeAll<SecondBrainWindow>();
-            if (existing != null && existing.Length > 0)
+            var existing = BrowserWindowRegistry.AllOfType<SecondBrainWindow>();
+            if (existing.Count > 0)
                 existing[0].Focus();
             else
                 BrowserWindow.OpenWindow<SecondBrainWindow>();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using System.Reflection;
@@ -26,6 +27,13 @@ namespace SecretZauce.SecondBrain.Editor
         /// returns its position on screen. Uses reflection to inspect internal types and
         /// falls back to sensible defaults when not available.
         /// </summary>
+        // Resolved lazily and reused. Resources.FindObjectsOfTypeAll walks every loaded object in
+        // the project — including all scene GameObjects — so in a large scene each call is costly
+        // enough to be worth avoiding, even on user-triggered paths. Cached references go null when
+        // the window closes or after a domain reload, which triggers a fresh scan.
+        static Object cachedMainContainerWindow;
+        static PropertyInfo cachedContainerPositionProp;
+
         public static Rect GetMainWindowRect()
         {
             try
@@ -34,24 +42,32 @@ namespace SecretZauce.SecondBrain.Editor
                 var containerType = asm.GetType("UnityEditor.ContainerWindow");
                 if (containerType != null)
                 {
-                    var all = Resources.FindObjectsOfTypeAll(containerType);
-                    if (all != null)
+                    if (cachedMainContainerWindow == null || cachedContainerPositionProp == null)
                     {
+                        cachedMainContainerWindow = null;
+                        cachedContainerPositionProp = containerType.GetProperty("position", BindingFlags.Public | BindingFlags.Instance);
                         var showModeField = containerType.GetField("m_ShowMode", BindingFlags.NonPublic | BindingFlags.Instance);
-                        var positionProp = containerType.GetProperty("position", BindingFlags.Public | BindingFlags.Instance);
-                        foreach (var win in all)
-                        {
-                            if (showModeField == null || positionProp == null)
-                                break;
 
-                            var modeObj = showModeField.GetValue(win);
-                            if (modeObj is 4) // 4 == main editor window (common convention)
+                        if (showModeField != null && cachedContainerPositionProp != null)
+                        {
+                            var all = Resources.FindObjectsOfTypeAll(containerType);
+                            if (all != null)
                             {
-                                var rect = (Rect)positionProp.GetValue(win, null);
-                                return rect;
+                                foreach (var win in all)
+                                {
+                                    var modeObj = showModeField.GetValue(win);
+                                    if (modeObj is 4) // 4 == main editor window (common convention)
+                                    {
+                                        cachedMainContainerWindow = win;
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
+
+                    if (cachedMainContainerWindow != null && cachedContainerPositionProp != null)
+                        return (Rect)cachedContainerPositionProp.GetValue(cachedMainContainerWindow, null);
                 }
             }
             catch
@@ -66,6 +82,81 @@ namespace SecretZauce.SecondBrain.Editor
             var resolution = Screen.currentResolution;
             return new Rect(0, 0, resolution.width, resolution.height);
         }
+        // Editors used by the detail panel, keyed by target instance ID.
+        //
+        // DrawObjectInspector runs on every OnGUI pass. Creating an Editor and destroying it again
+        // each pass is expensive — for a GameObject or prefab target it rebuilds GameObjectInspector
+        // and its preview scene every frame — so instances are kept alive and reused instead.
+        // The cache is capped and evicts the least recently used entry. Unity destroys the cached
+        // Editors on domain reload, which the null checks below absorb.
+        const int InspectorCacheCapacity = 8;
+        static readonly Dictionary<int, UnityEditor.Editor> InspectorCache = new Dictionary<int, UnityEditor.Editor>();
+        static readonly Dictionary<int, long> InspectorCacheLastUse = new Dictionary<int, long>();
+        static readonly List<int> InspectorCacheScratch = new List<int>();
+        static long inspectorCacheClock;
+
+        static UnityEditor.Editor GetCachedEditor(Object obj)
+        {
+            int id = obj.GetInstanceID();
+
+            if (InspectorCache.TryGetValue(id, out var cached))
+            {
+                if (cached != null && cached.target == obj)
+                {
+                    InspectorCacheLastUse[id] = ++inspectorCacheClock;
+                    return cached;
+                }
+
+                DestroyCachedEditor(id);
+            }
+
+            var created = UnityEditor.Editor.CreateEditor(obj);
+            if (created == null)
+                return null;
+
+            InspectorCache[id] = created;
+            InspectorCacheLastUse[id] = ++inspectorCacheClock;
+            TrimInspectorCache();
+            return created;
+        }
+
+        static void TrimInspectorCache()
+        {
+            // Release entries whose Editor or target has died before evicting anything still valid.
+            InspectorCacheScratch.Clear();
+            foreach (var kvp in InspectorCache)
+                if (kvp.Value == null || kvp.Value.target == null)
+                    InspectorCacheScratch.Add(kvp.Key);
+
+            foreach (var id in InspectorCacheScratch)
+                DestroyCachedEditor(id);
+
+            while (InspectorCache.Count > InspectorCacheCapacity)
+            {
+                int oldestId = 0;
+                long oldestUse = long.MaxValue;
+                foreach (var kvp in InspectorCacheLastUse)
+                {
+                    if (kvp.Value >= oldestUse)
+                        continue;
+
+                    oldestUse = kvp.Value;
+                    oldestId = kvp.Key;
+                }
+
+                DestroyCachedEditor(oldestId);
+            }
+        }
+
+        static void DestroyCachedEditor(int id)
+        {
+            if (InspectorCache.TryGetValue(id, out var editor) && editor != null)
+                Object.DestroyImmediate(editor);
+
+            InspectorCache.Remove(id);
+            InspectorCacheLastUse.Remove(id);
+        }
+
         public static void DrawObjectInspector(Object obj)
         {
             if (obj == null)
@@ -78,64 +169,57 @@ namespace SecretZauce.SecondBrain.Editor
             
             try
             {
-                var ed = UnityEditor.Editor.CreateEditor(obj);
+                var ed = GetCachedEditor(obj);
                 if (ed != null)
                 {
-                    try
+                    // Check if this is a custom editor specifically made for this type
+                    // Unity's default editors start with "UnityEditor."
+                    // Odin's editors start with "Sirenix." - treat them like default editors
+                    string editorFullName = ed.GetType().FullName;
+                    bool isDefaultOrOdinEditor = editorFullName != null && (editorFullName.StartsWith("UnityEditor.") ||
+                        editorFullName.StartsWith("Sirenix."));
+
+                    if (!isDefaultOrOdinEditor)
                     {
-                        // Check if this is a custom editor specifically made for this type
-                        // Unity's default editors start with "UnityEditor."
-                        // Odin's editors start with "Sirenix." - treat them like default editors
-                        string editorFullName = ed.GetType().FullName;
-                        bool isDefaultOrOdinEditor = editorFullName != null && (editorFullName.StartsWith("UnityEditor.") || 
-                            editorFullName.StartsWith("Sirenix."));
-                        
-                        if (!isDefaultOrOdinEditor)
+                        // Use the custom editor's OnInspectorGUI
+                        ed.OnInspectorGUI();
+                    }
+                    else
+                    {
+                        // For default Unity editors or Odin, manually iterate through serialized properties
+                        ed.serializedObject.Update();
+
+                        SerializedProperty prop = ed.serializedObject.GetIterator();
+                        bool hasVisibleProperties = false;
+                        if (prop.NextVisible(true))
                         {
-                            // Use the custom editor's OnInspectorGUI
-                            ed.OnInspectorGUI();
-                        }
-                        else
-                        {
-                            // For default Unity editors or Odin, manually iterate through serialized properties
-                            ed.serializedObject.Update();
-                            
-                            SerializedProperty prop = ed.serializedObject.GetIterator();
-                            bool hasVisibleProperties = false;
-                            if (prop.NextVisible(true))
+                            do
                             {
-                                do
+                                hasVisibleProperties = true;
+
+                                // Draw script field as disabled
+                                if (prop.propertyPath == "m_Script")
                                 {
-                                    hasVisibleProperties = true;
-                                    
-                                    // Draw script field as disabled
-                                    if (prop.propertyPath == "m_Script")
+                                    using (new EditorGUI.DisabledScope(true))
                                     {
-                                        using (new EditorGUI.DisabledScope(true))
-                                        {
-                                            EditorGUILayout.PropertyField(prop, new GUIContent(prop.displayName), true);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // Draw with explicit label and includeChildren=true
                                         EditorGUILayout.PropertyField(prop, new GUIContent(prop.displayName), true);
                                     }
                                 }
-                                while (prop.NextVisible(false));
+                                else
+                                {
+                                    // Draw with explicit label and includeChildren=true
+                                    EditorGUILayout.PropertyField(prop, new GUIContent(prop.displayName), true);
+                                }
                             }
-                            
-                            if (!hasVisibleProperties)
-                            {
-                                EditorGUILayout.LabelField("No serialized properties found.", EditorStyles.miniLabel);
-                            }
-                            
-                            ed.serializedObject.ApplyModifiedProperties();
+                            while (prop.NextVisible(false));
                         }
-                    }
-                    finally
-                    {
-                        Object.DestroyImmediate(ed);
+
+                        if (!hasVisibleProperties)
+                        {
+                            EditorGUILayout.LabelField("No serialized properties found.", EditorStyles.miniLabel);
+                        }
+
+                        ed.serializedObject.ApplyModifiedProperties();
                     }
                 }
                 else
@@ -183,8 +267,17 @@ namespace SecretZauce.SecondBrain.Editor
             lastSv.ShowNotification(notif, NotificationDuration);
         }
 
+        // See the note on cachedMainContainerWindow — same reasoning, same invalidation rule.
+        static EditorWindow cachedHierarchyWindow;
+
         public static void FocusHierarchyWindowIfPresent()
         {
+            if (cachedHierarchyWindow != null)
+            {
+                cachedHierarchyWindow.Focus();
+                return;
+            }
+
             var asm = typeof(UnityEditor.Editor).Assembly;
             // Try known internal names for the Hierarchy window type
             string[] candidates = new[] { "UnityEditor.SceneHierarchyWindow", "UnityEditor.HierarchyWindow", "UnityEditor.Hierarchy" };
@@ -199,6 +292,7 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     var win = found[0] as EditorWindow;
                     if (win == null) continue;
+                    cachedHierarchyWindow = win;
                     win.Focus();
                     return; // exit after focusing
                 }
