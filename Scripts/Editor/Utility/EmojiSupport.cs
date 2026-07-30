@@ -67,11 +67,17 @@ namespace SecretZauce.SecondBrain.Editor
                 if (style == null)
                     return null;
 
-                // Sanity-check that text metrics are live before trusting a zero width.
-                if (style.CalcSize(new GUIContent("A")).x < 1f)
+                // CalcSize includes the style's padding, so measuring the glyph on its own
+                // never reports 0. Measure how much width the glyph *adds* instead — the
+                // padding cancels out and an unsupported editor yields a delta of 0.
+                float plain = style.CalcSize(new GUIContent("A")).x;
+                float withGlyph = style.CalcSize(new GUIContent("A" + ProbeGlyph)).x;
+
+                // Sanity-check that text metrics are live before trusting a zero delta.
+                if (plain < 1f)
                     return null;
 
-                return style.CalcSize(new GUIContent(ProbeGlyph)).x > 1f;
+                return (withGlyph - plain) > 1f;
             }
             catch
             {
