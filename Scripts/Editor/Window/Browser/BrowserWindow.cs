@@ -1111,6 +1111,16 @@ namespace SecretZauce.SecondBrain.Editor
                 if (Event.current.type == EventType.DragUpdated &&
                     DragAndDropManager.HasExternalDragContent())
                 {
+#if SECOND_BRAIN_PRO
+                    // A cross-window drag is a move, not a copy — show the same cursor an
+                    // occupied Base shows.
+                    if (ProFeature.Provider?.IsCrossWindowDragFromAnotherWindow(this) == true)
+                    {
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+                        Repaint();
+                        return true;
+                    }
+#endif
                     bool hasUnsavedScene = DragAndDropManager.CollectExternalDragObjects().Any(
                         SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
                     DragAndDrop.visualMode = hasUnsavedScene
@@ -1123,6 +1133,29 @@ namespace SecretZauce.SecondBrain.Editor
                 if (Event.current.type == EventType.DragPerform &&
                     DragAndDropManager.HasExternalDragContent())
                 {
+#if SECOND_BRAIN_PRO
+                    // Cross-window SecondBrain drag: migrate the real sub-assets.
+                    //
+                    // This empty-Base branch runs before the TreeView drag pipeline, and it used
+                    // to fall straight through to the external-asset path below. That path is
+                    // wrong for a cross-window drag: CreateContainerAndAddExternalItems recreates
+                    // leaf items as brand-new entries instead of moving them, and it cannot accept
+                    // a dragged Container at all — so dropping a Container left an empty container
+                    // behind and the original still sitting in the source window.
+                    //
+                    // The occupied-Base paths (drop on a row, and drop on empty space below rows)
+                    // already route through ExecuteCrossWindowTransfer; an empty Base never
+                    // reached either, because BeginExternalDrag is only started from
+                    // TreeViewDragInput.HandleRow and an empty tree has no rows to run it.
+                    if (ProFeature.Provider?.ExecuteCrossWindowTransfer(
+                            this, null, (int)DragAndDropManager.DropPosition.None,
+                            treeView, selectionState, collections) == true)
+                    {
+                        Event.current.Use();
+                        Repaint();
+                        return true;
+                    }
+#endif
                     DragAndDrop.AcceptDrag();
                     var droppedItems = DragAndDropManager.CollectExternalDragObjects();
 
