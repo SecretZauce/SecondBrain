@@ -54,6 +54,7 @@ namespace SecretZauce.SecondBrain.Editor
         {
             s_GameObjectPathWalkFailed.Clear();
             s_ComponentPathWalkFailed.Clear();
+            s_NameIndexByScene.Clear();
         }
 
         /// <summary>
@@ -303,7 +304,9 @@ namespace SecretZauce.SecondBrain.Editor
         /// are still found — GameObject.Find skips them.
         ///
         /// When the object is not in its original scene, the DontDestroyOnLoad scene is searched as
-        /// a last resort — see <see cref="FindInDontDestroyOnLoad"/>.
+        /// a last resort — see <see cref="FindInDontDestroyOnLoad"/>. When it is still in its scene
+        /// but no longer at the recorded path, the relaxed walk takes over — see
+        /// <see cref="FindByFlattenedPath"/>.
         /// </summary>
         static GameObject FindByHierarchyPath(string hierarchyPath, string sceneGuid, string sceneName)
         {
@@ -314,14 +317,155 @@ namespace SecretZauce.SecondBrain.Editor
             if (segments.Length == 0)
                 return null;
 
-            if (TryGetLoadedScene(sceneGuid, sceneName, out var scene))
+            bool sceneLoaded = TryGetLoadedScene(sceneGuid, sceneName, out var scene);
+            if (sceneLoaded)
             {
                 var inOriginScene = FindInScene(scene, segments, 0);
                 if (inOriginScene != null)
                     return inOriginScene;
             }
 
-            return FindInDontDestroyOnLoad(segments);
+            var inDontDestroyOnLoad = FindInDontDestroyOnLoad(segments);
+            if (inDontDestroyOnLoad != null)
+                return inDontDestroyOnLoad;
+
+            // Exact walks are exhausted — try the relaxed one, which tolerates ancestors that no
+            // longer exist. Origin scene first; an object that was also carried into
+            // DontDestroyOnLoad is the rarer case.
+            if (sceneLoaded)
+            {
+                var flattened = FindByFlattenedPath(scene, segments);
+                if (flattened != null)
+                    return flattened;
+            }
+
+            return TryGetDontDestroyOnLoadScene(out var ddolScene)
+                ? FindByFlattenedPath(ddolScene, segments)
+                : null;
+        }
+
+        // ── Flattened hierarchies ─────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Finds the linked object when some of its ancestors no longer exist, by matching the
+        /// recorded path loosely: the live ancestor chain must appear in the recorded path in the
+        /// same order, but the recorded path may contain extra ancestors the live object no longer
+        /// has.
+        ///
+        /// This covers third-party hierarchy-folder assets, which organise the Edit-mode hierarchy
+        /// under folder GameObjects and then flatten themselves on entering Play mode: each folder
+        /// is destroyed and its children are reparented up. The linked object survives, but its path
+        /// is now the recorded one minus the folder segments — at any depth, not just the leading
+        /// ones — so the exact walk misses it and the row read "(Missing)" for the whole session.
+        ///
+        /// Ambiguity is treated as failure: if two objects fit the recorded path equally well, one
+        /// is not preferred over the other, because silently pointing a ref at the wrong object is
+        /// worse than reporting it missing.
+        /// </summary>
+        static GameObject FindByFlattenedPath(Scene scene, string[] segments)
+        {
+            if (!scene.IsValid() || !scene.isLoaded || segments.Length == 0)
+                return null;
+
+            if (!GetNameIndex(scene).TryGetValue(segments[segments.Length - 1], out var candidates))
+                return null;
+
+            GameObject best = null;
+            int bestScore = -1;
+            bool tied = false;
+
+            foreach (var candidate in candidates)
+            {
+                if (candidate == null) continue;
+
+                int score = MatchAncestors(candidate.transform, segments);
+                if (score < 0) continue;
+
+                if (score > bestScore)
+                {
+                    best = candidate;
+                    bestScore = score;
+                    tied = false;
+                }
+                else if (score == bestScore)
+                {
+                    tied = true;
+                }
+            }
+
+            return tied ? null : best;
+        }
+
+        /// <summary>
+        /// Scores how well <paramref name="leaf"/>'s live ancestor chain fits the ancestor part of
+        /// <paramref name="segments"/> (everything but the last segment, which is the leaf name and
+        /// is matched by the caller).
+        ///
+        /// Returns the number of live ancestors matched, or -1 when the chain is not an ordered
+        /// subsequence of the recorded one. Only removals are tolerated: every live ancestor must
+        /// still be named in the recorded path, so an unrelated object that merely shares the leaf
+        /// name is rejected rather than scored low.
+        ///
+        /// The score is the live depth, so a deeper match — one that kept more of the recorded
+        /// ancestry — wins over a shallower one.
+        /// </summary>
+        static int MatchAncestors(Transform leaf, string[] segments)
+        {
+            int matched = 0;
+            // Recorded ancestors are consumed from the deepest backwards, mirroring the walk up the
+            // live chain. -1 when the recorded path is a bare name with no ancestors at all.
+            int next = segments.Length - 2;
+
+            for (var ancestor = leaf.parent; ancestor != null; ancestor = ancestor.parent)
+            {
+                while (next >= 0 && segments[next] != ancestor.name)
+                    next--;
+
+                if (next < 0)
+                    return -1;
+
+                matched++;
+                next--;
+            }
+
+            return matched;
+        }
+
+        /// <summary>
+        /// Name → GameObjects for one loaded scene, built on demand and dropped along with the
+        /// path-walk caches.
+        ///
+        /// <see cref="FindByFlattenedPath"/> has to start from the leaf name alone, and a fresh
+        /// scan per ref would walk the entire scene once for every row that failed the exact walk.
+        /// The index moves that to once per scene per hierarchy change.
+        /// </summary>
+        static readonly Dictionary<int, Dictionary<string, List<GameObject>>> s_NameIndexByScene =
+            new Dictionary<int, Dictionary<string, List<GameObject>>>();
+
+        static Dictionary<string, List<GameObject>> GetNameIndex(Scene scene)
+        {
+            if (s_NameIndexByScene.TryGetValue(scene.handle, out var index))
+                return index;
+
+            index = new Dictionary<string, List<GameObject>>(System.StringComparer.Ordinal);
+            foreach (var root in scene.GetRootGameObjects())
+                IndexRecursive(root.transform, index);
+
+            s_NameIndexByScene[scene.handle] = index;
+            return index;
+        }
+
+        static void IndexRecursive(Transform transform, Dictionary<string, List<GameObject>> index)
+        {
+            if (!index.TryGetValue(transform.name, out var bucket))
+            {
+                bucket = new List<GameObject>();
+                index[transform.name] = bucket;
+            }
+            bucket.Add(transform.gameObject);
+
+            for (int i = 0; i < transform.childCount; i++)
+                IndexRecursive(transform.GetChild(i), index);
         }
 
         /// <summary>Walks <paramref name="segments"/> from <paramref name="startIndex"/> inside

@@ -4,6 +4,10 @@ All notable changes to SecondBrain will be documented in this file.
 
 ## 1.0.5 (31-07-2026)
 
+### Fixed
+- Scene references no longer report as "Missing" when the linked object's parents are removed at runtime — as hierarchy-folder assets do when they flatten their folder objects on entering Play mode. The object is now found at its new place in the hierarchy, as long as only one object fits.
+- Quick Peek now recovers references the same way the browser and Inspector already did, instead of refusing to open them once their id stops resolving in Play mode.
+
 ### Changed
 - Browser windows holding many scene object references are substantially faster to hover and scroll. A reference whose target cannot be found by id no longer re-searches every loaded scene on each repaint — the result is remembered until a scene or the hierarchy actually changes.
 - Browser settings such as row height, font size, and the icon and Quick Peek toggles are now read from memory. They were previously fetched from EditorPrefs several times per row on every repaint.
