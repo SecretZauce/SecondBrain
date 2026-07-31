@@ -84,11 +84,15 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             var isPickedMismatched = false;
-            if (displayed != null)
+            // An object that has been moved to DontDestroyOnLoad at runtime always looks
+            // "mismatched" — its scene and hierarchy path are both runtime-only values. Treating
+            // that as a mismatch rewrote the ref's authored metadata with the pseudo-scene, which
+            // then read as an unloaded scene back in Edit mode.
+            if (displayed != null && !SceneObjectRefUtils.IsInRuntimeOnlyScene(displayed))
             {
                 isPickedMismatched = (lastKnownName != null && lastKnownName != displayed.name)
                     || (lastKnownPath != null && lastKnownPath != SceneObjectRefUtils.GetGameObjectPath(displayed));
-                
+
                 // Only flag scene mismatch if GUID also differs (not just name)
                 if (!string.IsNullOrEmpty(lastKnownSceneGuid))
                 {
@@ -223,29 +227,27 @@ namespace SecretZauce.SecondBrain.Editor
             if (lastKnownName != null)
                 lastKnownName.stringValue = picked != null ? picked.name : string.Empty;
                     
+            var pickedGo = picked as GameObject;
+
+            // The DontDestroyOnLoad scene (and any scene created at runtime) has no asset on disk and
+            // disappears when Play mode ends. Recording it would overwrite the authored scene and
+            // hierarchy path with values that cannot be resolved in Edit mode, so keep what is there.
+            if (SceneObjectRefUtils.IsInRuntimeOnlyScene(pickedGo))
+                return;
+
             var lastKnownScene = rootProp.FindPropertyRelative("lastKnownScene");
             var lastKnownSceneGuid = rootProp.FindPropertyRelative("lastKnownSceneGuid");
             if (lastKnownScene != null)
             {
-                if (picked != null)
+                // Guard: only read scene name if the cast succeeded
+                if (pickedGo != null)
                 {
-                    var go = picked as GameObject;
-                    // Guard: only read scene name if cast succeeded
-                    if (go != null)
+                    lastKnownScene.stringValue = pickedGo.scene.name;
+
+                    // Store scene GUID for rename detection
+                    if (lastKnownSceneGuid != null && !string.IsNullOrEmpty(pickedGo.scene.path))
                     {
-                        lastKnownScene.stringValue = go.scene.name;
-                        
-                        // Store scene GUID for rename detection
-                        if (lastKnownSceneGuid != null && !string.IsNullOrEmpty(go.scene.path))
-                        {
-                            lastKnownSceneGuid.stringValue = AssetDatabase.AssetPathToGUID(go.scene.path);
-                        }
-                    }
-                    else
-                    {
-                        lastKnownScene.stringValue = string.Empty;
-                        if (lastKnownSceneGuid != null)
-                            lastKnownSceneGuid.stringValue = string.Empty;
+                        lastKnownSceneGuid.stringValue = AssetDatabase.AssetPathToGUID(pickedGo.scene.path);
                     }
                 }
                 else
@@ -255,20 +257,14 @@ namespace SecretZauce.SecondBrain.Editor
                         lastKnownSceneGuid.stringValue = string.Empty;
                 }
             }
-                    
+
             var lastKnownPath = rootProp.FindPropertyRelative("lastKnownPath");
             if (lastKnownPath != null)
             {
-                if (picked != null)
-                {
-                    var go = picked as GameObject;
-                    // Guard: only compute path when we have a GameObject
-                    lastKnownPath.stringValue = (go != null) ? SceneObjectRefUtils.GetGameObjectPath(go) : string.Empty;
-                }
-                else
-                {
-                    lastKnownPath.stringValue = string.Empty;
-                }
+                // Guard: only compute path when we have a GameObject
+                lastKnownPath.stringValue = pickedGo != null
+                    ? SceneObjectRefUtils.GetGameObjectPath(pickedGo)
+                    : string.Empty;
             }
         }
     }

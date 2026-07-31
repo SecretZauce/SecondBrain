@@ -86,7 +86,11 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             bool isPickedMismatched = false;
-            if (displayed != null)
+            // A component whose GameObject has been moved to DontDestroyOnLoad at runtime always
+            // looks "mismatched" — its scene and hierarchy path are both runtime-only values.
+            // Treating that as a mismatch rewrote the ref's authored metadata with the pseudo-scene,
+            // which then read as an unloaded scene back in Edit mode.
+            if (displayed != null && !SceneObjectRefUtils.IsInRuntimeOnlyScene(displayed.gameObject))
             {
                 string displayedPath = displayed.gameObject != null
                     ? SceneObjectRefUtils.GetGameObjectPath(displayed.gameObject)
@@ -200,6 +204,12 @@ namespace SecretZauce.SecondBrain.Editor
 
         static void RecordFallbackInfo(SerializedProperty rootProp, Component picked)
         {
+            // The DontDestroyOnLoad scene (and any scene created at runtime) has no asset on disk and
+            // disappears when Play mode ends. Recording it would overwrite the authored scene and
+            // hierarchy path with values that cannot be resolved in Edit mode, so keep what is there.
+            if (picked != null && SceneObjectRefUtils.IsInRuntimeOnlyScene(picked.gameObject))
+                return;
+
             var lastKnownScene = rootProp.FindPropertyRelative("lastKnownScene");
             var lastKnownSceneGuid = rootProp.FindPropertyRelative("lastKnownSceneGuid");
             if (lastKnownScene != null)

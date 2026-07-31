@@ -18,32 +18,7 @@ namespace SecretZauce.SecondBrain.Editor
         /// Falls back to name-based check for backward compatibility.
         /// </summary>
         static bool IsSceneLoaded(string sceneGuid, string sceneName)
-        {
-            // Prefer GUID-based lookup (stable across renames)
-            if (!string.IsNullOrEmpty(sceneGuid))
-            {
-                var scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
-                if (!string.IsNullOrEmpty(scenePath))
-                {
-                    // Check all loaded scenes to see if any match this path
-                    for (int i = 0; i < SceneManager.sceneCount; i++)
-                    {
-                        var loadedScene = SceneManager.GetSceneAt(i);
-                        if (loadedScene.path == scenePath)
-                            return loadedScene.isLoaded;
-                    }
-                }
-            }
-            
-            // Fallback: name-based check (for backward compatibility or if GUID is missing)
-            if (!string.IsNullOrEmpty(sceneName))
-            {
-                var scene = SceneManager.GetSceneByName(sceneName);
-                return scene.isLoaded;
-            }
-            
-            return false;
-        }
+            => SceneLoadUtils.IsSceneLoaded(sceneGuid, sceneName);
 
         /// <summary>
         /// Performs the action associated with the '>' button on a leaf node.

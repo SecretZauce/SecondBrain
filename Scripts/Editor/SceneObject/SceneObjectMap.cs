@@ -244,8 +244,7 @@ namespace SecretZauce.SecondBrain.Editor
                 foreach (var component in owner.GetComponents<Component>())
                 {
                     if (component == null) continue;
-                    var type = component.GetType();
-                    if (type.FullName != componentTypeName && type.Name != componentTypeName) continue;
+                    if (!ComponentTypeMatches(component.GetType(), componentTypeName)) continue;
                     match = component;
                     break;
                 }
@@ -264,6 +263,30 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             return match;
+        }
+
+        /// <summary>
+        /// True when <paramref name="type"/> is the component type recorded in
+        /// <paramref name="componentTypeName"/>.
+        ///
+        /// SceneComponentRefUtils records the type as an AssemblyQualifiedName, but this comparison
+        /// originally only accepted FullName or Name, so a stored AssemblyQualifiedName never matched
+        /// anything. The consequence was that the hierarchy-path fallback could never produce a
+        /// component: once a GlobalObjectId stopped resolving — which is every prefab instance after
+        /// Play mode is entered — the ref reported "(Missing)" for the whole session, while the
+        /// equivalent SceneObjectRef recovered because it has no type check to fail.
+        ///
+        /// All three spellings are accepted because older refs and the drawers' fallbacks may hold a
+        /// FullName or a bare type name instead.
+        /// </summary>
+        static bool ComponentTypeMatches(System.Type type, string componentTypeName)
+        {
+            if (type == null || string.IsNullOrEmpty(componentTypeName))
+                return false;
+
+            return type.AssemblyQualifiedName == componentTypeName
+                || type.FullName == componentTypeName
+                || type.Name == componentTypeName;
         }
 
         /// <summary>

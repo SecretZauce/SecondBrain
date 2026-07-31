@@ -39,6 +39,24 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
+        /// True when <paramref name="go"/> currently lives in a scene that exists only while playing —
+        /// the DontDestroyOnLoad pseudo-scene, or a scene created at runtime — and therefore has no
+        /// asset on disk.
+        ///
+        /// Such a scene must never be written into a ref's last-known metadata: it names a location
+        /// that cannot exist in Edit mode, and the object's hierarchy path there is unrelated to the
+        /// one it has in its authored scene (DontDestroyOnLoad only accepts roots, so a linked child
+        /// is detached first and its recorded path collapses to a suffix).
+        ///
+        /// A prefab asset is deliberately excluded: its scene handle is invalid rather than merely
+        /// path-less, and clearing the metadata is the right response when one is assigned.
+        /// </summary>
+        public static bool IsInRuntimeOnlyScene(GameObject go)
+        {
+            return go != null && go.scene.IsValid() && string.IsNullOrEmpty(go.scene.path);
+        }
+
+        /// <summary>
         /// Creates a SceneObjectRef for the given scene GameObject.
         /// When <paramref name="parentAsset"/> is provided and is a saved asset, the ref is embedded
         /// as a sub-asset inside the parent's asset file.
