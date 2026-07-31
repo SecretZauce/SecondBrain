@@ -13,7 +13,7 @@ namespace SecretZauce.SecondBrain.Editor
         static readonly Dictionary<string, Object> SceneObjects = new Dictionary<string, Object>();
 
         // GIDs that returned null from GlobalObjectIdentifierToObjectSlow — scene not loaded.
-        // Cleared whenever any scene opens so refs become resolvable again.
+        // Cleared whenever any scene opens or play mode transitions so refs become resolvable again.
         static readonly HashSet<string> s_UnresolvableIds = new HashSet<string>();
 
         static SceneObjectMap()
