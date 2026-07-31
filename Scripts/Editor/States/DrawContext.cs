@@ -13,6 +13,9 @@ namespace SecretZauce.SecondBrain.Editor
         public event Action<int[], bool, bool> OnItemSelected; // path, isMultiSelect (Ctrl/Cmd), isRangeSelect (Shift)
         public event Action RecordSelectionChange;
 
+        // HashSet for O(1) path-selected lookups instead of O(selections × path_length) per row.
+        readonly HashSet<string> _selectedPathKeys;
+
         public DrawContext(
             List<IStructure> items,
             SelectionStateSO selectionState,
@@ -23,6 +26,35 @@ namespace SecretZauce.SecondBrain.Editor
             SelectedPaths = selectionState.GetAllPaths() ?? new List<int[]>();
             if (onItemSelected != null) OnItemSelected += onItemSelected;
             if (recordSelectionChange != null) RecordSelectionChange += recordSelectionChange;
+
+            // Build HashSet from selected paths for O(1) lookups during draw.
+            _selectedPathKeys = new HashSet<string>(SelectedPaths.Count, StringComparer.Ordinal);
+            for (int i = 0; i < SelectedPaths.Count; i++)
+            {
+                var p = SelectedPaths[i];
+                if (p != null)
+                    _selectedPathKeys.Add(PathToKey(p));
+            }
+        }
+
+        static string PathToKey(int[] path)
+        {
+            // Fast path for common depths (avoids string.Join overhead)
+            switch (path.Length)
+            {
+                case 0: return "";
+                case 1: return path[0].ToString();
+                case 2: return path[0].ToString() + "," + path[1].ToString();
+                default:
+                    var sb = new System.Text.StringBuilder(path.Length * 3);
+                    sb.Append(path[0]);
+                    for (int i = 1; i < path.Length; i++)
+                    {
+                        sb.Append(',');
+                        sb.Append(path[i]);
+                    }
+                    return sb.ToString();
+            }
         }
 
         /// <summary>
@@ -30,42 +62,18 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public bool IsPathSelected(BrowserWindow window, int[] path)
         {
-            // Cheapest rejections first: with an empty selection — the common case — nothing else
-            // needs to be evaluated. The manual comparison loop avoids the LINQ closure and
-            // enumerator that would otherwise be allocated for every row, every GUI event.
-            if (path == null || SelectedPaths == null || SelectedPaths.Count == 0)
+            if (path == null || _selectedPathKeys.Count == 0)
                 return false;
 
             // Resolved live, NOT cached per draw pass. Selection handlers call
             // WindowFocusManager.SetCurrentWindow mid-OnGUI (see SelectionStateSO), so a value
             // captured when this DrawContext was built goes stale within the very pass that uses
-            // it — which is exactly when a cross-window drag decides what to pick up. The lookup
-            // is a short walk over the open-window registry, so calling it per row is cheap.
+            // it — which is exactly when a cross-window drag decides what to pick up.
             var focusedWindow = WindowFocusManager.GetCurrentWindow();
             if (focusedWindow != null && focusedWindow != window)
                 return false;
 
-            for (int i = 0; i < SelectedPaths.Count; i++)
-            {
-                var candidate = SelectedPaths[i];
-                if (candidate == null || candidate.Length != path.Length)
-                    continue;
-
-                bool equal = true;
-                for (int j = 0; j < path.Length; j++)
-                {
-                    if (candidate[j] == path[j])
-                        continue;
-
-                    equal = false;
-                    break;
-                }
-
-                if (equal)
-                    return true;
-            }
-
-            return false;
+            return _selectedPathKeys.Contains(PathToKey(path));
         }
 
         /// <summary>

@@ -152,6 +152,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         Vector2 scrollPosition;
         public List<int[]> visiblePaths { get; } // Track all visible paths for range selection
+        int _lastVisiblePathCount; // Previous frame's visible path count for capacity hinting
 
         // Viewport rect of the scroll view, captured after EndScrollView during Repaint
         // Used to draw persistent peek zone column overlays.
@@ -231,6 +232,9 @@ namespace SecretZauce.SecondBrain.Editor
             // Forward rename completion to commands
             Renamer.SetOnRenameCompleted(window.OnRenameCompleted);
             visiblePaths.Clear();
+            // Hint the list capacity based on the previous frame's count to reduce incremental resizes.
+            if (visiblePaths.Capacity < _lastVisiblePathCount)
+                visiblePaths.Capacity = _lastVisiblePathCount;
             hasPendingClick = false;
 
             // ── Earliest Escape intercept for header rename ────────────────────
@@ -672,6 +676,9 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             GUILayout.EndScrollView();
+
+            // Track visible path count for next frame's capacity hinting.
+            _lastVisiblePathCount = visiblePaths.Count;
 
             // Capture the scroll view viewport rect once per Repaint so the persistent
             // peek zone column overlay knows where to draw.
