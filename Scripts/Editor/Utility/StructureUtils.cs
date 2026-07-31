@@ -53,6 +53,30 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
+        /// Compares index-paths by content, for use as a hash-set or dictionary key.
+        /// Lets callers key on the path array itself rather than formatting it into a string,
+        /// which matters on the TreeView draw path where selection is queried per row.
+        /// </summary>
+        public sealed class PathComparer : IEqualityComparer<int[]>
+        {
+            public static readonly PathComparer Instance = new PathComparer();
+
+            public bool Equals(int[] a, int[] b) => ArePathsEqual(a, b);
+
+            public int GetHashCode(int[] path)
+            {
+                if (path == null) return 0;
+                unchecked
+                {
+                    int hash = 17;
+                    for (int i = 0; i < path.Length; i++)
+                        hash = hash * 31 + path[i];
+                    return hash;
+                }
+            }
+        }
+
+        /// <summary>
         /// Recursively searches for a target child in the structure.
         /// </summary>
         static int[] FindPathInStructure(IStructure structure, Object target, List<int> currentPath)

@@ -14,7 +14,9 @@ namespace SecretZauce.SecondBrain.Editor
         public event Action RecordSelectionChange;
 
         // HashSet for O(1) path-selected lookups instead of O(selections × path_length) per row.
-        readonly HashSet<string> _selectedPathKeys;
+        // Keyed on the path array itself rather than a formatted string: IsPathSelected runs
+        // twice per row per IMGUI pass, and building a key string there allocated on every call.
+        readonly HashSet<int[]> _selectedPathKeys;
 
         public DrawContext(
             List<IStructure> items,
@@ -28,32 +30,12 @@ namespace SecretZauce.SecondBrain.Editor
             if (recordSelectionChange != null) RecordSelectionChange += recordSelectionChange;
 
             // Build HashSet from selected paths for O(1) lookups during draw.
-            _selectedPathKeys = new HashSet<string>(SelectedPaths.Count, StringComparer.Ordinal);
+            _selectedPathKeys = new HashSet<int[]>(SelectedPaths.Count, StructureUtils.PathComparer.Instance);
             for (int i = 0; i < SelectedPaths.Count; i++)
             {
                 var p = SelectedPaths[i];
                 if (p != null)
-                    _selectedPathKeys.Add(PathToKey(p));
-            }
-        }
-
-        static string PathToKey(int[] path)
-        {
-            // Fast path for common depths (avoids string.Join overhead)
-            switch (path.Length)
-            {
-                case 0: return "";
-                case 1: return path[0].ToString();
-                case 2: return path[0].ToString() + "," + path[1].ToString();
-                default:
-                    var sb = new System.Text.StringBuilder(path.Length * 3);
-                    sb.Append(path[0]);
-                    for (int i = 1; i < path.Length; i++)
-                    {
-                        sb.Append(',');
-                        sb.Append(path[i]);
-                    }
-                    return sb.ToString();
+                    _selectedPathKeys.Add(p);
             }
         }
 
@@ -73,7 +55,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (focusedWindow != null && focusedWindow != window)
                 return false;
 
-            return _selectedPathKeys.Contains(PathToKey(path));
+            return _selectedPathKeys.Contains(path);
         }
 
         /// <summary>
