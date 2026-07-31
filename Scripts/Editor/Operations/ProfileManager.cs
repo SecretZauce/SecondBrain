@@ -156,45 +156,70 @@ namespace SecretZauce.SecondBrain.Editor
         /// Note: this operation cannot be undone.
         /// </summary>
         public static bool MoveBaseToProfile(Base baseToMove, Profile targetProfile)
+            => MoveBasesToProfile(new[] { baseToMove }, targetProfile);
+
+        /// <summary>
+        /// Moves every Base in <paramref name="basesToMove"/> to <paramref name="targetProfile"/>.
+        /// The Bases may originate from different source Profiles; each one is migrated with all
+        /// its embedded sub-assets, and every touched Profile asset is saved and reimported once.
+        /// Shows a single confirmation dialog covering the whole batch. Returns true on success.
+        /// Note: this operation cannot be undone.
+        /// </summary>
+        public static bool MoveBasesToProfile(IList<Base> basesToMove, Profile targetProfile)
         {
-            if (baseToMove == null || targetProfile == null) return false;
+            if (basesToMove == null || basesToMove.Count == 0 || targetProfile == null) return false;
 
-            Profile sourceProfile = FindProfileContaining(baseToMove);
-            if (sourceProfile == null)
-            {
-                EditorUtility.DisplayDialog("Move Failed",
-                    "Could not determine the source Profile for this Base.", "OK");
-                return false;
-            }
-            if (ReferenceEquals(sourceProfile, targetProfile)) return true;
-
-            string sourceProfilePath = AssetDatabase.GetAssetPath(sourceProfile);
             string targetProfilePath = AssetDatabase.GetAssetPath(targetProfile);
-
-            if (string.IsNullOrEmpty(sourceProfilePath) || string.IsNullOrEmpty(targetProfilePath))
+            if (string.IsNullOrEmpty(targetProfilePath))
             {
                 EditorUtility.DisplayDialog("Move Failed",
-                    "Could not determine asset paths for the source or target Profile.", "OK");
+                    "Could not determine the asset path for the target Profile.", "OK");
                 return false;
             }
+
+            // Resolve the source Profile of every Base up front so the batch either
+            // moves as a whole or not at all.
+            var moves = ResolveMoves(basesToMove, targetProfile, out var unresolved);
+
+            if (unresolved.Count > 0)
+            {
+                EditorUtility.DisplayDialog("Move Failed",
+                    "Could not determine the source Profile for: " + string.Join(", ", unresolved), "OK");
+                return false;
+            }
+
+            if (moves.Count == 0) return true;
+
+            string summary = moves.Count == 1
+                ? $"Move '{moves[0].Base.name}' from '{moves[0].Source.name}' to '{targetProfile.name}'?"
+                : $"Move {moves.Count} Bases to '{targetProfile.name}'?\n\n"
+                  + string.Join("\n", moves.Select(m => $"  • {m.Base.name}  (from '{m.Source.name}')"));
 
             bool confirm = EditorUtility.DisplayDialog(
-                "Move Base to Profile",
-                $"Move '{baseToMove.name}' from '{sourceProfile.name}' to '{targetProfile.name}'?\n\nThis operation cannot be undone.",
+                moves.Count == 1 ? "Move Base to Profile" : "Move Bases to Profile",
+                $"{summary}\n\nThis operation cannot be undone.",
                 "Move", "Cancel");
             if (!confirm) return false;
 
-            // Remove from source profile's children list; clear DefaultBase if needed
-            (sourceProfile as IStructure).RemoveChild(baseToMove);
-            if (sourceProfile.DefaultBase == baseToMove)
-                sourceProfile.DefaultBase = sourceProfile.Children.Count > 0 ? sourceProfile.Children[0] : null;
-            EditorUtility.SetDirty(sourceProfile);
+            var touchedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { targetProfilePath };
 
-            // Migrate the Base and all its embedded sub-assets to the target profile asset
-            MigrateObjectToProfileAsset(baseToMove, targetProfilePath, sourceProfilePath);
+            foreach (var (baseToMove, sourceProfile, sourceProfilePath) in moves)
+            {
+                // Remove from source profile's children list; clear DefaultBase if needed
+                (sourceProfile as IStructure).RemoveChild(baseToMove);
+                if (sourceProfile.DefaultBase == baseToMove)
+                    sourceProfile.DefaultBase = sourceProfile.Children.Count > 0 ? sourceProfile.Children[0] : null;
+                EditorUtility.SetDirty(sourceProfile);
 
-            // Add to target profile's children list
-            (targetProfile as IStructure).AddChild(baseToMove, -1);
+                // Migrate the Base and all its embedded sub-assets to the target profile asset
+                MigrateObjectToProfileAsset(baseToMove, targetProfilePath, sourceProfilePath);
+
+                // Add to target profile's children list
+                (targetProfile as IStructure).AddChild(baseToMove, -1);
+
+                touchedPaths.Add(sourceProfilePath);
+            }
+
             EditorUtility.SetDirty(targetProfile);
 
             // Suspend auto-import during save so Unity reconciles the sub-asset list atomically
@@ -208,11 +233,45 @@ namespace SecretZauce.SecondBrain.Editor
                 AssetDatabase.StopAssetEditing();
             }
 
-            SubAssetRefreshUtils.ImportAndRegister(sourceProfilePath);
-            SubAssetRefreshUtils.ImportAndRegister(targetProfilePath);
+            foreach (string path in touchedPaths)
+                SubAssetRefreshUtils.ImportAndRegister(path);
 
             NotifyChanged();
             return true;
+        }
+
+        /// <summary>
+        /// Pairs each Base with the Profile that currently owns it and that Profile's asset path.
+        /// Bases already owned by <paramref name="targetProfile"/> and duplicates are skipped;
+        /// Bases whose owner or asset path cannot be determined are reported in
+        /// <paramref name="unresolvedNames"/>.
+        /// </summary>
+        static List<(Base Base, Profile Source, string SourcePath)> ResolveMoves(
+            IList<Base> basesToMove, Profile targetProfile, out List<string> unresolvedNames)
+        {
+            var moves = new List<(Base Base, Profile Source, string SourcePath)>();
+            unresolvedNames = new List<string>();
+            var seen = new HashSet<Base>();
+
+            foreach (var baseToMove in basesToMove)
+            {
+                if (baseToMove == null || !seen.Add(baseToMove)) continue;
+
+                Profile sourceProfile = FindProfileContaining(baseToMove);
+                // Already in the target Profile — nothing to do for this one
+                if (ReferenceEquals(sourceProfile, targetProfile)) continue;
+
+                string sourceProfilePath = sourceProfile != null
+                    ? AssetDatabase.GetAssetPath(sourceProfile)
+                    : null;
+
+                if (string.IsNullOrEmpty(sourceProfilePath))
+                    unresolvedNames.Add(baseToMove.name);
+                else
+                    moves.Add((baseToMove, sourceProfile, sourceProfilePath));
+            }
+
+            return moves;
         }
 
         /// <summary>

@@ -124,6 +124,7 @@ namespace SecretZauce.SecondBrain.Editor
             // ── Group 4b: Move Base to Profile submenu ─────────────────────────
             // Only visible at the home (Profile) view when the right-clicked item is
             // a Base and there are other Profiles available to move it to.
+            // Operates on the whole selection when several Bases are selected.
             if (obj is Base baseToMove && window.IsAtHome())
             {
                 var allProfiles = ProfileManager.GetAllProfiles();
@@ -134,14 +135,24 @@ namespace SecretZauce.SecondBrain.Editor
 
                 if (otherProfiles.Count > 0)
                 {
+                    var basesToMove = CollectSelectedBases(window, baseToMove);
+                    string submenu = basesToMove.Count > 1
+                        ? $"Move {basesToMove.Count} Bases to Profile/"
+                        : "Move to Profile/";
+
                     menu.AddSeparator("");
                     foreach (var targetProfile in otherProfiles)
                     {
                         var capturedProfile = targetProfile;
-                        var capturedBase    = baseToMove;
-                        menu.AddItem(new GUIContent("Move to Profile/" + targetProfile.name), false, () =>
+                        var capturedBases   = basesToMove;
+                        menu.AddItem(new GUIContent(submenu + targetProfile.name), false, () =>
                         {
-                            ProfileManager.MoveBaseToProfile(capturedBase, capturedProfile);
+                            if (ProfileManager.MoveBasesToProfile(capturedBases, capturedProfile))
+                            {
+                                // Selection paths are row indices into the home view; the moved
+                                // rows are gone, so keeping them would select unrelated Bases.
+                                window.Controller?.SelectionState?.ClearSelection(window);
+                            }
                         });
                     }
                 }
@@ -215,6 +226,36 @@ namespace SecretZauce.SecondBrain.Editor
                 menu.ShowAsContext();
             }
         }
+
+#if SECOND_BRAIN_PRO
+        /// <summary>
+        /// Returns every Base in the current selection, keeping selection order.
+        /// Falls back to just <paramref name="rightClickedBase"/> when it is not part of the
+        /// selection (right-clicking an unselected row) or when the selection holds no Bases.
+        /// </summary>
+        static System.Collections.Generic.List<Base> CollectSelectedBases(BrowserWindow window, Base rightClickedBase)
+        {
+            var bases = new System.Collections.Generic.List<Base>();
+            var paths = window.Controller?.SelectionState?.GetAllPaths();
+
+            if (paths != null)
+            {
+                foreach (var p in paths)
+                {
+                    if (window.Controller?.GetObjectAtPath(p) is Base b && !bases.Contains(b))
+                        bases.Add(b);
+                }
+            }
+
+            if (!bases.Contains(rightClickedBase))
+            {
+                bases.Clear();
+                bases.Add(rightClickedBase);
+            }
+
+            return bases;
+        }
+#endif
 
         static void SampleMousePosition()
         {
