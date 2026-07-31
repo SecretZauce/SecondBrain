@@ -35,7 +35,8 @@ namespace SecretZauce.SecondBrain.Editor
 
         protected void DrawLabelWithTempWidth(GUIContent content, GUIStyle style)
         {
-            EditorGUIUtils.WithTemporaryLabelWidth(trueIndentedItemRect, 20f, () => { GUI.Label(trueIndentedItemRect, content, style); return true; });
+            using (EditorGUIUtils.TemporaryLabelWidth(trueIndentedItemRect, 20f))
+                GUI.Label(trueIndentedItemRect, content, style);
         }
 
         /// <summary>

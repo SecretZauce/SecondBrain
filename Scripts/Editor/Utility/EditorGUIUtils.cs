@@ -310,20 +310,34 @@ namespace SecretZauce.SecondBrain.Editor
             GUILayout.Space(2f);
         }
 
-        public static T WithTemporaryLabelWidth<T>(Rect rect, float reservedSpace, Func<T> draw)
+        /// <summary>
+        /// Widens EditorGUIUtility.labelWidth for the lifetime of the scope, restoring the previous
+        /// value on dispose.
+        ///
+        /// This replaces a callback-taking helper. Every call site sat in the TreeView row loop and
+        /// passed a lambda that captured local state, so each row allocated a delegate and a closure
+        /// on every IMGUI pass. A struct scope allocates nothing:
+        ///
+        /// <code>
+        /// using (EditorGUIUtils.TemporaryLabelWidth(rect, 20f))
+        ///     GUI.Label(rect, content, style);
+        /// </code>
+        /// </summary>
+        public readonly struct LabelWidthScope : IDisposable
         {
-            float prevLabelWidth = EditorGUIUtility.labelWidth;
-            float desiredLabelWidth = Mathf.Max(prevLabelWidth, rect.width - reservedSpace);
-            try
+            readonly float previousLabelWidth;
+
+            public LabelWidthScope(Rect rect, float reservedSpace)
             {
-                EditorGUIUtility.labelWidth = desiredLabelWidth;
-                return draw();
+                previousLabelWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = Mathf.Max(previousLabelWidth, rect.width - reservedSpace);
             }
-            finally
-            {
-                EditorGUIUtility.labelWidth = prevLabelWidth;
-            }
+
+            public void Dispose() => EditorGUIUtility.labelWidth = previousLabelWidth;
         }
+
+        public static LabelWidthScope TemporaryLabelWidth(Rect rect, float reservedSpace)
+            => new LabelWidthScope(rect, reservedSpace);
 
         public static void EnterFolderInProjectWindow(Object folder)
         {

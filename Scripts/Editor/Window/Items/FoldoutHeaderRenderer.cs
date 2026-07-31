@@ -188,14 +188,15 @@ namespace SecretZauce.SecondBrain.Editor
                     bool currentFold = foldout;
                     if (!treeView.DragDropManager.IsDragging)
                     {
-                        bool newFold = EditorGUIUtils.WithTemporaryLabelWidth(foldoutHeaderRect, 20f,
-                            () => DrawLabel(ref currentFold, foldStyle, fontColor, hideFoldoutArrow));
+                        bool newFold;
+                        using (EditorGUIUtils.TemporaryLabelWidth(foldoutHeaderRect, 20f))
+                            newFold = DrawLabel(ref currentFold, foldStyle, fontColor, hideFoldoutArrow);
                         foldout = newFold;
                     }
                     else
                     {
-                        EditorGUIUtils.WithTemporaryLabelWidth(foldoutHeaderRect, 20f,
-                            () => DrawLabel(ref currentFold, foldStyle, fontColor, hideFoldoutArrow));
+                        using (EditorGUIUtils.TemporaryLabelWidth(foldoutHeaderRect, 20f))
+                            DrawLabel(ref currentFold, foldStyle, fontColor, hideFoldoutArrow);
                     }
 
                     if (foldout != prevFold)
