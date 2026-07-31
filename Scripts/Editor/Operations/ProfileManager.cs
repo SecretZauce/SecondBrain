@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -142,6 +144,117 @@ namespace SecretZauce.SecondBrain.Editor
             SecondBrainCore.Instance.RegisterProfile(newProfile);
             AssetDatabase.SaveAssets();
             return newProfile;
+        }
+
+        // ── Move Base across Profiles ──────────────────────────────────────────
+
+        /// <summary>
+        /// Moves <paramref name="baseToMove"/> from its current Profile to <paramref name="targetProfile"/>.
+        /// Migrates all embedded sub-assets and updates both profiles' child lists.
+        /// Shows a confirmation dialog first. Returns true on success.
+        /// Note: this operation cannot be undone.
+        /// </summary>
+        public static bool MoveBaseToProfile(Base baseToMove, Profile targetProfile)
+        {
+            if (baseToMove == null || targetProfile == null) return false;
+
+            Profile sourceProfile = FindProfileContaining(baseToMove);
+            if (sourceProfile == null)
+            {
+                EditorUtility.DisplayDialog("Move Failed",
+                    "Could not determine the source Profile for this Base.", "OK");
+                return false;
+            }
+            if (ReferenceEquals(sourceProfile, targetProfile)) return true;
+
+            string sourceProfilePath = AssetDatabase.GetAssetPath(sourceProfile);
+            string targetProfilePath = AssetDatabase.GetAssetPath(targetProfile);
+
+            if (string.IsNullOrEmpty(sourceProfilePath) || string.IsNullOrEmpty(targetProfilePath))
+            {
+                EditorUtility.DisplayDialog("Move Failed",
+                    "Could not determine asset paths for the source or target Profile.", "OK");
+                return false;
+            }
+
+            bool confirm = EditorUtility.DisplayDialog(
+                "Move Base to Profile",
+                $"Move '{baseToMove.name}' from '{sourceProfile.name}' to '{targetProfile.name}'?\n\nThis operation cannot be undone.",
+                "Move", "Cancel");
+            if (!confirm) return false;
+
+            // Remove from source profile's children list; clear DefaultBase if needed
+            (sourceProfile as IStructure).RemoveChild(baseToMove);
+            if (sourceProfile.DefaultBase == baseToMove)
+                sourceProfile.DefaultBase = sourceProfile.Children.Count > 0 ? sourceProfile.Children[0] : null;
+            EditorUtility.SetDirty(sourceProfile);
+
+            // Migrate the Base and all its embedded sub-assets to the target profile asset
+            MigrateObjectToProfileAsset(baseToMove, targetProfilePath, sourceProfilePath);
+
+            // Add to target profile's children list
+            (targetProfile as IStructure).AddChild(baseToMove, -1);
+            EditorUtility.SetDirty(targetProfile);
+
+            // Suspend auto-import during save so Unity reconciles the sub-asset list atomically
+            AssetDatabase.StartAssetEditing();
+            try
+            {
+                AssetDatabase.SaveAssets();
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
+
+            SubAssetRefreshUtils.ImportAndRegister(sourceProfilePath);
+            SubAssetRefreshUtils.ImportAndRegister(targetProfilePath);
+
+            NotifyChanged();
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the Profile whose Children list contains <paramref name="baseToFind"/>,
+        /// or null if none of the registered profiles owns it.
+        /// </summary>
+        static Profile FindProfileContaining(Base baseToFind)
+        {
+            var allProfiles = GetAllProfiles();
+            foreach (var profile in allProfiles)
+            {
+                if (profile?.Children != null && profile.Children.Contains(baseToFind))
+                    return profile;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Recursively migrates <paramref name="obj"/> and all its IStructure descendants
+        /// from <paramref name="sourceAssetPath"/> to <paramref name="targetAssetPath"/>.
+        /// Only sub-assets that currently reside in <paramref name="sourceAssetPath"/> are moved.
+        /// </summary>
+        static void MigrateObjectToProfileAsset(Object obj, string targetAssetPath, string sourceAssetPath)
+        {
+            if (obj == null) return;
+
+            // Recurse into children first so they are in the target file before their parent is moved
+            if (obj is IStructure structure)
+            {
+                var children = structure.ChildrenObjects?.ToList();
+                if (children != null)
+                    foreach (var child in children)
+                        MigrateObjectToProfileAsset(child, targetAssetPath, sourceAssetPath);
+            }
+
+            // Only relocate sub-assets that originate from the source profile file
+            if (!AssetDatabase.IsSubAsset(obj)) return;
+            string currentPath = AssetDatabase.GetAssetPath(obj);
+            if (string.IsNullOrEmpty(currentPath) || currentPath == targetAssetPath) return;
+            if (!string.Equals(currentPath, sourceAssetPath, StringComparison.OrdinalIgnoreCase)) return;
+
+            AssetDatabase.RemoveObjectFromAsset(obj);
+            AssetDatabase.AddObjectToAsset(obj, targetAssetPath);
         }
 
         // ── Helpers ────────────────────────────────────────────────────────────

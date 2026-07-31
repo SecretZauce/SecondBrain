@@ -120,6 +120,32 @@ namespace SecretZauce.SecondBrain.Editor
                     }
                 }
             }
+
+            // ── Group 4b: Move Base to Profile submenu ─────────────────────────
+            // Only visible at the home (Profile) view when the right-clicked item is
+            // a Base and there are other Profiles available to move it to.
+            if (obj is Base baseToMove && window.IsAtHome())
+            {
+                var allProfiles = ProfileManager.GetAllProfiles();
+                var currentProfile = Profile.Active;
+                var otherProfiles = allProfiles
+                    .Where(p => p != null && !ReferenceEquals(p, currentProfile))
+                    .ToList();
+
+                if (otherProfiles.Count > 0)
+                {
+                    menu.AddSeparator("");
+                    foreach (var targetProfile in otherProfiles)
+                    {
+                        var capturedProfile = targetProfile;
+                        var capturedBase    = baseToMove;
+                        menu.AddItem(new GUIContent("Move to Profile/" + targetProfile.name), false, () =>
+                        {
+                            ProfileManager.MoveBaseToProfile(capturedBase, capturedProfile);
+                        });
+                    }
+                }
+            }
 #endif
 
             // ── Group 5: Emoji icon ───────────────────────────────────────────
