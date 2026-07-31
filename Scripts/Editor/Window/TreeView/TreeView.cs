@@ -15,7 +15,7 @@ namespace SecretZauce.SecondBrain.Editor
     /// Handles the left panel tree view of the Browser Window.
     /// Displays a hierarchical tree of IStructure 
     /// </summary>
-    public class TreeView
+    public class TreeView : ItemUtils.IRowInteractionHost
     {
         // Win32 API for cursor position (editor-Windows only)
 #if UNITY_EDITOR_WIN
@@ -833,11 +833,15 @@ namespace SecretZauce.SecondBrain.Editor
             OwnerWindow = null;
         }
 
+        // ── ItemUtils.IRowInteractionHost ─────────────────────────────────────
+        // Implemented directly on TreeView so row click handling needs no per-row
+        // delegate allocations. See ItemUtils.IRowInteractionHost for the rationale.
+
         /// <summary>
         /// Handles click on a node, detecting double-clicks for rename mode.
         /// Returns true if this was a double-click.
         /// </summary>
-        bool HandleClick(int[] path)
+        public bool HandleRowClick(int[] path)
         {
             double currentTime = EditorApplication.timeSinceStartup;
             bool isDoubleClick = StructureUtils.ArePathsEqual(path, lastClickPath) &&
@@ -846,6 +850,38 @@ namespace SecretZauce.SecondBrain.Editor
             lastClickPath = path;
             lastClickTime = currentTime;
             return isDoubleClick;
+        }
+
+        public void StartRowRename(int[] path) => Renamer.StartRename(path);
+
+        public void EnqueuePendingRowClick(int[] path, bool isMultiSelect, bool isRangeSelect)
+        {
+            pendingClickPath = path;
+            pendingIsMultiSelect = isMultiSelect;
+            pendingIsRangeSelect = isRangeSelect;
+            hasPendingClick = true;
+        }
+
+        public bool IsRowDragging => DragDropManager.IsDragging;
+
+        public bool IsRowRenaming(int[] path) => Renamer.IsRenaming(path);
+
+        public bool IsRowSelected(int[] path) => Context.IsPathSelected(OwnerWindow, path);
+
+        public bool HasMultipleRowsSelected => Context.SelectedPaths != null && Context.SelectedPaths.Count > 1;
+
+        public void OnRowDoubleClickEnter(int[] path)
+        {
+            try
+            {
+                var nodeObj = GetObjectAtPath(path);
+                if (!LeafNodeActionHelper.TryEnterLeafNode(nodeObj, OwnerWindow?.Controller))
+                    Renamer.StartRename(path); // fall back to rename if no enter action
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
         }
 
         /// <summary>
@@ -1069,22 +1105,7 @@ namespace SecretZauce.SecondBrain.Editor
             foldoutState.Set(node, foldout);
 
             // Handle click/selection (deferred) and rename via centralized helper
-            ItemUtils.HandleRowClickAndSelection(
-                path,
-                rowRect,
-                HandleClick,
-                p => Renamer.StartRename(p),
-                (p, multi, range) =>
-                {
-                    pendingClickPath = p;
-                    pendingIsMultiSelect = multi;
-                    pendingIsRangeSelect = range;
-                    hasPendingClick = true;
-                },
-                () => DragDropManager.IsDragging,
-                p => Renamer.IsRenaming(p),
-                p => Context.IsPathSelected(OwnerWindow, p),
-                () => Context.SelectedPaths != null && Context.SelectedPaths.Count > 1);
+            ItemUtils.HandleRowClickAndSelection(path, rowRect, this);
 
             bool hasGhostForNode = ghostSession != null && ReferenceEquals(ghostSession.Parent, node);
 
@@ -1205,35 +1226,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (IsQuickPeekAvailable())
                 TreeViewDragInput.DrawPeekZoneIndicator(itemRect);
 
-            ItemUtils.HandleRowClickAndSelection(
-                path,
-                itemRect,
-                HandleClick,
-                p => Renamer.StartRename(p),
-                (p, multi, range) =>
-                {
-                    pendingClickPath = p;
-                    pendingIsMultiSelect = multi;
-                    pendingIsRangeSelect = range;
-                    hasPendingClick = true;
-                },
-                () => DragDropManager.IsDragging,
-                p => Renamer.IsRenaming(p),
-                p => Context.IsPathSelected(OwnerWindow, p),
-                () => Context.SelectedPaths != null && Context.SelectedPaths.Count > 1,
-                p =>
-                {
-                    try
-                    {
-                        var nodeObj = GetObjectAtPath(p);
-                        if (!LeafNodeActionHelper.TryEnterLeafNode(nodeObj, OwnerWindow?.Controller))
-                            Renamer.StartRename(p); // fall back to rename if no enter action
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Debug.LogException(ex);
-                    }
-                });
+            ItemUtils.HandleRowClickAndSelection(path, itemRect, this, supportsDoubleClickEnter: true);
         }
 
         // ── Missing / null item row ───────────────────────────────────────────────

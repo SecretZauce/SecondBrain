@@ -201,31 +201,46 @@ namespace SecretZauce.SecondBrain.Editor
             GUI.color = prev;
         }
 
+        /// <summary>
+        /// Row interaction callbacks required by <see cref="HandleRowClickAndSelection"/>.
+        ///
+        /// This used to be nine <see cref="Func{T,TResult}"/>/<see cref="Action"/> parameters. Each
+        /// captured the caller's state, so every one allocated a delegate (plus a closure) on every
+        /// row on every IMGUI pass — a few hundred rows produced thousands of allocations per mouse
+        /// move. An interface implemented by the owning TreeView costs nothing per call.
+        /// </summary>
+        public interface IRowInteractionHost
+        {
+            /// <summary>Records the click and returns true when it completes a double-click.</summary>
+            bool HandleRowClick(int[] path);
+            void StartRowRename(int[] path);
+            void EnqueuePendingRowClick(int[] path, bool isMultiSelect, bool isRangeSelect);
+            bool IsRowDragging { get; }
+            bool IsRowRenaming(int[] path);
+            bool IsRowSelected(int[] path);
+            bool HasMultipleRowsSelected { get; }
+            /// <summary>Invoked instead of rename on double-click when DoubleClickAction is Enter.</summary>
+            void OnRowDoubleClickEnter(int[] path);
+        }
+
         // Track last mouse-down path and whether it was a press on a multi-selected item.
         // Used to defer single-selection until MouseUp in that specific case so dragging
         // keeps the existing multi-selection.
         static int[] lastMouseDownPath;
         static bool lastMouseDownWasOnSelectedMulti;
 
-        // Handle click/double-click selection behavior for a row. Defers selection via a provided callback.
-        // Added selection-check delegates so this helper can decide whether to defer selection for
-        // multi-selection mouse-downs.
-        // onDoubleClickEnter: optional callback invoked instead of startRename when DoubleClickAction == Enter.
+        // Handle click/double-click selection behavior for a row. Defers selection via the host so
+        // the caller can apply it once all visible paths are known.
+        // supportsDoubleClickEnter: when false, double-click always falls back to rename.
         public static void HandleRowClickAndSelection(
             int[] path,
             Rect rowRect,
-            Func<int[], bool> handleClick,
-            Action<int[]> startRename,
-            Action<int[], bool, bool> enqueuePendingClick,
-            Func<bool> isDragging,
-            Func<int[], bool> isRenaming,
-            Func<int[], bool> isPathSelected,
-            Func<bool> hasMultipleSelection,
-            Action<int[]> onDoubleClickEnter = null)
+            IRowInteractionHost host,
+            bool supportsDoubleClickEnter = false)
         {
             // Skip click handling while dragging, renaming, or when a picker tray is open
             // (emoji/color trays should block tree selection/hover interactions).
-            if (isDragging() || isRenaming(path) || Event.current == null || PickerTrayBase.IsAnyTrayOpen)
+            if (host.IsRowDragging || host.IsRowRenaming(path) || Event.current == null || PickerTrayBase.IsAnyTrayOpen)
                 return;
 
             // Handle MouseDown: select unselected items immediately (so drag can start as single-item),
@@ -234,14 +249,14 @@ namespace SecretZauce.SecondBrain.Editor
             if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && rowRect.Contains(Event.current.mousePosition))
             {
                 // If renaming or dragging, we should not do selection
-                if (isRenaming(path) || isDragging())
+                if (host.IsRowRenaming(path) || host.IsRowDragging)
                     return;
 
                 bool multiModifier = Event.current.control || Event.current.command;
                 bool rangeModifier = Event.current.shift;
 
-                bool isCurrentlySelected = isPathSelected != null && isPathSelected(path);
-                bool hasMultiple = hasMultipleSelection != null && hasMultipleSelection();
+                bool isCurrentlySelected = host.IsRowSelected(path);
+                bool hasMultiple = host.HasMultipleRowsSelected;
 
                 // If clicked path is already selected and there is a multi-selection, and no
                 // modifiers are used, defer converting to single selection until MouseUp.
@@ -255,7 +270,7 @@ namespace SecretZauce.SecondBrain.Editor
                 // Default: enqueue selection on MouseDown so drag can begin with the new selection
                 bool multi = Event.current.control || Event.current.command;
                 bool range = Event.current.shift;
-                enqueuePendingClick(path, multi, range);
+                host.EnqueuePendingRowClick(path, multi, range);
                 lastMouseDownPath = path != null ? (int[])path.Clone() : null;
                 lastMouseDownWasOnSelectedMulti = false;
                 // Do NOT consume MouseDown so DragInput can observe it
@@ -266,15 +281,15 @@ namespace SecretZauce.SecondBrain.Editor
             if (Event.current.type == EventType.MouseUp && Event.current.button == 0 && rowRect.Contains(Event.current.mousePosition))
             {
                 // First, check double-click
-                bool isDoubleClick = handleClick(path);
+                bool isDoubleClick = host.HandleRowClick(path);
                 if (isDoubleClick)
                 {
-                    // When Enter mode is active and the caller provided an enter action, use it.
+                    // When Enter mode is active and the row supports an enter action, use it.
                     // Otherwise fall back to rename.
-                    if (BrowserSettings.DoubleClickAction == DoubleClickActionType.Enter && onDoubleClickEnter != null)
-                        onDoubleClickEnter(path);
+                    if (BrowserSettings.DoubleClickAction == DoubleClickActionType.Enter && supportsDoubleClickEnter)
+                        host.OnRowDoubleClickEnter(path);
                     else
-                        startRename(path);
+                        host.StartRowRename(path);
                     Event.current.Use();
                     lastMouseDownPath = null;
                     lastMouseDownWasOnSelectedMulti = false;
@@ -285,11 +300,11 @@ namespace SecretZauce.SecondBrain.Editor
                 // apply the single-select now unless a drag occurred.
                 if (lastMouseDownWasOnSelectedMulti && lastMouseDownPath != null && StructureUtils.ArePathsEqual(lastMouseDownPath, path))
                 {
-                    if (!isDragging())
+                    if (!host.IsRowDragging)
                     {
                         bool multi = Event.current.control || Event.current.command;
                         bool range = Event.current.shift;
-                        enqueuePendingClick(path, multi, range);
+                        host.EnqueuePendingRowClick(path, multi, range);
                     }
 
                     lastMouseDownPath = null;
