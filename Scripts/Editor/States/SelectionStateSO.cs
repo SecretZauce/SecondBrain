@@ -32,6 +32,57 @@ namespace SecretZauce.SecondBrain.Editor
         [SerializeField] List<SerializablePath> selectedPaths = new List<SerializablePath>();
         
         public static Action<BrowserWindow> OnSelectionChangedInternally;
+
+        // Parallel HashSet for O(1) containment checks. Rebuilt lazily when dirty.
+        [System.NonSerialized] HashSet<string> _pathKeySet;
+        [System.NonSerialized] int _pathKeySetVersion = -1; // tracks when to rebuild
+        [System.NonSerialized] int _listVersion;            // incremented on every mutation
+
+        HashSet<string> PathKeySet
+        {
+            get
+            {
+                if (_pathKeySet == null || _pathKeySetVersion != _listVersion)
+                {
+                    _pathKeySet ??= new HashSet<string>(StringComparer.Ordinal);
+                    _pathKeySet.Clear();
+                    foreach (var sp in selectedPaths)
+                    {
+                        if (sp?.Path != null)
+                            _pathKeySet.Add(PathToKey(sp.Path));
+                    }
+                    _pathKeySetVersion = _listVersion;
+                }
+                return _pathKeySet;
+            }
+        }
+
+        static string PathToKey(List<int> path)
+        {
+            if (path == null || path.Count == 0) return "";
+            if (path.Count == 1) return path[0].ToString();
+            if (path.Count == 2) return path[0].ToString() + "," + path[1].ToString();
+            var sb = new System.Text.StringBuilder(path.Count * 3);
+            sb.Append(path[0]);
+            for (int i = 1; i < path.Count; i++) { sb.Append(','); sb.Append(path[i]); }
+            return sb.ToString();
+        }
+
+        static string PathToKey(int[] path)
+        {
+            if (path == null || path.Length == 0) return "";
+            if (path.Length == 1) return path[0].ToString();
+            if (path.Length == 2) return path[0].ToString() + "," + path[1].ToString();
+            var sb = new System.Text.StringBuilder(path.Length * 3);
+            sb.Append(path[0]);
+            for (int i = 1; i < path.Length; i++) { sb.Append(','); sb.Append(path[i]); }
+            return sb.ToString();
+        }
+
+        bool ContainsPath(int[] path)
+        {
+            return PathKeySet.Contains(PathToKey(path));
+        }
         
         /// <summary>
         /// Gets the primary selected path (first in multi-selection or legacy single path)
@@ -72,6 +123,7 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 selectedPaths.Add(new SerializablePath(path));
             }
+            _listVersion++;
             NotifySelectionChangedInternally(window);
         }
         
@@ -90,10 +142,11 @@ namespace SecretZauce.SecondBrain.Editor
             if (path == null || path.Length == 0)
                 return false;
 
-            foreach (var sp in selectedPaths)
-                if (PathsEqual(sp.Path, path)) return true;
+            if (ContainsPath(path))
+                return true;
 
             selectedPaths.Add(new SerializablePath(path));
+            _listVersion++;
             return true;
         }
 
@@ -106,6 +159,7 @@ namespace SecretZauce.SecondBrain.Editor
                 return;
 
             selectedPaths.RemoveAll(p => PathsEqual(p.Path, path));
+            _listVersion++;
             NotifySelectionChangedInternally(window);
         }
         
@@ -117,11 +171,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (path == null || path.Length == 0)
                 return;
 
-            bool found = false;
-            foreach (var sp in selectedPaths)
-                if (PathsEqual(sp.Path, path)) { found = true; break; }
-
-            if (found)
+            if (ContainsPath(path))
                 RemoveFromSelection(window, path);
             else
                 AddToSelection(window, path);
@@ -139,6 +189,7 @@ namespace SecretZauce.SecondBrain.Editor
         public void ClearSelectionWithoutNotify()
         {
             selectedPaths.Clear();
+            _listVersion++;
         }
 
         /// <summary>
@@ -179,12 +230,10 @@ namespace SecretZauce.SecondBrain.Editor
             for (int i = fromIndex; i <= toIndex; i++)
             {
                 var path = allVisiblePaths[i];
-                bool alreadySelected = false;
-                foreach (var sp in selectedPaths)
-                    if (PathsEqual(sp.Path, path)) { alreadySelected = true; break; }
-                if (!alreadySelected)
+                if (!ContainsPath(path))
                     selectedPaths.Add(new SerializablePath(path));
             }
+            _listVersion++;
             NotifySelectionChangedInternally(window);
         }
 
