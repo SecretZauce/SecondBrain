@@ -59,13 +59,14 @@ namespace SecretZauce.SecondBrain.Editor
             isSelected = selected;
         }
 
+        // A single shared control name for all foldout rows. Uniqueness per row is not required
+        // because focus is set immediately after click and IMGUI processes one event at a time.
+        const string k_FoldoutControlName = "SB_Foldout";
+
         public Rect Render(ref bool foldout, bool hideFoldoutArrow = false, Color? labelColor = null, ColorDisplayStyle colorStyle = ColorDisplayStyle.FontColor)
         {
             // Rebuild style cache if skin or font size changed (Option-A invalidation).
             EnsureStyles();
-
-            // Pre-compute the IMGUI control name once per Render call (used twice below).
-            string foldoutControlName = "foldout_" + string.Join("_", this.path);
 
             GUIStyle foldStyle = s_FoldStyle;
             float rowHeight = BrowserSettings.GetItemRowHeight();
@@ -182,7 +183,7 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     // Only apply color to label text when using FontColor style
                     Color? fontColor = (colorStyle == ColorDisplayStyle.FontColor) ? labelColor : null;
-                    GUI.SetNextControlName(foldoutControlName);
+                    GUI.SetNextControlName(k_FoldoutControlName);
                     bool prevFold = foldout;
                     bool currentFold = foldout;
                     if (!treeView.DragDropManager.IsDragging)
@@ -203,7 +204,7 @@ namespace SecretZauce.SecondBrain.Editor
                             treeView.foldoutState.SetRecursive(this.node, foldout);
 
                         treeView.Context.RaiseRecordSelectionChange();
-                        GUI.FocusControl(foldoutControlName);
+                        GUI.FocusControl(k_FoldoutControlName);
                         if (Event.current != null) Event.current.Use();
                     }
                 }
