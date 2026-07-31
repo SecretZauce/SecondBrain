@@ -50,13 +50,29 @@ namespace SecretZauce.SecondBrain.Editor
 
             s_StylesValid = true;
         }
-        public FoldoutHeaderRenderer(TreeView tv, int[] rowPath, Object nodeObj, bool selected, Texture iconTexture) : base(tv)
+        public FoldoutHeaderRenderer(TreeView tv) : base(tv) { }
+
+        /// <summary>
+        /// Points this renderer at the next row. A single instance is reused for every row
+        /// (see ItemRenderer) instead of allocating one per row per IMGUI pass.
+        /// </summary>
+        public void Reset(int[] rowPath, Object nodeObj, bool selected, Texture iconTexture)
         {
             path = rowPath;
             node = nodeObj;
             name = nodeObj != null ? nodeObj.name : "<unnamed>";
             icon = iconTexture;
             isSelected = selected;
+            // Derived rects and flags are recomputed by Render; clear them so a stale value
+            // from the previous row can never be observed.
+            rowRect = default;
+            arrowRect = default;
+            buttonRect = default;
+            foldoutHeaderRect = default;
+            trueIndentedItemRect = default;
+            showAddButton = false;
+            rightReservedSpace = 0f;
+            foldoutArrowWidth = 0f;
         }
 
         // A single shared control name for all foldout rows. Uniqueness per row is not required

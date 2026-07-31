@@ -163,7 +163,13 @@ namespace SecretZauce.SecondBrain.Editor
             return false;
         }
 
-        public LeafRenderer(TreeView tv, int[] rowPath, Object nodeObj, Texture iconTexture, Rect rowRectIn, Rect trueIndentedItemRectIn) : base(tv)
+        public LeafRenderer(TreeView tv) : base(tv) { }
+
+        /// <summary>
+        /// Points this renderer at the next row. A single instance is reused for every row
+        /// (see ItemRenderer) instead of allocating one per row per IMGUI pass.
+        /// </summary>
+        public void Reset(int[] rowPath, Object nodeObj, Texture iconTexture, Rect rowRectIn, Rect trueIndentedItemRectIn)
         {
             path = rowPath;
             node = nodeObj;
@@ -172,6 +178,11 @@ namespace SecretZauce.SecondBrain.Editor
             rowRect = rowRectIn;
             trueIndentedItemRect = trueIndentedItemRectIn;
             isSelected = false;
+            // Derived rects are recomputed by Render; clear them so a stale value from the
+            // previous row can never be observed.
+            arrowRect = default;
+            buttonRect = default;
+            foldoutHeaderRect = default;
         }
 
         public bool Render(bool resetIndent, ItemRenamer renamer, Color? labelColor = null, ColorDisplayStyle colorStyle = ColorDisplayStyle.FontColor)

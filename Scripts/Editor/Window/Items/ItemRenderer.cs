@@ -8,9 +8,18 @@ namespace SecretZauce.SecondBrain.Editor
     {
         readonly TreeView treeView;
 
+        // One renderer instance each, reused for every row. These used to be allocated per row
+        // per IMGUI pass, which on a large tree meant thousands of short-lived objects per mouse
+        // move. Reuse is safe because rows render strictly one at a time: a container header
+        // finishes rendering before its children are drawn, so no two rows are ever in flight.
+        readonly FoldoutHeaderRenderer foldoutRenderer;
+        readonly LeafRenderer leafRenderer;
+
         public ItemRenderer(TreeView treeView)
         {
             this.treeView = treeView;
+            foldoutRenderer = new FoldoutHeaderRenderer(treeView);
+            leafRenderer = new LeafRenderer(treeView);
         }
 
         public Color GetRowHoverColor()
@@ -20,16 +29,16 @@ namespace SecretZauce.SecondBrain.Editor
 
         public Rect RenderFoldoutHeader(int[] path, Object obj, bool isSelected, Texture icon, ref bool foldout, bool hideFoldoutArrow = false, Color? labelColor = null, ColorDisplayStyle colorStyle = ColorDisplayStyle.FontColor)
         {
-            // Construct a renderer pre-configured for this row and render it.
-            var renderer = new FoldoutHeaderRenderer(treeView, path, obj, isSelected, icon);
-            return renderer.Render(ref foldout, hideFoldoutArrow, labelColor, colorStyle);
+            // Point the shared renderer at this row and render it.
+            foldoutRenderer.Reset(path, obj, isSelected, icon);
+            return foldoutRenderer.Render(ref foldout, hideFoldoutArrow, labelColor, colorStyle);
         }
 
         public bool RenderLeafContent(int[] path, Object node, Texture icon, Rect rowRect, Rect trueIndentedItemRect, bool resetIndent, Color? labelColor = null, ColorDisplayStyle colorStyle = ColorDisplayStyle.FontColor)
         {
             var renamer = treeView?.Renamer;
-            var leaf = new LeafRenderer(treeView, path, node, icon, rowRect, trueIndentedItemRect);
-            return leaf.Render(resetIndent, renamer, labelColor, colorStyle);
+            leafRenderer.Reset(path, node, icon, rowRect, trueIndentedItemRect);
+            return leafRenderer.Render(resetIndent, renamer, labelColor, colorStyle);
         }
     }
 }
