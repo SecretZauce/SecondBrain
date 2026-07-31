@@ -92,14 +92,25 @@ namespace SecretZauce.SecondBrain.Editor
             if (IsProAssemblyPresent())
             {
                 Progress.Report(progressId, 0.85f, "Pro detected — enabling...");
-                // ProBootstrapper (Pro.Bootstrap assembly) is the single owner of the
-                // SECOND_BRAIN_PRO define lifecycle — it adds the define in the same
-                // delayCall cycle. Only the state is advanced here.
-                Debug.Log("[SecondBrain] Pro assembly detected — awaiting SECOND_BRAIN_PRO define from the Pro bootstrapper.");
-
                 core.InitializationState = ProfileInitializationState.ProVersionInitialized;
                 AssetDatabase.SaveAssets();
+
+                // ProBootstrapper (Pro.Bootstrap assembly) is the single owner of the
+                // SECOND_BRAIN_PRO define lifecycle. When the define is still absent it adds it,
+                // and the resulting recompile brings us back here in the ProVersionInitialized
+                // state. When the define is ALREADY set — the Pro-first install path, where
+                // ProBootstrapper set it from Events.registeringPackages — no recompile is coming,
+                // so waiting for one would strand the flow forever. Finish inline instead.
+                if (ProLicenseUtils.IsProDefineActive())
+                {
+                    Debug.Log("[SecondBrain] Pro assembly detected and SECOND_BRAIN_PRO is already active — finalizing now.");
+                    CompleteProInitialization(core, progressId);
+                    return;
+                }
+
+                Debug.Log("[SecondBrain] Pro assembly detected — awaiting SECOND_BRAIN_PRO define from the Pro bootstrapper.");
                 Progress.Finish(progressId, Progress.Status.Succeeded);
+                EditorApplication.delayCall += EnsureProDefineWasAdded;
             }
             else
             {
@@ -129,6 +140,22 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────────
+
+        // Watchdog for the "awaiting the define" branch of CheckForProVersion. ProBootstrapper
+        // normally adds SECOND_BRAIN_PRO in the same delayCall cycle, and the recompile it
+        // triggers re-enters the flow in the ProVersionInitialized state. If that never happened
+        // — Pro.Bootstrap missing, or its own delayCall threw — nothing else would ever advance
+        // the state and the installer would never appear. Add the define here instead.
+        // ToggleDefine is idempotent, so a redundant call is a no-op.
+        static void EnsureProDefineWasAdded()
+        {
+            if (ProLicenseUtils.IsProDefineActive()) return;
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating) return; // bootstrapper's recompile is already in flight
+            if (!IsProAssemblyPresent()) return;
+
+            Debug.LogWarning("[SecondBrain] SECOND_BRAIN_PRO was not set by the Pro bootstrapper — adding it directly. Scripts will recompile.");
+            ProLicenseUtils.AddProDefine();
+        }
 
         static void CreateDefaultBase(Profile profile)
         {
