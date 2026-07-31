@@ -16,11 +16,56 @@ namespace SecretZauce.SecondBrain.Editor
         // Cleared whenever any scene opens or play mode transitions so refs become resolvable again.
         static readonly HashSet<string> s_UnresolvableIds = new HashSet<string>();
 
+        // ── Hierarchy-path fallback negative caches ───────────────────────────────────
+        // s_UnresolvableIds only guards the GlobalObjectId lookup. Without these, every ref
+        // whose GID does not resolve — which per FindByHierarchyPath's remarks is every prefab
+        // instance once Play mode has been entered — re-ran the full path walk on every
+        // repaint: a scene-GUID AssetDatabase lookup plus one or more GetRootGameObjects()
+        // array allocations per row. A tree full of SceneObjectRefs paid that on every
+        // mouse move.
+        //
+        // Entries are keyed by GlobalId, falling back to the stored hierarchy path when a ref
+        // has no GlobalId. Two refs in different scenes that share a hierarchy path and have
+        // no GlobalId would share an entry; the only consequence is that one of them keeps
+        // showing as missing until the next scene or hierarchy change clears the cache.
+        // GameObjects and Components are tracked separately so a ref pair on the same object
+        // cannot collide.
+        static readonly HashSet<string> s_GameObjectPathWalkFailed = new HashSet<string>(System.StringComparer.Ordinal);
+        static readonly HashSet<string> s_ComponentPathWalkFailed  = new HashSet<string>(System.StringComparer.Ordinal);
+
+        // Scene GUID → asset path. TryGetLoadedScene called AssetDatabase.GUIDToAssetPath on
+        // every path walk; the mapping only changes when the project changes.
+        static readonly Dictionary<string, string> s_SceneGuidToPath =
+            new Dictionary<string, string>(System.StringComparer.Ordinal);
+
         static SceneObjectMap()
         {
             EditorSceneManager.sceneClosed += OnSceneClosed;
             EditorSceneManager.sceneOpened += OnSceneOpened;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            // Creating, renaming, deleting or reparenting a GameObject can make a previously
+            // failed path walk succeed (or vice versa), so retry everything after any change.
+            EditorApplication.hierarchyChanged += ClearPathWalkCaches;
+            EditorApplication.projectChanged += s_SceneGuidToPath.Clear;
+        }
+
+        /// <summary>Lets refs whose hierarchy-path walk previously failed be retried.</summary>
+        static void ClearPathWalkCaches()
+        {
+            s_GameObjectPathWalkFailed.Clear();
+            s_ComponentPathWalkFailed.Clear();
+        }
+
+        /// <summary>
+        /// Cache key for the path-walk negative caches. Returns null when a ref carries neither
+        /// a GlobalId nor a stored path, in which case the walk cannot succeed anyway.
+        /// Deliberately allocation-free — this runs per row per repaint.
+        /// </summary>
+        static string PathWalkKey(string globalId, string lastKnownPath)
+        {
+            if (!string.IsNullOrEmpty(globalId)) return globalId;
+            if (!string.IsNullOrEmpty(lastKnownPath)) return lastKnownPath;
+            return null;
         }
 
         /// <summary>
@@ -48,6 +93,7 @@ namespace SecretZauce.SecondBrain.Editor
                 SceneObjects.Remove(key);
 
             s_UnresolvableIds.Clear();
+            ClearPathWalkCaches();
 
             // The DontDestroyOnLoad scene is created and destroyed with each Play session,
             // so the cached handle must not survive a transition.
@@ -64,12 +110,14 @@ namespace SecretZauce.SecondBrain.Editor
                 SceneObjects.Remove(key);
             // Refs that were unresolvable may now resolve (or stay unresolvable) — re-check next access.
             s_UnresolvableIds.Clear();
+            ClearPathWalkCaches();
         }
 
         static void OnSceneOpened(Scene scene, OpenSceneMode mode)
         {
             // A new scene loaded — previously unresolvable refs in that scene can now resolve.
             s_UnresolvableIds.Clear();
+            ClearPathWalkCaches();
         }
 
         public static GameObject Resolve(string globalId)
@@ -134,9 +182,20 @@ namespace SecretZauce.SecondBrain.Editor
             var byId = Resolve(globalId);
             if (byId != null) return byId;
 
+            // Skip the path walk for refs already known to be unreachable this way.
+            var key = PathWalkKey(globalId, lastKnownPath);
+            if (key != null && s_GameObjectPathWalkFailed.Contains(key))
+                return null;
+
             var byPath = FindByHierarchyPath(lastKnownPath, lastKnownSceneGuid, lastKnownScene);
 
-            if (byPath != null && !string.IsNullOrEmpty(globalId))
+            if (byPath == null)
+            {
+                if (key != null) s_GameObjectPathWalkFailed.Add(key);
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(globalId))
             {
                 // Re-point the cache at the live object and lift the blacklist entry.
                 SceneObjects[globalId] = byPath;
@@ -170,22 +229,35 @@ namespace SecretZauce.SecondBrain.Editor
             var byId = ResolveComponent(globalId);
             if (byId != null) return byId;
 
-            var owner = FindByHierarchyPath(lastKnownPath, lastKnownSceneGuid, lastKnownScene);
-            if (owner == null) return null;
-
-            if (string.IsNullOrEmpty(componentTypeName)) return null;
+            // Skip the path walk for refs already known to be unreachable this way.
+            var key = PathWalkKey(globalId, lastKnownPath);
+            if (key != null && s_ComponentPathWalkFailed.Contains(key))
+                return null;
 
             Component match = null;
-            foreach (var component in owner.GetComponents<Component>())
+            var owner = string.IsNullOrEmpty(componentTypeName)
+                ? null
+                : FindByHierarchyPath(lastKnownPath, lastKnownSceneGuid, lastKnownScene);
+
+            if (owner != null)
             {
-                if (component == null) continue;
-                var type = component.GetType();
-                if (type.FullName != componentTypeName && type.Name != componentTypeName) continue;
-                match = component;
-                break;
+                foreach (var component in owner.GetComponents<Component>())
+                {
+                    if (component == null) continue;
+                    var type = component.GetType();
+                    if (type.FullName != componentTypeName && type.Name != componentTypeName) continue;
+                    match = component;
+                    break;
+                }
             }
 
-            if (match != null && !string.IsNullOrEmpty(globalId))
+            if (match == null)
+            {
+                if (key != null) s_ComponentPathWalkFailed.Add(key);
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(globalId))
             {
                 SceneObjects[globalId] = match;
                 s_UnresolvableIds.Remove(globalId);
@@ -335,13 +407,24 @@ namespace SecretZauce.SecondBrain.Editor
             return true;
         }
 
+        /// <summary>Scene GUID → asset path, cached until the project changes.</summary>
+        static string GetScenePathCached(string sceneGuid)
+        {
+            if (s_SceneGuidToPath.TryGetValue(sceneGuid, out var path))
+                return path;
+
+            path = AssetDatabase.GUIDToAssetPath(sceneGuid);
+            s_SceneGuidToPath[sceneGuid] = path;
+            return path;
+        }
+
         static bool TryGetLoadedScene(string sceneGuid, string sceneName, out Scene scene)
         {
             scene = default;
 
             string scenePath = string.IsNullOrEmpty(sceneGuid)
                 ? null
-                : AssetDatabase.GUIDToAssetPath(sceneGuid);
+                : GetScenePathCached(sceneGuid);
 
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
