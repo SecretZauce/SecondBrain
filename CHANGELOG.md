@@ -2,6 +2,12 @@
 
 All notable changes to SecondBrain will be documented in this file.
 
+## 1.0.4 (31-07-2026)
+
+### Fixed
+- Scene references no longer report as "Missing" when the linked object is moved to the DontDestroyOnLoad scene during Play mode.
+- Scene and component references shown in the Inspector now recover the same way as the ones in the browser window. Previously they still reported "Missing" for prefab instances after entering Play mode.
+
 ## 1.0.3 (31-07-2026)
 
 ### Changed
