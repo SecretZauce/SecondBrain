@@ -2343,13 +2343,13 @@ namespace SecretZauce.SecondBrain.Editor
                 var toOpen = obj;
                 if (obj is SceneObjectRef sceneRef)
                 {
-                    var go = SceneObjectMap.Resolve(sceneRef.sceneObject?.GlobalId);
+                    var go = SceneObjectMap.Resolve(sceneRef.sceneObject);
                     if (go != null)
                         toOpen = go;
                 }
                 else if (obj is SceneComponentRef sceneComponentRef)
                 {
-                    var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent?.GlobalId);
+                    var component = SceneObjectMap.Resolve(sceneComponentRef.sceneComponent);
                     if (component != null)
                         toOpen = component;
                 }
@@ -2377,12 +2377,12 @@ namespace SecretZauce.SecondBrain.Editor
             Object toOpen = obj;
             if (obj is SceneObjectRef sceneRef)
             {
-                var go = SceneObjectMap.Resolve(sceneRef.sceneObject?.GlobalId);
+                var go = SceneObjectMap.Resolve(sceneRef.sceneObject);
                 if (go != null) toOpen = go;
             }
             else if (obj is SceneComponentRef sceneComponentRef)
             {
-                var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent?.GlobalId);
+                var component = SceneObjectMap.Resolve(sceneComponentRef.sceneComponent);
                 if (component != null) toOpen = component;
             }
 

@@ -227,7 +227,9 @@ namespace SecretZauce.SecondBrain.Editor
                 if (sceneLoaded)
                 {
                     // When the scene is loaded, resolve the GO to check its state.
-                    var resolvedGo = SceneObjectMap.Resolve(gid);
+                    // Pass the SceneObject, not the bare GID, so the hierarchy-path fallback can
+                    // recover prefab instances whose GlobalObjectId stops resolving in Play mode.
+                    var resolvedGo = SceneObjectMap.Resolve(sceneObj);
                     bool isMissing = resolvedGo == null;
                     bool isInactiveInHierarchy = resolvedGo != null && !resolvedGo.activeInHierarchy;
 
@@ -303,7 +305,7 @@ namespace SecretZauce.SecondBrain.Editor
                             EditorUtility.SetDirty(sceneRef);
                             if (sceneRef.isFocusOnSelect)
                             {
-                                var go = SceneObjectMap.Resolve(sceneRef.sceneObject?.GlobalId);
+                                var go = SceneObjectMap.Resolve(sceneRef.sceneObject);
                                 if (go != null && System.Array.IndexOf(Selection.objects, go) >= 0)
                                     EditorApplication.delayCall += () => { SceneView.FrameLastActiveSceneView();};
                             }
@@ -364,7 +366,7 @@ namespace SecretZauce.SecondBrain.Editor
 
                 if (sceneLoaded)
                 {
-                    var resolvedComponent = SceneObjectMap.ResolveComponent(gid);
+                    var resolvedComponent = SceneObjectMap.Resolve(sceneComponent);
                     bool isMissing = resolvedComponent == null;
                     bool isDisabled = resolvedComponent is Behaviour behaviour && !behaviour.enabled;
 
@@ -439,7 +441,7 @@ namespace SecretZauce.SecondBrain.Editor
                             EditorUtility.SetDirty(sceneComponentRef);
                             if (sceneComponentRef.isFocusOnSelect)
                             {
-                                var component = SceneObjectMap.ResolveComponent(sceneComponentRef.sceneComponent?.GlobalId);
+                                var component = SceneObjectMap.Resolve(sceneComponentRef.sceneComponent);
                                 if (component != null && System.Array.IndexOf(Selection.objects, component.gameObject) >= 0)
                                     EditorApplication.delayCall += () => { SceneView.FrameLastActiveSceneView(); };
                             }
