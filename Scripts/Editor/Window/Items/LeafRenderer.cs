@@ -181,7 +181,28 @@ namespace SecretZauce.SecondBrain.Editor
                 string sceneGuid = sceneObj?.LastKnownSceneGuid;
                 string assetPath = sceneObj?.LastKnownPath;
                 string gid = sceneObj?.GlobalId;
-                bool sceneLoaded = IsSceneLoaded(sceneGuid, sceneName);
+
+                // Resolve first: whether the object is actually reachable decides how the row looks,
+                // not what scene the ref happens to have recorded. The recorded scene can be stale or
+                // outright wrong — a target moved to DontDestroyOnLoad at runtime leaves that
+                // pseudo-scene recorded, and gating on it alone rendered the row as "scene not
+                // loaded", with a "(DontDestroyOnLoad)" suffix, even back in Edit mode with the
+                // authoring scene open and the object sitting in it.
+                //
+                // SceneObjectMap caches both hits and misses, so a ref whose scene really is closed
+                // still costs only a couple of hash lookups per repaint.
+                var resolvedGo = SceneObjectMap.Resolve(sceneObj);
+                bool sceneLoaded = resolvedGo != null || IsSceneLoaded(sceneGuid, sceneName);
+
+                // Clear a leftover DontDestroyOnLoad recording now that we can see where the object
+                // really lives, so the stale name cannot resurface once this scene is closed again.
+                if (resolvedGo != null && sceneName == SceneLoadUtils.DontDestroyOnLoadSceneName)
+                {
+                    SceneObjectRefUtils.RepairPseudoSceneMetadata(sceneRef, "sceneObject", resolvedGo);
+                    sceneName = sceneObj?.LastKnownScene;
+                    sceneGuid = sceneObj?.LastKnownSceneGuid;
+                    assetPath = sceneObj?.LastKnownPath;
+                }
 
                 // Reuse cached item style; apply per-call properties.
                 s_ItemStyle.normal.textColor = EditorStyles.label.normal.textColor; // reset to default
@@ -194,10 +215,6 @@ namespace SecretZauce.SecondBrain.Editor
                 
                 if (sceneLoaded)
                 {
-                    // When the scene is loaded, resolve the GO to check its state.
-                    // Pass the SceneObject, not the bare GID, so the hierarchy-path fallback can
-                    // recover prefab instances whose GlobalObjectId stops resolving in Play mode.
-                    var resolvedGo = SceneObjectMap.Resolve(sceneObj);
                     bool isMissing = resolvedGo == null;
                     bool isInactiveInHierarchy = resolvedGo != null && !resolvedGo.activeInHierarchy;
 
@@ -323,7 +340,20 @@ namespace SecretZauce.SecondBrain.Editor
                 string sceneGuid = sceneComponent?.LastKnownSceneGuid;
                 string assetPath = sceneComponent?.LastKnownPath;
                 string gid = sceneComponent?.GlobalId;
-                bool sceneLoaded = IsSceneLoaded(sceneGuid, sceneName);
+
+                // Resolve first — see the SceneObjectRef branch above for why the recorded scene
+                // cannot be trusted to decide whether this row is reachable.
+                var resolvedComponent = SceneObjectMap.Resolve(sceneComponent);
+                bool sceneLoaded = resolvedComponent != null || IsSceneLoaded(sceneGuid, sceneName);
+
+                if (resolvedComponent != null && sceneName == SceneLoadUtils.DontDestroyOnLoadSceneName)
+                {
+                    SceneObjectRefUtils.RepairPseudoSceneMetadata(
+                        sceneComponentRef, "sceneComponent", resolvedComponent.gameObject);
+                    sceneName = sceneComponent?.LastKnownScene;
+                    sceneGuid = sceneComponent?.LastKnownSceneGuid;
+                    assetPath = sceneComponent?.LastKnownPath;
+                }
 
                 s_ItemStyle.normal.textColor = EditorStyles.label.normal.textColor;
                 int itemFontSize = BrowserSettings.GetItemFontSize();
@@ -333,7 +363,6 @@ namespace SecretZauce.SecondBrain.Editor
 
                 if (sceneLoaded)
                 {
-                    var resolvedComponent = SceneObjectMap.Resolve(sceneComponent);
                     bool isMissing = resolvedComponent == null;
                     bool isDisabled = resolvedComponent is Behaviour behaviour && !behaviour.enabled;
 

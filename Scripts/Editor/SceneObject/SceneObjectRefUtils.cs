@@ -125,6 +125,54 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
+        /// Rewrites the scene and hierarchy path recorded on <paramref name="refAsset"/> from the
+        /// object it currently resolves to — but only when what is recorded is the DontDestroyOnLoad
+        /// pseudo-scene.
+        ///
+        /// Refs captured before that pseudo-scene was rejected at capture time still carry it on
+        /// disk, and it names a place that cannot exist in Edit mode: the row rendered as "scene not
+        /// loaded" with a "(DontDestroyOnLoad)" suffix, and the go-to action had no scene to open.
+        /// Repairing on the first Edit-mode resolve clears it for good — afterwards the guard below
+        /// is false, so this writes at most once per ref.
+        ///
+        /// <paramref name="structProperty"/> is the name of the SceneObject/SceneComponent field on
+        /// the ref asset ("sceneObject" or "sceneComponent").
+        /// </summary>
+        public static void RepairPseudoSceneMetadata(Object refAsset, string structProperty, GameObject resolved)
+        {
+            // Never touch assets while playing: the object may legitimately be in DontDestroyOnLoad
+            // right now, and any edit would be lost when the Play session tears down anyway.
+            if (EditorApplication.isPlaying || refAsset == null || resolved == null)
+                return;
+
+            // Only repair into a real, saved scene — never record another transient one.
+            var scenePath = resolved.scene.path;
+            if (string.IsNullOrEmpty(scenePath))
+                return;
+
+            var so = new SerializedObject(refAsset);
+            var structProp = so.FindProperty(structProperty);
+            var sceneProp = structProp?.FindPropertyRelative("lastKnownScene");
+            if (sceneProp == null || sceneProp.stringValue != SceneLoadUtils.DontDestroyOnLoadSceneName)
+                return;
+
+            sceneProp.stringValue = resolved.scene.name;
+
+            var guidProp = structProp.FindPropertyRelative("lastKnownSceneGuid");
+            if (guidProp != null)
+                guidProp.stringValue = AssetDatabase.AssetPathToGUID(scenePath);
+
+            // The recorded path is the collapsed one the object had as a DontDestroyOnLoad root;
+            // the live object gives us its real place in the authored hierarchy back.
+            var pathProp = structProp.FindPropertyRelative("lastKnownPath");
+            if (pathProp != null)
+                pathProp.stringValue = GetGameObjectPath(resolved);
+
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(refAsset);
+        }
+
+        /// <summary>
         /// Replaces characters invalid for file/asset names with underscores.
         /// </summary>
         static string SanitizeFileName(string name)
