@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -51,14 +52,29 @@ namespace SecretZauce.SecondBrain.Editor
     {
         const string KeyFolderFocusPrefix = "Browser_FolderFocus_";
 
+        // Per-folder focus flags are read once per folder row and then served from memory.
+        // EditorPrefs is a native call; the TreeView reads these every repaint for every
+        // visible folder, which showed up as measurable interop cost on large trees.
+        static readonly Dictionary<string, bool> s_FolderFocusCache =
+            new Dictionary<string, bool>(StringComparer.Ordinal);
+
         public static bool GetFolderFocusOnSelect(string folderGuid)
-            => !string.IsNullOrEmpty(folderGuid) && EditorPrefs.GetBool(KeyFolderFocusPrefix + folderGuid, false);
+        {
+            if (string.IsNullOrEmpty(folderGuid)) return false;
+            if (s_FolderFocusCache.TryGetValue(folderGuid, out bool cached))
+                return cached;
+
+            bool stored = EditorPrefs.GetBool(KeyFolderFocusPrefix + folderGuid, false);
+            s_FolderFocusCache[folderGuid] = stored;
+            return stored;
+        }
 
         public static void SetFolderFocusOnSelect(string folderGuid, bool value)
         {
             if (string.IsNullOrEmpty(folderGuid)) return;
             if (value) EditorPrefs.SetBool(KeyFolderFocusPrefix + folderGuid, true);
             else EditorPrefs.DeleteKey(KeyFolderFocusPrefix + folderGuid);
+            s_FolderFocusCache[folderGuid] = value;
         }
 
         const string KeyShowIconsPerType = "Browser_ShowIconsPerType_v1";
@@ -81,60 +97,127 @@ namespace SecretZauce.SecondBrain.Editor
 
         public static event Action OnSettingsChanged;
 
+        // ── In-memory cache ───────────────────────────────────────────────────
+        // Every getter below used to hit EditorPrefs directly. The TreeView reads
+        // several of them per row per IMGUI pass (row height, font size, icon
+        // toggle, quick-peek toggle), so a few hundred rows produced tens of
+        // thousands of native EditorPrefs calls per mouse move.
+        //
+        // Values are loaded once per domain reload and kept current by the setters,
+        // which write through to both EditorPrefs and the cache. BrowserSettings is
+        // the only writer of these keys, so the cache cannot go stale on its own.
+        static bool s_CacheLoaded;
+
+        static int  s_DoubleClickAction;
+        static bool s_ShowIconsPerType;
+        static bool s_ForceNamingOnCreate;
+        static int  s_DefaultColorStyle;
+        static bool s_DefaultColorFoldoutOnly;
+        static bool s_EnableQuickPeek;
+        static int  s_SearchAutoSelect;
+        static bool s_ExpandAllOnEnterBase;
+        static bool s_EnableSceneLinking;
+        static bool s_CloseOnSceneClose;
+        static int  s_DefaultExpandOption;
+        static int  s_DefaultQuickPeekLayout;
+        static int  s_ItemSize;
+        static int  s_ItemFontSize;
+        static bool s_HasItemFontSizeKey;
+
+        static void EnsureCacheLoaded()
+        {
+            if (s_CacheLoaded) return;
+            s_CacheLoaded = true;
+
+            s_DoubleClickAction      = EditorPrefs.GetInt(KeyDoubleClickAction, (int)DoubleClickActionType.Enter);
+            s_ShowIconsPerType       = EditorPrefs.GetBool(KeyShowIconsPerType, true);
+            s_ForceNamingOnCreate    = EditorPrefs.GetBool(KeyForceNamingOnCreate, true);
+            s_DefaultColorStyle      = EditorPrefs.GetInt(KeyDefaultColorStyle, (int)ColorDisplayStyle.Gradient);
+            s_DefaultColorFoldoutOnly= EditorPrefs.GetBool(KeyDefaultColorFoldoutOnly, false);
+            s_EnableQuickPeek        = EditorPrefs.GetBool(KeyEnableQuickPeek, true);
+            s_SearchAutoSelect       = EditorPrefs.GetInt(KeySearchAutoSelect, (int)SearchAutoSelectMode.Always);
+            s_ExpandAllOnEnterBase   = EditorPrefs.GetBool(KeyExpandAllOnEnterBase, false);
+            s_EnableSceneLinking     = EditorPrefs.GetBool(KeyEnableSceneLinking, true);
+            s_CloseOnSceneClose      = EditorPrefs.GetBool(KeyCloseOnSceneClose, false);
+            s_DefaultExpandOption    = EditorPrefs.GetInt(KeyDefaultExpandOption, (int)DefaultExpandOption.ExpandAsDefault);
+            s_DefaultQuickPeekLayout = EditorPrefs.GetInt(KeyDefaultQuickPeekLayout, (int)ChildViewMode.Foldouts);
+            s_ItemSize               = EditorPrefs.GetInt(KeyItemSize, (int)ItemSizeOption.Medium);
+            s_HasItemFontSizeKey     = EditorPrefs.HasKey(KeyItemFontSize);
+            s_ItemFontSize           = s_HasItemFontSizeKey
+                ? Mathf.Clamp(EditorPrefs.GetInt(KeyItemFontSize, 12), MinItemFontSize, MaxItemFontSize)
+                : 0;
+        }
+
+        /// <summary>
+        /// Drops the in-memory cache so the next read re-loads from EditorPrefs.
+        /// Only needed if something outside this class edits the backing keys.
+        /// </summary>
+        public static void ReloadFromPrefs()
+        {
+            s_CacheLoaded = false;
+            s_FolderFocusCache.Clear();
+            EnsureCacheLoaded();
+        }
+
         /// <summary>
         /// Determines what happens when the user double-clicks a TreeView item.
         /// </summary>
         public static DoubleClickActionType DoubleClickAction
         {
-            get => (DoubleClickActionType)EditorPrefs.GetInt(KeyDoubleClickAction, (int)DoubleClickActionType.Enter);
+            get { EnsureCacheLoaded(); return (DoubleClickActionType)s_DoubleClickAction; }
             set
             {
                 if (DoubleClickAction == value) return;
                 EditorPrefs.SetInt(KeyDoubleClickAction, (int)value);
+                s_DoubleClickAction = (int)value;
                 OnSettingsChanged?.Invoke();
             }
         }
 
         public static bool ShowIconsPerType
         {
-            get => EditorPrefs.GetBool(KeyShowIconsPerType, true);
+            get { EnsureCacheLoaded(); return s_ShowIconsPerType; }
             set
             {
                 if (ShowIconsPerType == value) return;
                 EditorPrefs.SetBool(KeyShowIconsPerType, value);
+                s_ShowIconsPerType = value;
                 OnSettingsChanged?.Invoke();
             }
         }
 
         public static bool ForceNamingOnCreate
         {
-            get => EditorPrefs.GetBool(KeyForceNamingOnCreate, true);
+            get { EnsureCacheLoaded(); return s_ForceNamingOnCreate; }
             set
             {
                 if (ForceNamingOnCreate == value) return;
                 EditorPrefs.SetBool(KeyForceNamingOnCreate, value);
+                s_ForceNamingOnCreate = value;
                 OnSettingsChanged?.Invoke();
             }
         }
 
         public static ColorDisplayStyle DefaultColorStyle
         {
-            get => (ColorDisplayStyle)EditorPrefs.GetInt(KeyDefaultColorStyle, (int)ColorDisplayStyle.Gradient);
+            get { EnsureCacheLoaded(); return (ColorDisplayStyle)s_DefaultColorStyle; }
             set
             {
                 if (DefaultColorStyle == value) return;
                 EditorPrefs.SetInt(KeyDefaultColorStyle, (int)value);
+                s_DefaultColorStyle = (int)value;
                 OnSettingsChanged?.Invoke();
             }
         }
 
         public static bool DefaultColorFoldoutOnly
         {
-            get => EditorPrefs.GetBool(KeyDefaultColorFoldoutOnly, false);
+            get { EnsureCacheLoaded(); return s_DefaultColorFoldoutOnly; }
             set
             {
                 if (DefaultColorFoldoutOnly == value) return;
                 EditorPrefs.SetBool(KeyDefaultColorFoldoutOnly, value);
+                s_DefaultColorFoldoutOnly = value;
                 OnSettingsChanged?.Invoke();
             }
         }
@@ -145,11 +228,12 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public static bool EnableQuickPeek
         {
-            get => EditorPrefs.GetBool(KeyEnableQuickPeek, true);
+            get { EnsureCacheLoaded(); return s_EnableQuickPeek; }
             set
             {
                 if (EnableQuickPeek == value) return;
                 EditorPrefs.SetBool(KeyEnableQuickPeek, value);
+                s_EnableQuickPeek = value;
                 OnSettingsChanged?.Invoke();
             }
         }
@@ -160,11 +244,12 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public static SearchAutoSelectMode SearchAutoSelect
         {
-            get => (SearchAutoSelectMode)EditorPrefs.GetInt(KeySearchAutoSelect, (int)SearchAutoSelectMode.Always);
+            get { EnsureCacheLoaded(); return (SearchAutoSelectMode)s_SearchAutoSelect; }
             set
             {
                 if (SearchAutoSelect == value) return;
                 EditorPrefs.SetInt(KeySearchAutoSelect, (int)value);
+                s_SearchAutoSelect = (int)value;
                 OnSettingsChanged?.Invoke();
             }
         }
@@ -178,11 +263,12 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public static bool ExpandAllOnEnterBase
         {
-            get => EditorPrefs.GetBool(KeyExpandAllOnEnterBase, false);
+            get { EnsureCacheLoaded(); return s_ExpandAllOnEnterBase; }
             set
             {
                 if (ExpandAllOnEnterBase == value) return;
                 EditorPrefs.SetBool(KeyExpandAllOnEnterBase, value);
+                s_ExpandAllOnEnterBase = value;
                 OnSettingsChanged?.Invoke();
             }
         }
@@ -193,11 +279,12 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public static bool EnableSceneLinking
         {
-            get => EditorPrefs.GetBool(KeyEnableSceneLinking, true);
+            get { EnsureCacheLoaded(); return s_EnableSceneLinking; }
             set
             {
                 if (EnableSceneLinking == value) return;
                 EditorPrefs.SetBool(KeyEnableSceneLinking, value);
+                s_EnableSceneLinking = value;
                 OnSettingsChanged?.Invoke();
             }
         }
@@ -208,11 +295,12 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public static bool CloseOnSceneClose
         {
-            get => EditorPrefs.GetBool(KeyCloseOnSceneClose, false);
+            get { EnsureCacheLoaded(); return s_CloseOnSceneClose; }
             set
             {
                 if (CloseOnSceneClose == value) return;
                 EditorPrefs.SetBool(KeyCloseOnSceneClose, value);
+                s_CloseOnSceneClose = value;
                 OnSettingsChanged?.Invoke();
             }
         }
@@ -224,11 +312,12 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public static DefaultExpandOption DefaultExpandOption
         {
-            get => (DefaultExpandOption)EditorPrefs.GetInt(KeyDefaultExpandOption, (int)DefaultExpandOption.ExpandAsDefault);
+            get { EnsureCacheLoaded(); return (DefaultExpandOption)s_DefaultExpandOption; }
             set
             {
                 if (DefaultExpandOption == value) return;
                 EditorPrefs.SetInt(KeyDefaultExpandOption, (int)value);
+                s_DefaultExpandOption = (int)value;
                 OnSettingsChanged?.Invoke();
             }
         }
@@ -239,11 +328,12 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public static ChildViewMode DefaultQuickPeekLayout
         {
-            get => (ChildViewMode)EditorPrefs.GetInt(KeyDefaultQuickPeekLayout, (int)ChildViewMode.Foldouts);
+            get { EnsureCacheLoaded(); return (ChildViewMode)s_DefaultQuickPeekLayout; }
             set
             {
                 if (DefaultQuickPeekLayout == value) return;
                 EditorPrefs.SetInt(KeyDefaultQuickPeekLayout, (int)value);
+                s_DefaultQuickPeekLayout = (int)value;
                 OnSettingsChanged?.Invoke();
             }
         }
@@ -253,11 +343,12 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public static ItemSizeOption ItemSize
         {
-            get => (ItemSizeOption)EditorPrefs.GetInt(KeyItemSize, (int)ItemSizeOption.Medium);
+            get { EnsureCacheLoaded(); return (ItemSizeOption)s_ItemSize; }
             set
             {
                 if (ItemSize == value) return;
                 EditorPrefs.SetInt(KeyItemSize, (int)value);
+                s_ItemSize = (int)value;
                 OnSettingsChanged?.Invoke();
             }
         }
@@ -270,19 +361,19 @@ namespace SecretZauce.SecondBrain.Editor
         {
             get
             {
-                if (EditorPrefs.HasKey(KeyItemFontSize))
-                    return Mathf.Clamp(EditorPrefs.GetInt(KeyItemFontSize, 12), MinItemFontSize, MaxItemFontSize);
-
-                return GetLegacyFontSize(ItemSize);
+                EnsureCacheLoaded();
+                return s_HasItemFontSizeKey ? s_ItemFontSize : GetLegacyFontSize(ItemSize);
             }
             set
             {
+                EnsureCacheLoaded();
                 int clamped = Mathf.Clamp(value, MinItemFontSize, MaxItemFontSize);
-                bool hasStoredValue = EditorPrefs.HasKey(KeyItemFontSize);
-                if (hasStoredValue && ItemFontSize == clamped)
+                if (s_HasItemFontSizeKey && s_ItemFontSize == clamped)
                     return;
 
                 EditorPrefs.SetInt(KeyItemFontSize, clamped);
+                s_HasItemFontSizeKey = true;
+                s_ItemFontSize = clamped;
                 OnSettingsChanged?.Invoke();
             }
         }
@@ -314,8 +405,9 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public static float GetItemRowHeight()
         {
-            if (EditorPrefs.HasKey(KeyItemFontSize))
-                return Mathf.Max(EditorGUIUtility.singleLineHeight, ItemFontSize + 9f);
+            EnsureCacheLoaded();
+            if (s_HasItemFontSizeKey)
+                return Mathf.Max(EditorGUIUtility.singleLineHeight, s_ItemFontSize + 9f);
 
             switch (ItemSize)
             {
