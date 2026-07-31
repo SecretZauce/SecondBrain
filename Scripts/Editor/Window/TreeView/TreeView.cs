@@ -789,15 +789,20 @@ namespace SecretZauce.SecondBrain.Editor
             if (side == QuickPeekSide.Left && obj is IStructure)
                 return;
             
-            if (s_PeekBlockedIcon == null)
-                s_PeekBlockedIcon = new GUIContent(IconUtils.Load("block"));
-
             if (!OwnerWindow.IsQuickPeekOpenForPath(hoveredPath))
             {
-                // Show blocked only when mouse is actually over this window (not stale hover)
-                // and peek is not in the pending-show delay (not yet opened, but will be).
-                if (EditorWindow.mouseOverWindow == OwnerWindow && !OwnerWindow.IsQuickPeekPendingShow())
+                // The peek is not open. That alone says nothing — it may simply be closed
+                // because this window is unfocused or the show delay is still running.
+                // Only draw the blocked icon when the item is resolvable but can never be
+                // peeked (unsupported type, empty container, DisableQuickPeek ancestor).
+                // The mouse-over check keeps a stale hover path from drawing the icon.
+                if (EditorWindow.mouseOverWindow == OwnerWindow && OwnerWindow.IsQuickPeekBlockedForPath(hoveredPath))
+                {
+                    if (s_PeekBlockedIcon == null)
+                        s_PeekBlockedIcon = new GUIContent(IconUtils.Load("block"));
+
                     DrawPeekIcon(s_PeekBlockedIcon, pw, contentRightEdge, side);
+                }
                 return;
             }
 

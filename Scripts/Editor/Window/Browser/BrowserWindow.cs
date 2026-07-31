@@ -2468,6 +2468,21 @@ namespace SecretZauce.SecondBrain.Editor
 #endif
         }
 
+        /// <summary>
+        /// True when the node at <paramref name="path"/> exists but QuickPeek can never be
+        /// shown for it (unsupported type, empty container, or a DisableQuickPeek ancestor).
+        /// Transient reasons — the window not being focused, the show delay still running —
+        /// are deliberately not reported here.
+        /// </summary>
+        public bool IsQuickPeekBlockedForPath(int[] path)
+        {
+#if SECOND_BRAIN_PRO
+            return quickPeekHandler != null && quickPeekHandler.IsBlockedForPath(path);
+#else
+            return false;
+#endif
+        }
+
 #if SECOND_BRAIN_PRO
         public void OpenPropertyEditorFor(int[] selectedPath, BrowserWindow window)
         {
