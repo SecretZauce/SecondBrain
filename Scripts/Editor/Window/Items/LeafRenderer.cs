@@ -87,6 +87,9 @@ namespace SecretZauce.SecondBrain.Editor
             EditorApplication.projectChanged += () => s_AssetPathCache.Clear();
         }
 
+        /// <summary>Name Unity gives the runtime-only scene that holds DontDestroyOnLoad objects.</summary>
+        const string DontDestroyOnLoadSceneName = "DontDestroyOnLoad";
+
         static void EnsureSceneLoadedCacheSubscription()
         {
             if (s_SceneLoadedCacheSubscribed) return;
@@ -120,6 +123,12 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         static bool IsSceneLoaded(string sceneGuid, string sceneName)
         {
+            // A ref captured while its target already lived in DontDestroyOnLoad stores that
+            // pseudo-scene, which has no asset GUID and is not enumerated by SceneManager.
+            // It is live for the whole Play session and gone outside it.
+            if (sceneName == DontDestroyOnLoadSceneName)
+                return EditorApplication.isPlaying;
+
             // Prefer GUID-based lookup (stable across renames)
             if (!string.IsNullOrEmpty(sceneGuid))
             {

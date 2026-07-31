@@ -48,6 +48,11 @@ namespace SecretZauce.SecondBrain.Editor
                 SceneObjects.Remove(key);
 
             s_UnresolvableIds.Clear();
+
+            // The DontDestroyOnLoad scene is created and destroyed with each Play session,
+            // so the cached handle must not survive a transition.
+            s_DontDestroyOnLoadScene = default;
+            s_DontDestroyOnLoadProbed = false;
         }
 
         static void OnSceneClosed(Scene scene)
@@ -114,17 +119,28 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (sceneObject == null) return null;
 
-            var byId = Resolve(sceneObject.GlobalId);
+            return Resolve(sceneObject.GlobalId, sceneObject.LastKnownPath,
+                sceneObject.LastKnownSceneGuid, sceneObject.LastKnownScene);
+        }
+
+        /// <summary>
+        /// Resolves a GameObject from its stored metadata, falling back to the hierarchy-path walk
+        /// when the GlobalObjectId cannot be resolved. Use this from drawers, which hold the
+        /// metadata as SerializedProperties rather than a <see cref="SceneObject"/> instance.
+        /// </summary>
+        public static GameObject Resolve(string globalId, string lastKnownPath,
+            string lastKnownSceneGuid, string lastKnownScene)
+        {
+            var byId = Resolve(globalId);
             if (byId != null) return byId;
 
-            var byPath = FindByHierarchyPath(
-                sceneObject.LastKnownPath, sceneObject.LastKnownSceneGuid, sceneObject.LastKnownScene);
+            var byPath = FindByHierarchyPath(lastKnownPath, lastKnownSceneGuid, lastKnownScene);
 
-            if (byPath != null && !string.IsNullOrEmpty(sceneObject.GlobalId))
+            if (byPath != null && !string.IsNullOrEmpty(globalId))
             {
                 // Re-point the cache at the live object and lift the blacklist entry.
-                SceneObjects[sceneObject.GlobalId] = byPath;
-                s_UnresolvableIds.Remove(sceneObject.GlobalId);
+                SceneObjects[globalId] = byPath;
+                s_UnresolvableIds.Remove(globalId);
             }
 
             return byPath;
@@ -138,30 +154,41 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (sceneComponent == null) return null;
 
-            var byId = ResolveComponent(sceneComponent.GlobalId);
+            return ResolveComponent(sceneComponent.GlobalId, sceneComponent.LastKnownPath,
+                sceneComponent.LastKnownSceneGuid, sceneComponent.LastKnownScene,
+                sceneComponent.LastKnownComponentType);
+        }
+
+        /// <summary>
+        /// Resolves a Component from its stored metadata, falling back to the hierarchy-path walk
+        /// plus component-type match when the GlobalObjectId cannot be resolved. Use this from
+        /// drawers, which hold the metadata as SerializedProperties.
+        /// </summary>
+        public static Component ResolveComponent(string globalId, string lastKnownPath,
+            string lastKnownSceneGuid, string lastKnownScene, string componentTypeName)
+        {
+            var byId = ResolveComponent(globalId);
             if (byId != null) return byId;
 
-            var owner = FindByHierarchyPath(
-                sceneComponent.LastKnownPath, sceneComponent.LastKnownSceneGuid, sceneComponent.LastKnownScene);
+            var owner = FindByHierarchyPath(lastKnownPath, lastKnownSceneGuid, lastKnownScene);
             if (owner == null) return null;
 
-            var typeName = sceneComponent.LastKnownComponentType;
-            if (string.IsNullOrEmpty(typeName)) return null;
+            if (string.IsNullOrEmpty(componentTypeName)) return null;
 
             Component match = null;
             foreach (var component in owner.GetComponents<Component>())
             {
                 if (component == null) continue;
                 var type = component.GetType();
-                if (type.FullName != typeName && type.Name != typeName) continue;
+                if (type.FullName != componentTypeName && type.Name != componentTypeName) continue;
                 match = component;
                 break;
             }
 
-            if (match != null && !string.IsNullOrEmpty(sceneComponent.GlobalId))
+            if (match != null && !string.IsNullOrEmpty(globalId))
             {
-                SceneObjects[sceneComponent.GlobalId] = match;
-                s_UnresolvableIds.Remove(sceneComponent.GlobalId);
+                SceneObjects[globalId] = match;
+                s_UnresolvableIds.Remove(globalId);
             }
 
             return match;
@@ -179,28 +206,45 @@ namespace SecretZauce.SecondBrain.Editor
         ///
         /// Walks the hierarchy manually rather than using GameObject.Find so that inactive objects
         /// are still found — GameObject.Find skips them.
+        ///
+        /// When the object is not in its original scene, the DontDestroyOnLoad scene is searched as
+        /// a last resort — see <see cref="FindInDontDestroyOnLoad"/>.
         /// </summary>
         static GameObject FindByHierarchyPath(string hierarchyPath, string sceneGuid, string sceneName)
         {
             if (string.IsNullOrEmpty(hierarchyPath))
                 return null;
 
-            if (!TryGetLoadedScene(sceneGuid, sceneName, out var scene))
-                return null;
-
             var segments = hierarchyPath.Split('/');
             if (segments.Length == 0)
+                return null;
+
+            if (TryGetLoadedScene(sceneGuid, sceneName, out var scene))
+            {
+                var inOriginScene = FindInScene(scene, segments, 0);
+                if (inOriginScene != null)
+                    return inOriginScene;
+            }
+
+            return FindInDontDestroyOnLoad(segments);
+        }
+
+        /// <summary>Walks <paramref name="segments"/> from <paramref name="startIndex"/> inside
+        /// <paramref name="scene"/>, matching each segment by name. Returns null if any hop misses.</summary>
+        static GameObject FindInScene(Scene scene, string[] segments, int startIndex)
+        {
+            if (!scene.IsValid() || !scene.isLoaded || startIndex >= segments.Length)
                 return null;
 
             GameObject current = null;
             foreach (var root in scene.GetRootGameObjects())
             {
-                if (root.name != segments[0]) continue;
+                if (root.name != segments[startIndex]) continue;
                 current = root;
                 break;
             }
 
-            for (int i = 1; i < segments.Length && current != null; i++)
+            for (int i = startIndex + 1; i < segments.Length && current != null; i++)
             {
                 GameObject next = null;
                 var parent = current.transform;
@@ -215,6 +259,80 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             return current;
+        }
+
+        // ── DontDestroyOnLoad ─────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Searches the DontDestroyOnLoad scene for the linked object.
+        ///
+        /// An object moved there at runtime leaves its original scene entirely: its GlobalObjectId
+        /// no longer resolves, and the path walk above searches a scene the object is no longer in,
+        /// so the ref was reported as "(Missing)" for the whole Play session.
+        ///
+        /// The stored path is tried in full first (the object was carried along as a child of a
+        /// persistent root, so its subtree path is intact), then with leading segments dropped one
+        /// at a time. The suffix walk is needed because DontDestroyOnLoad only accepts root objects:
+        /// a linked child is typically detached from its parents before the call and ends up as a
+        /// root whose path is a suffix of the one recorded in Edit mode.
+        /// </summary>
+        static GameObject FindInDontDestroyOnLoad(string[] segments)
+        {
+            if (!TryGetDontDestroyOnLoadScene(out var ddolScene))
+                return null;
+
+            for (int start = 0; start < segments.Length; start++)
+            {
+                var found = FindInScene(ddolScene, segments, start);
+                if (found != null)
+                    return found;
+            }
+
+            return null;
+        }
+
+        // Handle of the current Play session's DontDestroyOnLoad scene. Reset by InvalidateCaches.
+        static Scene s_DontDestroyOnLoadScene;
+        static bool s_DontDestroyOnLoadProbed;
+
+        /// <summary>
+        /// Returns the DontDestroyOnLoad scene, which exists only while playing.
+        ///
+        /// Unity exposes no API for it and SceneManager.GetSceneAt does not enumerate it, so the
+        /// handle is discovered by moving a throwaway GameObject into it and reading back its scene.
+        /// The probe runs at most once per Play session; the handle stays valid for its duration.
+        /// </summary>
+        static bool TryGetDontDestroyOnLoadScene(out Scene scene)
+        {
+            scene = default;
+
+            if (!EditorApplication.isPlaying)
+                return false;
+
+            if (!s_DontDestroyOnLoadProbed)
+            {
+                s_DontDestroyOnLoadProbed = true;
+
+                var probe = new GameObject("SecondBrain_DontDestroyOnLoadProbe")
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+                try
+                {
+                    Object.DontDestroyOnLoad(probe);
+                    s_DontDestroyOnLoadScene = probe.scene;
+                }
+                finally
+                {
+                    Object.DestroyImmediate(probe);
+                }
+            }
+
+            if (!s_DontDestroyOnLoadScene.IsValid() || !s_DontDestroyOnLoadScene.isLoaded)
+                return false;
+
+            scene = s_DontDestroyOnLoadScene;
+            return true;
         }
 
         static bool TryGetLoadedScene(string sceneGuid, string sceneName, out Scene scene)

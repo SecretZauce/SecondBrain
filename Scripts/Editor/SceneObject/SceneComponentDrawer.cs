@@ -13,17 +13,6 @@ namespace SecretZauce.SecondBrain.Editor
             property.serializedObject.Update();
 
             SerializedProperty idProp = property.FindPropertyRelative("globalId");
-            Object current = null;
-            if (idProp != null && !string.IsNullOrEmpty(idProp.stringValue))
-                current = SceneObjectMap.ResolveComponent(idProp.stringValue);
-
-            EditorGUI.BeginProperty(position, label, property);
-            Rect fieldRect = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
-
-            float infoWidth = Mathf.Min(180f, fieldRect.width * 0.35f);
-            float spacing = 4f;
-            Rect objectRect = new Rect(fieldRect.x, fieldRect.y, fieldRect.width - infoWidth - spacing, fieldRect.height);
-            Rect infoRect = new Rect(objectRect.xMax + spacing, fieldRect.y, infoWidth, fieldRect.height);
 
             var lastKnownPath = property.FindPropertyRelative("lastKnownPath")?.stringValue;
             var lastKnownSceneProp = property.FindPropertyRelative("lastKnownScene");
@@ -33,6 +22,23 @@ namespace SecretZauce.SecondBrain.Editor
             var lastKnownGameObjectName = property.FindPropertyRelative("lastKnownGameObjectName")?.stringValue;
             var lastKnownComponentType = property.FindPropertyRelative("lastKnownComponentType")?.stringValue;
             var lastKnownComponentTypeName = property.FindPropertyRelative("lastKnownComponentTypeName")?.stringValue;
+
+            // Resolve with the path fallback, not the bare GID, so components whose GlobalObjectId
+            // stops resolving in Play mode — prefab instances, and anything moved to the
+            // DontDestroyOnLoad scene — are still found instead of reported as Missing.
+            Object current = null;
+            if (idProp != null && !string.IsNullOrEmpty(idProp.stringValue))
+                current = SceneObjectMap.ResolveComponent(idProp.stringValue, lastKnownPath,
+                    lastKnownSceneGuid, lastKnownScene, lastKnownComponentType);
+
+            EditorGUI.BeginProperty(position, label, property);
+            Rect fieldRect = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+
+            float infoWidth = Mathf.Min(180f, fieldRect.width * 0.35f);
+            float spacing = 4f;
+            Rect objectRect = new Rect(fieldRect.x, fieldRect.y, fieldRect.width - infoWidth - spacing, fieldRect.height);
+            Rect infoRect = new Rect(objectRect.xMax + spacing, fieldRect.y, infoWidth, fieldRect.height);
+
             Component resolved = current as Component;
 
             // Auto-update scene name if the scene was renamed (GUID matches but name differs)

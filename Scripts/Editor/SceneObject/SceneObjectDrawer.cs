@@ -14,10 +14,22 @@ namespace SecretZauce.SecondBrain.Editor
 
             // Get the current serialized value for the inspector display
             SerializedProperty idProp = property.FindPropertyRelative("globalId");
+
+            // Show object picker when the object resolves; otherwise display fallback name label
+            var lastKnownPath = property.FindPropertyRelative("lastKnownPath")?.stringValue;
+            var lastKnownSceneProp = property.FindPropertyRelative("lastKnownScene");
+            var lastKnownSceneGuidProp = property.FindPropertyRelative("lastKnownSceneGuid");
+            var lastKnownScene = lastKnownSceneProp?.stringValue;
+            var lastKnownSceneGuid = lastKnownSceneGuidProp?.stringValue;
+            var lastKnownName = property.FindPropertyRelative("lastKnownName")?.stringValue;
+
+            // Resolve with the path fallback, not the bare GID, so objects whose GlobalObjectId
+            // stops resolving in Play mode — prefab instances, and anything moved to the
+            // DontDestroyOnLoad scene — are still found instead of reported as Missing.
             Object current = null;
             if (idProp != null && !string.IsNullOrEmpty(idProp.stringValue))
-                current = SceneObjectMap.Resolve(idProp.stringValue);
-            
+                current = SceneObjectMap.Resolve(idProp.stringValue, lastKnownPath, lastKnownSceneGuid, lastKnownScene);
+
             EditorGUI.BeginProperty(position, label, property);
             Rect fieldRect = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 
@@ -27,15 +39,8 @@ namespace SecretZauce.SecondBrain.Editor
             Rect objectRect = new Rect(fieldRect.x, fieldRect.y, fieldRect.width - infoWidth - spacing, fieldRect.height);
             Rect infoRect = new Rect(objectRect.xMax + spacing, fieldRect.y, infoWidth, fieldRect.height);
 
-            // Show object picker when the object resolves; otherwise display fallback name label
-            var lastKnownPath = property.FindPropertyRelative("lastKnownPath")?.stringValue;
-            var lastKnownSceneProp = property.FindPropertyRelative("lastKnownScene");
-            var lastKnownSceneGuidProp = property.FindPropertyRelative("lastKnownSceneGuid");
-            var lastKnownScene = lastKnownSceneProp?.stringValue;
-            var lastKnownSceneGuid = lastKnownSceneGuidProp?.stringValue;
-            var lastKnownName = property.FindPropertyRelative("lastKnownName")?.stringValue;
             GameObject resolved = current as GameObject;
-            
+
             // Auto-update scene name if the scene was renamed (GUID matches but name differs)
             bool sceneWasRenamed = false;
             if (resolved != null && !string.IsNullOrEmpty(lastKnownSceneGuid))
