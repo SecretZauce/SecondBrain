@@ -64,6 +64,12 @@ namespace SecretZauce.SecondBrain.Editor
         static GUIStyle s_HamStyle;
         static GUIStyle s_HeaderPlusStyle;
         static GUIStyle s_ToggleStyle;
+        // Cached GUIContent for buttons that don't change per frame
+        static GUIContent s_HomeContent;
+        static GUIContent s_BreadcrumbContent;
+        static GUIContent s_HamburgerContent;
+        static GUIContent s_PencilContent;
+        static GUIContent s_EmptyFoldoutContent;
 #if SECOND_BRAIN_PRO
         static Texture  s_CoreSettingsIcon;
         static GUIStyle s_ProfileDropdownStyle;
@@ -167,6 +173,15 @@ namespace SecretZauce.SecondBrain.Editor
 #endif
 
             s_HeaderStylesValid = true;
+
+            // Cached GUIContent (rebuilt on skin change along with styles)
+            s_HomeContent       = new GUIContent(s_HomeIcon, "Go to Home");
+            s_BreadcrumbContent = new GUIContent(s_BreadcrumbIcon);
+            s_HamburgerContent  = new GUIContent(s_HamburgerIcon, "Base Settings");
+            s_PencilContent     = s_PencilIcon != null
+                ? new GUIContent(s_PencilIcon, "Rename")
+                : new GUIContent("✎", "Rename");
+            s_EmptyFoldoutContent = new GUIContent(string.Empty);
         }
 
         // ── Public API ─────────────────────────────────────────────────────────
@@ -266,7 +281,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Home button (cached icon)
             bool homeInteractive = !(window?.IsAtHome() ?? true) && !dragDropManager.IsDragging && !renamer.IsRenamingAny && !treeView.HasGhostSession && !isRenamingHeader;
             EditorGUI.BeginDisabledGroup(!homeInteractive);
-            if (GUI.Button(iconRect, new GUIContent(s_HomeIcon, "Go to Home"), GUIStyle.none))
+            if (GUI.Button(iconRect, s_HomeContent, GUIStyle.none))
             {
                 CancelHeaderRename();
                 window?.Controller.SetTargetWithUndo(null);
@@ -466,7 +481,7 @@ namespace SecretZauce.SecondBrain.Editor
             const float arrowSize = 14f;
             float arrowY = Mathf.Round((labelRect.height - arrowSize) * 0.5f);
             var nextRect = new Rect(labelRect.x - 4f, arrowY, arrowSize, arrowSize);
-            GUI.Label(nextRect, new GUIContent(s_BreadcrumbIcon));
+            GUI.Label(nextRect, s_BreadcrumbContent);
             adjustedLabelRect = labelRect;
             // Reduce left padding between breadcrumb arrow and the following icon/text
             const float breadcrumbInset = 8f; // reduced from previous 14f
@@ -555,9 +570,7 @@ namespace SecretZauce.SecondBrain.Editor
                 if (pencilHover && pencilInteractive)
                     EditorGUI.DrawRect(pencilRect, new Color(0.3f, 0.3f, 0.3f, 0.5f));
 
-                GUIContent pencilContent = s_PencilIcon != null
-                    ? new GUIContent(s_PencilIcon, "Rename")
-                    : new GUIContent("✎", "Rename");
+                GUIContent pencilContent = s_PencilContent;
 
                 if (GUI.Button(pencilRect, pencilContent, s_PencilStyle))
                 {
@@ -619,7 +632,7 @@ namespace SecretZauce.SecondBrain.Editor
             EditorGUI.BeginDisabledGroup(!hamInteractive);
             bool hamHover = hamburgerRect.Contains(Event.current.mousePosition);
             if (hamHover && hamInteractive) EditorGUI.DrawRect(hamburgerRect, new Color(0.3f, 0.3f, 0.3f, 0.5f));
-            if (GUI.Button(hamburgerRect, new GUIContent(s_HamburgerIcon, "Base Settings"), s_HamStyle))
+            if (GUI.Button(hamburgerRect, s_HamburgerContent, s_HamStyle))
             {
                 try { EditorUtility.OpenPropertyEditor(baseObj); } catch { }
                 Event.current.Use();
@@ -646,7 +659,7 @@ namespace SecretZauce.SecondBrain.Editor
                 else
                 {
                     bool newMostAreExpanded = EditorGUI.Foldout(toggleRect, mostAreExpanded,
-                        new GUIContent(string.Empty), true, EditorStyles.foldout);
+                        s_EmptyFoldoutContent, true, EditorStyles.foldout);
                     if (newMostAreExpanded != mostAreExpanded)
                     {
                         if (newMostAreExpanded) treeView.ExpandAll(); else treeView.CollapseAll();

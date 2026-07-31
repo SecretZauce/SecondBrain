@@ -29,6 +29,8 @@ namespace SecretZauce.SecondBrain.Editor
         static Texture    s_CloseIcon;
         static bool       s_SettingsIconProSkin;
         static GUIStyle   s_HintStyle;
+        static GUIContent s_SettingsContent;
+        static GUIContent s_CloseContent;
 
 #if !SECOND_BRAIN_PRO
         static GUIStyle _upgradeLinkStyle;
@@ -161,7 +163,10 @@ namespace SecretZauce.SecondBrain.Editor
 #endif
            
             Texture settingsTexture = (Texture)s_SettingsIcon ?? EditorGUIUtility.IconContent("d_Settings").image;
-            var settingsContent = new GUIContent(settingsTexture, "Settings");
+            s_SettingsContent ??= new GUIContent(settingsTexture, "Settings");
+            if (s_SettingsContent.image != settingsTexture)
+                s_SettingsContent = new GUIContent(settingsTexture, "Settings");
+            var settingsContent = s_SettingsContent;
             var settingsRect = GUILayoutUtility.GetRect(settingsContent, EditorStyles.toolbarButton, GUILayout.Width(30));
             var settingsControlId = GUIUtility.GetControlID(FocusType.Passive, settingsRect);
             var settingsEvent = Event.current;
@@ -179,8 +184,8 @@ namespace SecretZauce.SecondBrain.Editor
                     break;
             }
             
-            var closeContent = s_CloseIcon != null ? new GUIContent(s_CloseIcon, "Close") : new GUIContent("✕", "Close");
-            if (GUILayout.Button(closeContent, EditorStyles.toolbarButton, GUILayout.Width(30)))
+            s_CloseContent ??= s_CloseIcon != null ? new GUIContent(s_CloseIcon, "Close") : new GUIContent("✕", "Close");
+            if (GUILayout.Button(s_CloseContent, EditorStyles.toolbarButton, GUILayout.Width(30)))
             {
                 EditorApplication.delayCall += ownerWindow.Close;
             }

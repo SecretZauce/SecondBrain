@@ -152,6 +152,13 @@ namespace SecretZauce.SecondBrain.Editor
 
         Vector2 scrollPosition;
         public List<int[]> visiblePaths { get; } // Track all visible paths for range selection
+        int _lastVisiblePathCount; // Previous frame's visible path count for capacity hinting
+
+        // ── Search match cache (2A optimization) ──────────────────────────────
+        // Avoids O(n²) recursive NodeOrDescendantsMatch calls every frame during search.
+        // Rebuilt when search text changes; nodes in this set have at least one matching descendant.
+        HashSet<Object> _searchMatchCache;
+        bool _searchMatchCacheValid;
 
         // Viewport rect of the scroll view, captured after EndScrollView during Repaint
         // Used to draw persistent peek zone column overlays.
@@ -231,6 +238,13 @@ namespace SecretZauce.SecondBrain.Editor
             // Forward rename completion to commands
             Renamer.SetOnRenameCompleted(window.OnRenameCompleted);
             visiblePaths.Clear();
+            // Invalidate search match cache every frame so structural changes are picked up.
+            // The cache is rebuilt once (O(n)) at the start of the draw pass if searching,
+            // which is still far cheaper than the previous O(n²) per-node recursive approach.
+            _searchMatchCacheValid = false;
+            // Hint the list capacity based on the previous frame's count to reduce incremental resizes.
+            if (visiblePaths.Capacity < _lastVisiblePathCount)
+                visiblePaths.Capacity = _lastVisiblePathCount;
             hasPendingClick = false;
 
             // ── Earliest Escape intercept for header rename ────────────────────
@@ -258,6 +272,10 @@ namespace SecretZauce.SecondBrain.Editor
             // If search changed, expand all foldouts to show matches
             if (searchChanged && IsSearching())
                 ExpandAll();
+
+            // Rebuild search match cache if needed (O(n) walk, then O(1) lookups per row).
+            if (searchBar.IsSearching && !_searchMatchCacheValid)
+                RebuildSearchMatchCache(drawContext.Collections);
 
             // Include null (missing) slots in the count so MISSING rows are drawn.
             int colCount = drawContext.Collections.Count;
@@ -673,6 +691,9 @@ namespace SecretZauce.SecondBrain.Editor
 
             GUILayout.EndScrollView();
 
+            // Track visible path count for next frame's capacity hinting.
+            _lastVisiblePathCount = visiblePaths.Count;
+
             // Capture the scroll view viewport rect once per Repaint so the persistent
             // peek zone column overlay knows where to draw.
             if (Event.current != null && Event.current.type == EventType.Repaint)
@@ -840,24 +861,91 @@ namespace SecretZauce.SecondBrain.Editor
 
         /// <summary>
         /// Checks if a node or any of its descendants match the search criteria.
+        /// Uses the pre-built cache for O(1) lookups instead of recursive traversal.
         /// </summary>
         bool NodeOrDescendantsMatch(Object node)
         {
             if (node == null)
                 return false;
 
-            // If the node itself matches, return true
+            // If cache is valid, use O(1) lookup
+            if (_searchMatchCacheValid && _searchMatchCache != null)
+                return _searchMatchCache.Contains(node);
+
+            // Fallback to recursive check (should not normally be reached during draw)
+            return NodeOrDescendantsMatchRecursive(node);
+        }
+
+        /// <summary>
+        /// Recursive implementation used during cache building.
+        /// </summary>
+        bool NodeOrDescendantsMatchRecursive(Object node)
+        {
+            if (node == null)
+                return false;
+
             if (searchBar.Matches(node))
                 return true;
 
             if (node is not IStructure structure || structure.ChildrenObjects == null)
                 return false;
 
-            // If it's an IStructure, check children recursively
             foreach (var child in structure.ChildrenObjects)
             {
-                if (NodeOrDescendantsMatch(child))
+                if (NodeOrDescendantsMatchRecursive(child))
                     return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Rebuilds the search match cache by walking the entire tree once.
+        /// After this, NodeOrDescendantsMatch becomes O(1) per node.
+        /// </summary>
+        void RebuildSearchMatchCache(List<IStructure> roots)
+        {
+            _searchMatchCache ??= new HashSet<Object>();
+            _searchMatchCache.Clear();
+
+            if (roots != null)
+            {
+                for (int i = 0; i < roots.Count; i++)
+                {
+                    var root = roots[i] as Object;
+                    if (root != null)
+                        BuildMatchCacheRecursive(root);
+                }
+            }
+
+            _searchMatchCacheValid = true;
+        }
+
+        /// <summary>
+        /// Recursively populates the search match cache. Returns true if the node or
+        /// any descendant matches, adding such nodes to the cache set.
+        /// </summary>
+        bool BuildMatchCacheRecursive(Object node)
+        {
+            if (node == null)
+                return false;
+
+            bool selfMatches = searchBar.Matches(node);
+
+            bool anyChildMatches = false;
+            if (node is IStructure structure && structure.ChildrenObjects != null)
+            {
+                foreach (var child in structure.ChildrenObjects)
+                {
+                    if (BuildMatchCacheRecursive(child))
+                        anyChildMatches = true;
+                }
+            }
+
+            if (selfMatches || anyChildMatches)
+            {
+                _searchMatchCache.Add(node);
+                return true;
             }
 
             return false;

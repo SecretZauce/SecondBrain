@@ -12,6 +12,24 @@ namespace SecretZauce.SecondBrain.Editor
     {
         static HashSet<int> s_loggedDetails = new HashSet<int>();
 
+        // ── Static color constants to avoid per-row Color struct allocations ───
+        static readonly Color s_ArrowHoverPro       = new Color(1f, 1f, 1f, 1f);
+        static readonly Color s_ArrowHoverPersonal  = new Color(0f, 0f, 0f, 1f);
+        static readonly Color s_ArrowNormalPro      = new Color(0.6f, 0.6f, 0.6f, 0.6f);
+        static readonly Color s_ArrowNormalPersonal = new Color(0.2f, 0.2f, 0.2f, 1f);
+        static readonly Color s_DimmedPro           = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        static readonly Color s_DimmedPersonal      = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+        static readonly Color s_MissingPro          = new Color(1f, 0.45f, 0.1f, 1f);
+        static readonly Color s_MissingPersonal     = new Color(0.85f, 0.3f, 0f, 1f);
+        static readonly Color s_UnloadedPro         = new Color(0.75f, 0.75f, 0.75f, 0.8f);
+        static readonly Color s_UnloadedPersonal    = new Color(0.25f, 0.25f, 0.25f, 0.8f);
+        static readonly Color s_FocusOnPro          = new Color(0.4f, 0.8f, 1f, 1f);
+        static readonly Color s_FocusOnPersonal     = new Color(0.1f, 0.5f, 0.9f, 1f);
+        static readonly Color s_FocusHoverPro       = new Color(1f, 1f, 1f, 1f);
+        static readonly Color s_FocusHoverPersonal  = new Color(0f, 0f, 0f, 1f);
+        static readonly Color s_FocusNormalPro      = new Color(0.6f, 0.6f, 0.6f, 0.4f);
+        static readonly Color s_FocusNormalPersonal = new Color(0.2f, 0.2f, 0.2f, 0.5f);
+
         // ── Static style cache (Option-A invalidation) ─────────────────────────
         static bool     s_StylesValid;
         static bool     s_CacheProSkin;
@@ -197,12 +215,8 @@ namespace SecretZauce.SecondBrain.Editor
             // Reuse cached arrow style; set the hover-sensitive color each frame.
             var isProSkin = EditorGUIUtility.isProSkin;
             s_ArrowStyle.normal.textColor = isHoveringArrow
-                ?
-                isProSkin ? new Color(1f, 1f, 1f, 1f) : new Color(0, 0, 0, 1)
-                :
-                isProSkin
-                    ? new Color(0.6f, 0.6f, 0.6f, 0.6f)
-                    : new Color(0.2f, 0.2f, 0.2f, 1);
+                ? (isProSkin ? s_ArrowHoverPro : s_ArrowHoverPersonal)
+                : (isProSkin ? s_ArrowNormalPro : s_ArrowNormalPersonal);
 
             var dimmedAlpha = 0.8f;
             if (node is SceneObjectRef sceneRef)
@@ -243,8 +257,8 @@ namespace SecretZauce.SecondBrain.Editor
                                 ? displayName
                                 : $"{displayName} (Was in Play Mode of {sceneName})";
                             s_ItemStyle.normal.textColor = isProSkin
-                                ? new Color(0.5f, 0.5f, 0.5f, 0.5f)
-                                : new Color(0.3f, 0.3f, 0.3f, 0.8f);
+                               ? s_DimmedPro
+                               : s_DimmedPersonal;
                             var prevGuiColor = GUI.color;
                             GUI.color = new Color(prevGuiColor.r, prevGuiColor.g, prevGuiColor.b, prevGuiColor.a * 0.6f);
                             DrawLabelWithTempWidth(new GUIContent(playLabel, BrowserSettings.ShowIconsPerType ? icon : null), s_ItemStyle);
@@ -255,8 +269,8 @@ namespace SecretZauce.SecondBrain.Editor
                             // Target GameObject was deleted in the active scene.
                             string missingLabel = $"⚠ {displayName} (Missing)";
                             s_ItemStyle.normal.textColor = isProSkin
-                                ? new Color(1f, 0.45f, 0.1f, 1f)
-                                : new Color(0.85f, 0.3f, 0f, 1f);
+                               ? s_MissingPro
+                               : s_MissingPersonal;
                             DrawLabelWithTempWidth(new GUIContent(missingLabel, BrowserSettings.ShowIconsPerType ? icon : null), s_ItemStyle);
                         }
                     }
@@ -270,8 +284,7 @@ namespace SecretZauce.SecondBrain.Editor
                         }
                         else
                         {
-                            s_ItemStyle.normal.textColor = isProSkin ? new Color(0.5f, 0.5f, 0.5f, 0.5f) :
-                                    new Color(0.3f, 0.3f, 0.3f, 0.8f);
+                            s_ItemStyle.normal.textColor = isProSkin ? s_DimmedPro : s_DimmedPersonal;
                         }
 
                         var prevGuiColor = GUI.color;
@@ -290,10 +303,10 @@ namespace SecretZauce.SecondBrain.Editor
                         focusRectNudged.y -= 1;
                         bool isFocusOn = sceneRef.isFocusOnSelect;
                         Color focusIconColor = isFocusOn
-                            ? (isProSkin ? new Color(0.4f, 0.8f, 1f, 1f) : new Color(0.1f, 0.5f, 0.9f, 1f))
+                            ? (isProSkin ? s_FocusOnPro : s_FocusOnPersonal)
                             : (isHoveringArrow
-                                ? (isProSkin ? new Color(1f, 1f, 1f, 1f) : new Color(0f, 0f, 0f, 1f))
-                                : (isProSkin ? new Color(0.6f, 0.6f, 0.6f, 0.4f) : new Color(0.2f, 0.2f, 0.2f, 0.5f)));
+                                ? (isProSkin ? s_FocusHoverPro : s_FocusHoverPersonal)
+                                : (isProSkin ? s_FocusNormalPro : s_FocusNormalPersonal));
                         var prevFocusColor = GUI.color;
                         GUI.color = focusIconColor;
                         bool focusClicked = GUI.Button(focusRectNudged, new GUIContent(s_FocusIcon, "Focus scene view camera when selected"), s_ArrowStyle);
@@ -326,8 +339,8 @@ namespace SecretZauce.SecondBrain.Editor
                     else
                     {
                         // Default dimmed gray for unloaded scenes
-                        s_ItemStyle.normal.textColor = isProSkin ? new Color(0.75f, 0.75f, 0.75f, dimmedAlpha)
-                                : new Color(0.25f, 0.25f, 0.25f, dimmedAlpha);
+                        s_ItemStyle.normal.textColor = isProSkin ? s_UnloadedPro
+                                : s_UnloadedPersonal;
                     }
 
                     // To also dim the icon, temporarily reduce GUI.color's alpha while drawing the label.
@@ -380,8 +393,8 @@ namespace SecretZauce.SecondBrain.Editor
                                 ? displayName
                                 : $"{displayName} (Was in Play Mode of {sceneName})";
                             s_ItemStyle.normal.textColor = isProSkin
-                                ? new Color(0.5f, 0.5f, 0.5f, 0.5f)
-                                : new Color(0.3f, 0.3f, 0.3f, 0.8f);
+                                ? s_DimmedPro
+                                : s_DimmedPersonal;
                             var prevGuiColor = GUI.color;
                             GUI.color = new Color(prevGuiColor.r, prevGuiColor.g, prevGuiColor.b, prevGuiColor.a * 0.6f);
                             DrawLabelWithTempWidth(new GUIContent(playLabel, BrowserSettings.ShowIconsPerType ? icon : null), s_ItemStyle);
@@ -392,8 +405,8 @@ namespace SecretZauce.SecondBrain.Editor
                             // Target component/GameObject was deleted in the active scene.
                             string missingLabel = $"⚠ {displayName} (Missing)";
                             s_ItemStyle.normal.textColor = isProSkin
-                                ? new Color(1f, 0.45f, 0.1f, 1f)
-                                : new Color(0.85f, 0.3f, 0f, 1f);
+                                ? s_MissingPro
+                                : s_MissingPersonal;
                             DrawLabelWithTempWidth(new GUIContent(missingLabel, BrowserSettings.ShowIconsPerType ? icon : null), s_ItemStyle);
                         }
                     }
@@ -406,8 +419,8 @@ namespace SecretZauce.SecondBrain.Editor
                         }
                         else
                         {
-                            s_ItemStyle.normal.textColor = isProSkin ? new Color(0.5f, 0.5f, 0.5f, 0.5f) :
-                                    new Color(0.3f, 0.3f, 0.3f, 0.8f);
+                            s_ItemStyle.normal.textColor = isProSkin ? s_DimmedPro :
+                                    s_DimmedPersonal;
                         }
 
                         var prevGuiColor = GUI.color;
@@ -426,10 +439,10 @@ namespace SecretZauce.SecondBrain.Editor
                         focusRectNudged.y -= 1;
                         bool isFocusOn = sceneComponentRef.isFocusOnSelect;
                         Color focusIconColor = isFocusOn
-                            ? (isProSkin ? new Color(0.4f, 0.8f, 1f, 1f) : new Color(0.1f, 0.5f, 0.9f, 1f))
+                            ? (isProSkin ? s_FocusOnPro : s_FocusOnPersonal)
                             : (isHoveringArrow
-                                ? (isProSkin ? new Color(1f, 1f, 1f, 1f) : new Color(0f, 0f, 0f, 1f))
-                                : (isProSkin ? new Color(0.6f, 0.6f, 0.6f, 0.4f) : new Color(0.2f, 0.2f, 0.2f, 0.5f)));
+                                ? (isProSkin ? s_FocusHoverPro : s_FocusHoverPersonal)
+                                : (isProSkin ? s_FocusNormalPro : s_FocusNormalPersonal));
                         var prevFocusColor = GUI.color;
                         GUI.color = focusIconColor;
                         bool focusClicked = GUI.Button(focusRectNudged, new GUIContent(s_FocusIcon, "Focus scene view camera when selected"), s_ArrowStyle);
@@ -459,8 +472,8 @@ namespace SecretZauce.SecondBrain.Editor
                     }
                     else
                     {
-                        s_ItemStyle.normal.textColor = isProSkin ? new Color(0.75f, 0.75f, 0.75f, dimmedAlpha)
-                                : new Color(0.25f, 0.25f, 0.25f, dimmedAlpha);
+                        s_ItemStyle.normal.textColor = isProSkin ? s_UnloadedPro
+                                : s_UnloadedPersonal;
                     }
 
                     var prevGuiColor = GUI.color;
@@ -568,8 +581,8 @@ namespace SecretZauce.SecondBrain.Editor
                         }
                         else
                         {
-                            s_ItemStyle.normal.textColor = isProSkin ? new Color(0.75f, 0.75f, 0.75f, dimmedAlpha)
-                                    : new Color(0.25f, 0.25f, 0.25f, dimmedAlpha);
+                            s_ItemStyle.normal.textColor = isProSkin ? s_UnloadedPro
+                                    : s_UnloadedPersonal;
                         }
 
                         var prevGuiColor = GUI.color;

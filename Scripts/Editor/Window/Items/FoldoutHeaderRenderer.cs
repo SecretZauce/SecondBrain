@@ -59,13 +59,14 @@ namespace SecretZauce.SecondBrain.Editor
             isSelected = selected;
         }
 
+        // A single shared control name for all foldout rows. Uniqueness per row is not required
+        // because focus is set immediately after click and IMGUI processes one event at a time.
+        const string k_FoldoutControlName = "SB_Foldout";
+
         public Rect Render(ref bool foldout, bool hideFoldoutArrow = false, Color? labelColor = null, ColorDisplayStyle colorStyle = ColorDisplayStyle.FontColor)
         {
             // Rebuild style cache if skin or font size changed (Option-A invalidation).
             EnsureStyles();
-
-            // Pre-compute the IMGUI control name once per Render call (used twice below).
-            string foldoutControlName = "foldout_" + string.Join("_", this.path);
 
             GUIStyle foldStyle = s_FoldStyle;
             float rowHeight = BrowserSettings.GetItemRowHeight();
@@ -182,7 +183,7 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     // Only apply color to label text when using FontColor style
                     Color? fontColor = (colorStyle == ColorDisplayStyle.FontColor) ? labelColor : null;
-                    GUI.SetNextControlName(foldoutControlName);
+                    GUI.SetNextControlName(k_FoldoutControlName);
                     bool prevFold = foldout;
                     bool currentFold = foldout;
                     if (!treeView.DragDropManager.IsDragging)
@@ -203,7 +204,7 @@ namespace SecretZauce.SecondBrain.Editor
                             treeView.foldoutState.SetRecursive(this.node, foldout);
 
                         treeView.Context.RaiseRecordSelectionChange();
-                        GUI.FocusControl(foldoutControlName);
+                        GUI.FocusControl(k_FoldoutControlName);
                         if (Event.current != null) Event.current.Use();
                     }
                 }
@@ -226,15 +227,28 @@ namespace SecretZauce.SecondBrain.Editor
             return rowRect;
         }
 
+        // Reusable GUIStyle instances for colored rows — avoids allocating a new GUIStyle per row per frame.
+        // IMGUI draws sequentially so a single instance reused across rows is safe.
+        static GUIStyle s_ColoredFoldStyle;
+        static GUIStyle s_ColoredHiddenLabelStyle;
+        static GUIStyle s_ColoredPaddedStyle;
+        static Color    s_LastFoldColor;
+        static Color    s_LastHiddenLabelColor;
+
         bool DrawLabel(ref bool currentFold, GUIStyle foldStyle, Color? labelColor, bool hideFoldoutArrow)
         {
-            // Only allocate a new GUIStyle copy when a per-node color must be applied.
-            // For the no-color case we use the cached static styles directly (no alloc).
+            // Reuse a single cached colored style instead of allocating per row.
             GUIStyle workingFoldStyle;
             if (labelColor.HasValue)
             {
-                workingFoldStyle = new GUIStyle(foldStyle);
-                ApplyColorToAllStates(workingFoldStyle, labelColor.Value);
+                if (s_ColoredFoldStyle == null || s_ColoredFoldStyle.font != foldStyle.font || s_ColoredFoldStyle.fontSize != foldStyle.fontSize)
+                    s_ColoredFoldStyle = new GUIStyle(foldStyle);
+                if (s_LastFoldColor != labelColor.Value)
+                {
+                    s_LastFoldColor = labelColor.Value;
+                    ApplyColorToAllStates(s_ColoredFoldStyle, labelColor.Value);
+                }
+                workingFoldStyle = s_ColoredFoldStyle;
             }
             else
             {
@@ -243,12 +257,18 @@ namespace SecretZauce.SecondBrain.Editor
 
             if (hideFoldoutArrow)
             {
-                // Use the cached hidden-arrow label style; copy only when color is needed.
+                // Reuse a single cached colored label style instead of allocating per row.
                 GUIStyle labelStyle;
                 if (labelColor.HasValue)
                 {
-                    labelStyle = new GUIStyle(s_HiddenFoldLabelStyle);
-                    ApplyColorToAllStates(labelStyle, labelColor.Value);
+                    if (s_ColoredHiddenLabelStyle == null || s_ColoredHiddenLabelStyle.font != s_HiddenFoldLabelStyle.font || s_ColoredHiddenLabelStyle.fontSize != s_HiddenFoldLabelStyle.fontSize)
+                        s_ColoredHiddenLabelStyle = new GUIStyle(s_HiddenFoldLabelStyle);
+                    if (s_LastHiddenLabelColor != labelColor.Value)
+                    {
+                        s_LastHiddenLabelColor = labelColor.Value;
+                        ApplyColorToAllStates(s_ColoredHiddenLabelStyle, labelColor.Value);
+                    }
+                    labelStyle = s_ColoredHiddenLabelStyle;
                 }
                 else
                 {
@@ -290,10 +310,20 @@ namespace SecretZauce.SecondBrain.Editor
                         var iconLabelRect = new Rect(trueIndentedItemRect.x + foldoutArrowWidth, foldoutHeaderRect.y, foldoutHeaderRect.width - foldoutArrowWidth, foldoutHeaderRect.height);
                         if (EmojiIconUtils.TryDrawEditorIcon(iconLabelRect, hasEmoji.EmojiIcon, workingFoldStyle, out iconRect, out iconWidth))
                         {
-                            GUIStyle paddedStyle = new GUIStyle(workingFoldStyle);
+                            // Reuse a single cached padded style to avoid per-row allocation.
+                            if (s_ColoredPaddedStyle == null || s_ColoredPaddedStyle.font != workingFoldStyle.font || s_ColoredPaddedStyle.fontSize != workingFoldStyle.fontSize)
+                                s_ColoredPaddedStyle = new GUIStyle(workingFoldStyle);
+                            else
+                            {
+                                s_ColoredPaddedStyle.normal.textColor = workingFoldStyle.normal.textColor;
+                                s_ColoredPaddedStyle.onNormal.textColor = workingFoldStyle.onNormal.textColor;
+                                s_ColoredPaddedStyle.focused.textColor = workingFoldStyle.focused.textColor;
+                                s_ColoredPaddedStyle.onFocused.textColor = workingFoldStyle.onFocused.textColor;
+                            }
+                            GUIStyle paddedStyle = s_ColoredPaddedStyle;
                             int pad = Mathf.CeilToInt(iconWidth + 4f);
                             if (paddedStyle.padding == null) paddedStyle.padding = new RectOffset();
-                            paddedStyle.padding.left += pad;
+                            paddedStyle.padding.left = foldStyle.padding.left + pad;
 
                             return EditorGUI.Foldout(foldoutHeaderRect, currentFold, new GUIContent(name), false, paddedStyle);
                         }
