@@ -13,13 +13,19 @@ namespace SecretZauce.SecondBrain.Editor
         static readonly Dictionary<string, Object> SceneObjects = new Dictionary<string, Object>();
 
         // GIDs that returned null from GlobalObjectIdentifierToObjectSlow — scene not loaded.
-        // Cleared whenever any scene opens so refs become resolvable again.
+        // Cleared whenever any scene opens or play mode transitions so refs become resolvable again.
         static readonly HashSet<string> s_UnresolvableIds = new HashSet<string>();
 
         static SceneObjectMap()
         {
             EditorSceneManager.sceneClosed += OnSceneClosed;
             EditorSceneManager.sceneOpened += OnSceneOpened;
+            // EditorSceneManager events do NOT fire during Play Mode transitions; Unity reloads
+            // scenes through the runtime SceneManager when entering/exiting Play Mode.  We must
+            // subscribe to playModeStateChanged and clear both caches at the Exiting* transitions
+            // so that stale Object references and "unresolvable" GID entries from the reload
+            // window do not persist and cause refs to show as Missing after the scene settles.
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
         static void OnSceneClosed(Scene scene)
@@ -37,6 +43,22 @@ namespace SecretZauce.SecondBrain.Editor
         {
             // A new scene loaded — previously unresolvable refs in that scene can now resolve.
             s_UnresolvableIds.Clear();
+        }
+
+        static void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            // At both Exiting transitions the current scene context is invalidated:
+            //   ExitingEditMode  — edit-mode objects are about to be destroyed/reloaded as play-mode clones.
+            //   ExitingPlayMode  — play-mode clone objects are being destroyed; edit-mode scene restores next.
+            // Clearing both caches here ensures that the first Resolve() call after the new scene
+            // context is ready goes through GlobalObjectIdentifierToObjectSlow rather than returning
+            // a stale null from the reload window, and that previously unresolvable GIDs are retried.
+            if (state == PlayModeStateChange.ExitingEditMode ||
+                state == PlayModeStateChange.ExitingPlayMode)
+            {
+                SceneObjects.Clear();
+                s_UnresolvableIds.Clear();
+            }
         }
 
         public static GameObject Resolve(string globalId)

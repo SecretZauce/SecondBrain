@@ -73,8 +73,12 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (s_SceneLoadedCacheSubscribed) return;
             s_SceneLoadedCacheSubscribed = true;
-            EditorSceneManager.sceneOpened  += (_, __) => s_SceneLoadedCache.Clear();
-            EditorSceneManager.sceneClosed  += _       => s_SceneLoadedCache.Clear();
+            EditorSceneManager.sceneOpened   += (_, __) => s_SceneLoadedCache.Clear();
+            EditorSceneManager.sceneClosed   += _       => s_SceneLoadedCache.Clear();
+            // EditorSceneManager events do not fire during Play Mode transitions; clear the
+            // loaded-state cache on play mode changes so IsSceneLoaded() re-evaluates against
+            // the current (play-mode or edit-mode) scene set after each transition.
+            EditorApplication.playModeStateChanged += _ => s_SceneLoadedCache.Clear();
         }
 
         /// <summary>Returns the cached asset path for <paramref name="obj"/>, calling
