@@ -2,6 +2,14 @@
 
 All notable changes to SecondBrain will be documented in this file.
 
+## 1.0.3 (31-07-2026)
+
+### Changed
+- Browser window rows render faster in large trees. Row styles, icons, and toolbar labels are now built once and reused instead of being rebuilt every repaint, and rows no longer allocate a string each to track their foldout state.
+- Searching a large tree no longer gets slower as the tree grows. Matches are worked out once per search instead of being recalculated for every visible row on every repaint.
+- Large selections stay responsive. Checking whether a row is selected is now a direct lookup instead of a scan through the whole selection, both while drawing rows and while changing the selection.
+- Installing SecondBrain alongside SecondBrain Pro does less redundant work. The Pro editor code is skipped entirely until Pro is actually activated, and setup no longer writes the Pro activation flag from two places in the same pass.
+
 ## 1.0.2 (31-07-2026)
 
 ### Added
