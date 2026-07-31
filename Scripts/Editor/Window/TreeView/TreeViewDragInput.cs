@@ -35,6 +35,22 @@ namespace SecretZauce.SecondBrain.Editor
         // Narrower hit-test threshold — mouse must be this close to the edge to trigger QuickPeek
         public const float QuickPeekDetectionZoneWidth = 10f;
 
+        /// <summary>
+        /// Width of the strip at each end of a row that contains hover-sensitive controls: the
+        /// nav/focus arrow, the play button, the "+" create button, the MISSING row's remove
+        /// button and the Quick Peek zones. Those tint on hover independently of which row is
+        /// hovered, so the TreeView must keep repainting while the mouse is inside the strip
+        /// even when the hovered row has not changed.
+        ///
+        /// Deliberately generous — the widest real control cluster is roughly 50px — so that
+        /// adding or nudging a control cannot silently break hover feedback.
+        /// </summary>
+        public const float HoverSensitiveStripWidth = 64f;
+
+        // True when the mouse is inside a hover-sensitive strip of the hovered row.
+        bool hoveredInSensitiveStrip;
+        public bool HoveredInSensitiveStrip => hoveredInSensitiveStrip;
+
 
         public TreeViewDragInput(TreeView treeView)
         {
@@ -53,6 +69,7 @@ namespace SecretZauce.SecondBrain.Editor
             hoveredIsIStructure = false;
             hoveredIsExpanded = false;
             hoveredIndentX = 0f;
+            hoveredInSensitiveStrip = false;
             lastRowBottomY = 0f;
             quickPeekHoveredPath = null;
             quickPeekHoveredScreenRect = new Rect();
@@ -101,6 +118,11 @@ namespace SecretZauce.SecondBrain.Editor
                 hoveredIsIStructure = isIStructure;
                 hoveredIsExpanded = isExpanded; // Track expanded state for drop zone logic
                 hoveredIndentX = indentX; // Store the indented x value
+
+                // Computed here because the row rect and the mouse position are both in
+                // scroll-view-local space at this point; they are not once the scroll view ends.
+                hoveredInSensitiveStrip = e.mousePosition.x >= rect.xMax - HoverSensitiveStripWidth
+                                       || e.mousePosition.x <= rect.x + HoverSensitiveStripWidth;
 
                 // Determine Quick Peek zone: only trigger when mouse is in left/right edge strip
                 var side = GetPeekZone(rect, e.mousePosition);

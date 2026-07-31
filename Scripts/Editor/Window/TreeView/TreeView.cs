@@ -287,12 +287,9 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 // Detect Unity DragAndDrop at scroll view level for immediate visual feedback
                 Event e = Event.current;
-                // Repaint on every MouseMove so hover highlights and peek-zone icons update
-                // instantly. Repaint() only sets a dirty flag; Unity coalesces all calls within
-                // one editor frame into a single actual redraw, bounding cost to the editor frame rate.
-                // Renaming is excluded to avoid unnecessary churn while text is being edited.
-                if (e is { type: EventType.MouseMove } && !Renamer.IsRenamingAny && OwnerWindow != null)
-                    OwnerWindow.Repaint();
+                // MouseMove repaints are decided after the rows have run their hit-tests, in
+                // RepaintIfHoverChanged below — the new hover target is not known yet here.
+                bool isHoverMove = e is { type: EventType.MouseMove } && !Renamer.IsRenamingAny && OwnerWindow != null;
 
                 if (e is { type: EventType.DragUpdated })
                 {
@@ -318,6 +315,9 @@ namespace SecretZauce.SecondBrain.Editor
                 }
 
                 DrawScrollViewContent(drawContext);
+
+                if (isHoverMove)
+                    RepaintIfHoverChanged();
 
                 // If the search bar requested navigation away (DownArrow pressed while focused),
                 // consume the request now that visiblePaths has been populated and select the
@@ -383,6 +383,44 @@ namespace SecretZauce.SecondBrain.Editor
                 DrawEmptyState(window);
                 return scrollPosition;
             }
+        }
+
+        // ── Hover repaint throttling ──────────────────────────────────────────
+        // Hover state at the last MouseMove that triggered a repaint.
+        int[] _lastHoverPath;
+        QuickPeekSide _lastHoverPeekSide;
+        bool _lastHoverInSensitiveStrip;
+
+        /// <summary>
+        /// Repaints only when a MouseMove actually changed something the tree draws.
+        ///
+        /// Previously every MouseMove requested a repaint. Repaint() itself is cheap, but the
+        /// Layout and Repaint passes it schedules each walk the whole tree, so sliding the mouse
+        /// across a single row cost three full traversals per move instead of one.
+        ///
+        /// Must run after the rows have hit-tested this pass, since the new hover target is not
+        /// known before that.
+        /// </summary>
+        void RepaintIfHoverChanged()
+        {
+            var path = DragInput.HoveredPath;
+            var peekSide = DragInput.QuickPeekHoveredSide;
+            // Controls inside the row's end strips tint on hover independently of the row, so
+            // while the mouse is in one of them every move can change what is drawn.
+            bool inStrip = DragInput.HoveredInSensitiveStrip;
+
+            bool changed = inStrip
+                           || _lastHoverInSensitiveStrip
+                           || peekSide != _lastHoverPeekSide
+                           || !StructureUtils.ArePathsEqual(path, _lastHoverPath);
+
+            if (!changed)
+                return;
+
+            _lastHoverPath = path;
+            _lastHoverPeekSide = peekSide;
+            _lastHoverInSensitiveStrip = inStrip;
+            OwnerWindow?.Repaint();
         }
 
         public bool IsSearching()
