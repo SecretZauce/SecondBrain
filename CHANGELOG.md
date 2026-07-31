@@ -2,6 +2,14 @@
 
 All notable changes to SecondBrain will be documented in this file.
 
+## 1.0.5 (31-07-2026)
+
+### Changed
+- Browser windows holding many scene object references are substantially faster to hover and scroll. A reference whose target cannot be found by id no longer re-searches every loaded scene on each repaint — the result is remembered until a scene or the hierarchy actually changes.
+- Browser settings such as row height, font size, and the icon and Quick Peek toggles are now read from memory. They were previously fetched from EditorPrefs several times per row on every repaint.
+- Tree rows no longer allocate while drawing. Click handling, label layout, row renderers, and selection lookups all reused throwaway objects on every row on every repaint, which built up garbage and caused periodic hitches in large trees.
+- Moving the mouse over the tree now redraws only when the hovered item changes, instead of on every mouse movement.
+
 ## 1.0.4 (31-07-2026)
 
 ### Fixed
