@@ -92,12 +92,14 @@ namespace SecretZauce.SecondBrain.Editor
             if (IsProAssemblyPresent())
             {
                 Progress.Report(progressId, 0.85f, "Pro detected — enabling...");
-                Debug.Log("[SecondBrain] Pro assembly detected. Enabling SECOND_BRAIN_PRO — editor will recompile.");
+                // ProBootstrapper (Pro.Bootstrap assembly) is the single owner of the
+                // SECOND_BRAIN_PRO define lifecycle — it adds the define in the same
+                // delayCall cycle. Only the state is advanced here.
+                Debug.Log("[SecondBrain] Pro assembly detected — awaiting SECOND_BRAIN_PRO define from the Pro bootstrapper.");
 
                 core.InitializationState = ProfileInitializationState.ProVersionInitialized;
                 AssetDatabase.SaveAssets();
                 Progress.Finish(progressId, Progress.Status.Succeeded);
-                ProLicenseUtils.AddProDefine();
             }
             else
             {
