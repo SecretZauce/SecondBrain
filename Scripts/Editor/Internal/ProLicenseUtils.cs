@@ -97,20 +97,5 @@ namespace SecretZauce.SecondBrain.Editor
             AssetDatabase.SaveAssets();
         }
 
-#if SECOND_BRAIN_DEV && SECOND_BRAIN_PRO
-        // ─── Menu Items (DEV + PRO only) ────────────────────────────────────────
-
-        [MenuItem("Tools/Second Brain/DEV — Rollback to Free")]
-        static void RollbackToFree()
-        {
-            if (EditorUtility.DisplayDialog(
-                    "Rollback to Free (Mock)",
-                    $"This will remove '{ProDefine}' from all build platforms and recompile scripts.\n\nContinue?",
-                    "Yes, Rollback", "Cancel"))
-            {
-                RemoveProDefine();
-            }
-        }
-#endif
     }
 }

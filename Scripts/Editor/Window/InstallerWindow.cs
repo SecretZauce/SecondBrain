@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.Build;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
@@ -347,18 +346,9 @@ namespace SecretZauce.SecondBrain.Editor
                 $"{ProAsmdefName} t:AssemblyDefinitionAsset",
                 new[] { "Assets" }).Length > 0;
 
-        static bool IsProEnabled()
-        {
-            try
-            {
-                var target  = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
-                var defines = PlayerSettings.GetScriptingDefineSymbols(target);
-                return defines.Contains("SECOND_BRAIN_PRO");
-            }
-            catch
-            {
-                return false;
-            }
-        }
+        // Whether the Pro assembly is actually loaded and has registered itself — not merely
+        // whether a define is set. A define that has been added but not yet compiled reads as
+        // false here, which is exactly the "Enabling…" state the tag row wants to show.
+        static bool IsProEnabled() => ProFeature.Provider != null;
     }
 }
