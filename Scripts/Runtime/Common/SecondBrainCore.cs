@@ -63,6 +63,13 @@ namespace SecretZauce.SecondBrain
             EditorUtility.SetDirty(this);
         }
 
+        public void ClearInitializationStep(int stepFlag)
+        {
+            if (stepFlag <= 0) return;
+            initializationProgress &= ~stepFlag;
+            EditorUtility.SetDirty(this);
+        }
+
         // ── Profile registry ───────────────────────────────────────────────────
 
         [SerializeField] List<Profile> profiles = new List<Profile>();
