@@ -244,7 +244,7 @@ See the [full documentation](https://github.com/SecretZauce/SecondBrain/wiki/Get
 ## Requirements
 
 - **Reccomended:** Unity 6 LTS (6000.0.x) or later. 
-- **Minimum:** Unity 2020.3 LTS (2020.3.x)
+- **Minimum:** Unity 2022.3 LTS (2022.3.x)
 
 > [!NOTE] 
 > Emojis are only supported on Unity 6 or later.
