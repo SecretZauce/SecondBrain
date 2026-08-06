@@ -59,9 +59,8 @@ namespace SecretZauce.SecondBrain.Editor
 
             EditorGUILayout.Space(6);
 
-#if SECOND_BRAIN_PRO
-            DrawDisableQuickPeek(containers);
-#endif
+            if (ProFeature.Provider != null)
+                DrawDisableQuickPeek(containers);
             EditorGUILayout.Space(10);
 
             if (containers.Length > 1)
@@ -165,7 +164,6 @@ namespace SecretZauce.SecondBrain.Editor
             EditorGUI.ObjectField(rect, element, GUIContent.none);
         }
 
-#if SECOND_BRAIN_PRO
         void DrawDisableQuickPeek(Container[] containers)
         {
             bool first = containers[0].DisableQuickPeek;
@@ -183,6 +181,5 @@ namespace SecretZauce.SecondBrain.Editor
                 ApplyToAll(containers, "Toggle Disable Quick Peek", c => c.DisableQuickPeek = newVal);
             }
         }
-#endif
     }
 }

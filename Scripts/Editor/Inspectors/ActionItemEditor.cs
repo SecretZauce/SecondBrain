@@ -1,4 +1,3 @@
-#if SECOND_BRAIN_PRO
 using UnityEditor;
 using UnityEngine;
 
@@ -35,4 +34,3 @@ namespace SecretZauce.SecondBrain.Editor
         }
     }
 }
-#endif

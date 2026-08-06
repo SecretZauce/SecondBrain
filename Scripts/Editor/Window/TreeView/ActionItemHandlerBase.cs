@@ -1,5 +1,4 @@
-﻿#if SECOND_BRAIN_PRO
-using System;
+﻿using System;
 using UnityEditor;
 
 namespace SecretZauce.SecondBrain.Editor
@@ -12,4 +11,3 @@ namespace SecretZauce.SecondBrain.Editor
             string parentLabel = "Add Action");
     }
 }
-#endif

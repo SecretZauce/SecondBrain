@@ -1,5 +1,4 @@
-﻿#if SECOND_BRAIN_PRO
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace SecretZauce.SecondBrain.Editor
 {
@@ -13,4 +12,3 @@ namespace SecretZauce.SecondBrain.Editor
         public abstract GUIContent TryAppendActionItemDetail(GUIContent labelContent);
     }
 }
-#endif

@@ -1,5 +1,4 @@
-﻿#if SECOND_BRAIN_PRO
-namespace SecretZauce.SecondBrain.Editor
+﻿namespace SecretZauce.SecondBrain.Editor
 {
     public abstract class SceneLinkGUIBase
     {
@@ -10,4 +9,3 @@ namespace SecretZauce.SecondBrain.Editor
         public abstract void Draw();
     }
 }
-#endif

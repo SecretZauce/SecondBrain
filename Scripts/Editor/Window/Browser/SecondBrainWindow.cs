@@ -8,31 +8,14 @@ namespace SecretZauce.SecondBrain.Editor
     {
         protected override IStructure HomeRoot => Profile.Active;
 
-#if SECOND_BRAIN_PRO
-        // Pro supports multiple Profiles/Bases, so both entry points are useful.
-
-        // Menu item: open Home (no default-base navigation)
-        [MenuItem("Window/Second Brain (Home)")]
-        static void OpenHomeMenu()
-        {
-            BrowserWindow.OpenWindow<SecondBrainWindow>();
-        }
-
-        // Menu item: open Default Base (if set) - falls back to Home when not assigned
-        [MenuItem("Window/Second Brain (Default Base)")]
-        static void OpenDefaultBaseMenu()
-        {
-            OpenDefaultOrHome();
-        }
-#else
-        // Free supports only a single Profile/Base, so there's nothing to browse at Home —
-        // always jump straight into the one Base that exists.
+        // [MenuItem] is a compile-time attribute, so it cannot be gated on a runtime
+        // Provider check. Pro's extra entry points ("Home" / "Default Base", which only make
+        // sense once multiple Profiles/Bases exist) are declared by the Pro assembly instead.
         [MenuItem("Window/Second Brain Window")]
         static void OpenWindowMenu()
         {
             OpenDefaultBase();
         }
-#endif
 
         // Shortcut: Shift+Q — focus existing window, or open one if none exists
         [Shortcut("Second Brain/Focus Window", KeyCode.W, ShortcutModifiers.Shift)]
@@ -73,8 +56,9 @@ namespace SecretZauce.SecondBrain.Editor
             }
         }
 
-#if SECOND_BRAIN_PRO
-        static void OpenDefaultOrHome()
+        // Called by the Pro assembly's "Default Base" menu item — public because there is no
+        // InternalsVisibleTo between the free and Pro assemblies.
+        public static void OpenDefaultOrHome()
         {
             try
             {
@@ -91,7 +75,6 @@ namespace SecretZauce.SecondBrain.Editor
                 BrowserWindow.OpenWindow<SecondBrainWindow>();
             }
         }
-#endif
 
         /// <summary>
         /// Opens (or reveals) the window and navigates straight into the active Profile's

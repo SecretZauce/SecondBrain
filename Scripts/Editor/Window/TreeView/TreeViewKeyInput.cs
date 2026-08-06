@@ -298,8 +298,7 @@ namespace SecretZauce.SecondBrain.Editor
                 return false;
 
             var key = Event.current.keyCode;
-#if SECOND_BRAIN_PRO
-            if (treeView.OwnerWindow.IsPopup && (key is KeyCode.Return or KeyCode.KeypadEnter))
+            if (ProFeature.Provider != null && treeView.OwnerWindow.IsPopup && (key is KeyCode.Return or KeyCode.KeypadEnter))
             {
                 var window = treeView.OwnerWindow;
                 window.OpenPropertyEditorFor(selectedPath, window);
@@ -310,7 +309,6 @@ namespace SecretZauce.SecondBrain.Editor
                 needsRepaint = true;
                 return true;
             }
-#endif
             
             if (key is KeyCode.UpArrow or KeyCode.DownArrow)
             {

@@ -29,9 +29,9 @@ namespace SecretZauce.SecondBrain.Editor
             if (node == null)
                 return false;
 
-#if SECOND_BRAIN_PRO
-            // Handle ActionItem — execute the action
-            if (node is ActionItem actionItem)
+            // Handle ActionItem — execute the action. ActionItem is a free type, so the
+            // Provider check is what keeps execution a Pro-only capability.
+            if (ProFeature.Provider != null && node is ActionItem actionItem)
             {
                 try { actionItem.Execute(); }
                 catch (Exception ex)
@@ -41,7 +41,6 @@ namespace SecretZauce.SecondBrain.Editor
                 }
                 return true;
             }
-#endif
             
             // Handle SceneObjectRef — only navigate when the scene is not already loaded.
             if (node is SceneObjectRef sceneRef)
@@ -136,11 +135,9 @@ namespace SecretZauce.SecondBrain.Editor
             if (node == null)
                 return false;
 
-#if SECOND_BRAIN_PRO
             // ActionItem always has an Enter action (execute)
-            if (node is ActionItem)
+            if (ProFeature.Provider != null && node is ActionItem)
                 return true;
-#endif
             
             // SceneObjectRef has an Enter action only when its scene is not loaded
             if (node is SceneObjectRef sor)

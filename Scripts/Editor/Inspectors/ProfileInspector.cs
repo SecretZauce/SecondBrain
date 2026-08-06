@@ -19,12 +19,10 @@ namespace SecretZauce.SecondBrain.Editor
         void OnEnable()
         {
             baseListProp = serializedObject.FindProperty("baseList");
-#if !SECOND_BRAIN_PRO
             // The read-only base list is bound to a single Profile's array; it doesn't make
             // sense to show a merged view when multiple Profiles are selected.
-            if (targets.Length == 1)
+            if (targets.Length == 1 && ProFeature.Provider == null)
                 BuildReadOnlyList();
-#endif
         }
 
         void BuildReadOnlyList()
@@ -55,9 +53,12 @@ namespace SecretZauce.SecondBrain.Editor
         {
             serializedObject.Update();
 
-#if SECOND_BRAIN_PRO
-            DrawDefaultInspector();
-#else
+            if (ProFeature.Provider != null)
+            {
+                DrawDefaultInspector();
+                return;
+            }
+
             EditorGUILayout.HelpBox(
                 "Multiple Bases is a SecondBrain PRO feature.\n" +
                 "Adding or removing Bases from this list is disabled in the free version.\n" +
@@ -75,7 +76,6 @@ namespace SecretZauce.SecondBrain.Editor
                 if (readOnlyList == null) BuildReadOnlyList();
                 readOnlyList?.DoLayoutList();
             }
-#endif
             serializedObject.ApplyModifiedProperties();
         }
     }

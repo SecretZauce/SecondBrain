@@ -30,11 +30,9 @@ namespace SecretZauce.SecondBrain.Editor
                         menu.AddItem(new GUIContent(displayName), false, () => window.CreateChildUsingOption(parent, option));
                     }
                 }
-#if SECOND_BRAIN_PRO
                 // Close any open QuickPeek popup before showing the create-child menu so
                 // the popup doesn't remain visible behind the menu (UX: user expects it to close).
-                window.DisposeQuickPeek(); 
-#endif
+                window.DisposeQuickPeek();
 
                 if (buttonRect.HasValue)
                     menu.DropDown(buttonRect.Value);
@@ -43,10 +41,8 @@ namespace SecretZauce.SecondBrain.Editor
             }
             else
             {
-#if SECOND_BRAIN_PRO
                 // Ensure quick peek is closed when invoking the create-child flow
                 window.DisposeQuickPeek();
-#endif
                 window.CreateChild(parent);
             }
         }

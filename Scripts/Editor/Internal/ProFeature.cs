@@ -1,5 +1,4 @@
-﻿#if SECOND_BRAIN_PRO
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
 namespace SecretZauce.SecondBrain.Editor
@@ -79,4 +78,3 @@ namespace SecretZauce.SecondBrain.Editor
             List<IStructure> collections);
     }
 }
-#endif
