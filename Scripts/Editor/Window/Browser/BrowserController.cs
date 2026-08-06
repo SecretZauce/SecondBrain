@@ -377,9 +377,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         public void CreateChild(Object parent, TreeView treeView)
         {
-#if !SECOND_BRAIN_PRO
             if (IsSecondBaseBlocked(parent)) return;
-#endif
             // Capture foldout state before creating
             CaptureFoldoutSnapshot(treeView);
             LifecycleManager.CreateChild(parent, treeView);
@@ -387,18 +385,14 @@ namespace SecretZauce.SecondBrain.Editor
 
         public void CreateChildOfType(Object parent, Type childType, TreeView treeView)
         {
-#if !SECOND_BRAIN_PRO
             if (IsSecondBaseBlocked(parent)) return;
-#endif
             CaptureFoldoutSnapshot(treeView);
             LifecycleManager.CreateChildOfType(parent, childType, treeView);
         }
 
         public void CreateChildUsingOption(Object parent, CreateChildOption option, TreeView treeView)
         {
-#if !SECOND_BRAIN_PRO
             if (IsSecondBaseBlocked(parent)) return;
-#endif
             CaptureFoldoutSnapshot(treeView);
             LifecycleManager.CreateChildUsingOption(parent, option, treeView);
         }
@@ -424,9 +418,7 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public void CreateChildWithName(Object parent, Type childType, string name, TreeView treeView)
         {
-#if !SECOND_BRAIN_PRO
             if (IsSecondBaseBlocked(parent)) return;
-#endif
             CaptureFoldoutSnapshot(treeView);
             LifecycleManager.CreateChildWithName(parent, childType, name, treeView);
         }
@@ -437,9 +429,7 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public void CreateChildUsingOptionWithName(Object parent, CreateChildOption option, string name, TreeView treeView)
         {
-#if !SECOND_BRAIN_PRO
             if (IsSecondBaseBlocked(parent)) return;
-#endif
             CaptureFoldoutSnapshot(treeView);
             LifecycleManager.CreateChildUsingOptionWithName(parent, option, name, treeView);
         }
@@ -542,15 +532,13 @@ namespace SecretZauce.SecondBrain.Editor
             TreeView treeView,
             SelectionStateSO selectionStateSO)
         {
-#if !SECOND_BRAIN_PRO
             // Block dragging Base assets into Profile when it already has a child (free limit).
             var mb = Profile.Active;
-            if (mb != null && mb.Children.Count >= 1 && items != null && items.Exists(i => i is Base))
+            if (ProFeature.Provider == null && mb != null && mb.Children.Count >= 1 && items != null && items.Exists(i => i is Base))
             {
                 ProFeatureDialog.Show("Multiple Bases");
                 return;
             }
-#endif
             // Capture foldout state
             CaptureFoldoutSnapshot(treeView);
             // Expand the drop target so dropped items are visible after the operation
@@ -920,13 +908,15 @@ namespace SecretZauce.SecondBrain.Editor
             Dispose();
         }
 
-#if !SECOND_BRAIN_PRO
         /// <summary>
         /// Returns true (and shows the PRO upgrade dialog) when the parent is <see cref="Profile"/>
         /// and it already contains at least one Base — enforcing the free-tier single-Base limit.
+        /// Always false once Pro is active, which is what lifts the limit.
         /// </summary>
         static bool IsSecondBaseBlocked(Object parent)
         {
+            if (ProFeature.Provider != null) return false;
+
             if (parent is Profile mb && mb.Children.Count >= 1)
             {
                 ProFeatureDialog.Show("Multiple Bases");
@@ -934,6 +924,5 @@ namespace SecretZauce.SecondBrain.Editor
             }
             return false;
         }
-#endif
     }
 }

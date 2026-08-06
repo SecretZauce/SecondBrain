@@ -119,7 +119,6 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 if (DragDropManager.IsDragging && !DragDropManager.IsExternalDrag)
                 {
-#if SECOND_BRAIN_PRO
                     // External DnD is already active from this window — let it run to completion.
                     // DragExited in BrowserWindow.TryProcessDragAndDrop handles cleanup.
                     if (OwnerWindow != null &&
@@ -128,7 +127,6 @@ namespace SecretZauce.SecondBrain.Editor
                         UnsubscribeFromEditorUpdate();
                         return;
                     }
-#endif
                     DragDropManager.CancelDrag();
                     UnsubscribeFromEditorUpdate();
                     OwnerWindow?.Repaint();
@@ -297,7 +295,7 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         // Initialize external drag if not already dragging
                         // Do not start external drag while an item is being renamed
-#if SECOND_BRAIN_PRO && UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN
                         // Never re-classify our own drag-out as an incoming external drag. If the
                         // internal drag state was cancelled mid-session (e.g. the spurious
                         // MouseLeaveWindow Windows sends when the OS drag loop takes mouse
@@ -532,7 +530,6 @@ namespace SecretZauce.SecondBrain.Editor
                 // Cancel active internal drag
                 if (DragDropManager.IsDragging && !DragDropManager.IsExternalDrag)
                 {
-#if SECOND_BRAIN_PRO
                     bool ownDragOutActive = OwnerWindow != null && ProFeature.Provider != null &&
                         ProFeature.Provider.IsCrossWindowDragFromThisWindow(OwnerWindow);
                     // BeginExternalDrag is called during MouseDrag (the reliable event context).
@@ -553,7 +550,6 @@ namespace SecretZauce.SecondBrain.Editor
                     // Keep the internal drag alive; the session-end DragExited in
                     // ProcessGlobalDragEvent cancels it reliably on every outcome.
                     if (!ownDragOutActive)
-#endif
 #endif
                     {
                         DragDropManager.CancelDrag();
@@ -597,11 +593,9 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         if (DragDropManager.IsDragging && !DragDropManager.IsExternalDrag)
                         {
-#if SECOND_BRAIN_PRO
                             // External DnD is active from this window — don't cancel here;
                             // MouseLeaveWindow and DragExited handle the cleanup.
                             if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(OwnerWindow) != true)
-#endif
                             {
                                 DragDropManager.CancelDrag();
                                 Event.current.Use();
@@ -633,9 +627,7 @@ namespace SecretZauce.SecondBrain.Editor
                         {
                             if (DragDropManager.IsDragging && !DragDropManager.IsExternalDrag)
                             {
-#if SECOND_BRAIN_PRO
                                 if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(OwnerWindow) != true)
-#endif
                                 {
                                     DragDropManager.CancelDrag();
                                     Event.current.Use();
@@ -744,12 +736,8 @@ namespace SecretZauce.SecondBrain.Editor
         // and, when a peek zone is hovered, draws the info icon aligned with the popup or row.
         static bool IsQuickPeekAvailable()
         {
-#if SECOND_BRAIN_PRO
             try { return ProFeature.Provider != null && BrowserSettings.EnableQuickPeek; }
             catch { return false; }
-#else
-            return false;
-#endif
         }
 
         void DrawPeekZoneColumnOverlay()
@@ -1380,10 +1368,11 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             string defaultName = string.Empty;
-#if SECOND_BRAIN_PRO
-            var creator = ProFeature.Provider.CreateActionItemHandler();
-            defaultName = creator.TryCreateFromActionItem(childType, defaultName);
-#endif
+            if (ProFeature.Provider != null)
+            {
+                var creator = ProFeature.Provider.CreateActionItemHandler();
+                defaultName = creator.TryCreateFromActionItem(childType, defaultName);
+            }
 
             // If the ghost was started from a specific CreateChildOption, prefer the option's
             // display name as the default input text so the ghost row reflects the user's
@@ -1468,10 +1457,8 @@ namespace SecretZauce.SecondBrain.Editor
             
             // Reserve space for quick peek zone when clipping the input field
             float rightPeekOffset = 0f;
-#if SECOND_BRAIN_PRO
             if (ProFeature.Provider != null && BrowserSettings.EnableQuickPeek)
                 rightPeekOffset = TreeViewDragInput.QuickPeekZoneWidth;
-#endif
             Rect inputRect = rowRect;
             inputRect.width -= rightPeekOffset;
 
@@ -1697,8 +1684,7 @@ namespace SecretZauce.SecondBrain.Editor
             var targetObj = GetObjectAtPath(path);
             if (targetObj == null) return;
 
-#if SECOND_BRAIN_PRO
-            if (OwnerWindow.IsPopup)
+            if (ProFeature.Provider != null && OwnerWindow.IsPopup)
             {
                 OwnerWindow.OpenPropertyEditorFor(path, OwnerWindow);
                 // Defer close: TryActivateItem is called during DrawMainContent(), so calling
@@ -1707,7 +1693,6 @@ namespace SecretZauce.SecondBrain.Editor
                 EditorApplication.delayCall += () => { try { win?.TryCloseIfPopup(); } catch { } };
                 return;
             }
-#endif
             if (LeafNodeActionHelper.HasEnterAction(targetObj))
                 LeafNodeActionHelper.TryEnterLeafNode(targetObj, OwnerWindow.Controller);
         }

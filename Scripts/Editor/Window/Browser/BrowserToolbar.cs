@@ -32,7 +32,6 @@ namespace SecretZauce.SecondBrain.Editor
         static GUIContent s_SettingsContent;
         static GUIContent s_CloseContent;
 
-#if !SECOND_BRAIN_PRO
         static GUIStyle _upgradeLinkStyle;
         static GUIStyle UpgradeLinkStyle
         {
@@ -53,7 +52,6 @@ namespace SecretZauce.SecondBrain.Editor
                 return _upgradeLinkStyle;
             }
         }
-#endif
 
         public BrowserToolbar(BrowserWindow window)
         {
@@ -121,27 +119,28 @@ namespace SecretZauce.SecondBrain.Editor
                 } 
             }
             
-#if !SECOND_BRAIN_PRO
-            // "Upgrade to PRO" — link-style, no background
-            var upgradeLabel = new GUIContent("✦ Upgrade to PRO", "Get SecondBrain PRO");
-            if (GUILayout.Button(upgradeLabel, UpgradeLinkStyle, GUILayout.Height(toolbarHeight - 2)))
+            if (ProFeature.Provider == null)
             {
-#if SECOND_BRAIN_DEV
-                // DEV mock: add the scripting define directly so PRO code paths activate immediately.
-                if (EditorUtility.DisplayDialog("Upgrade to PRO (Mock — DEV only)",
-                        "This will define SECOND_BRAIN_PRO for all build platforms and recompile scripts.\n\nContinue?",
-                        "Yes, Upgrade", "Cancel"))
+                // "Upgrade to PRO" — link-style, no background
+                var upgradeLabel = new GUIContent("✦ Upgrade to PRO", "Get SecondBrain PRO");
+                if (GUILayout.Button(upgradeLabel, UpgradeLinkStyle, GUILayout.Height(toolbarHeight - 2)))
                 {
-                    ProLicenseUtils.AddProDefine();
-                }
+#if SECOND_BRAIN_DEV
+                    // DEV mock: add the scripting define directly so PRO code paths activate immediately.
+                    if (EditorUtility.DisplayDialog("Upgrade to PRO (Mock — DEV only)",
+                            "This will define SECOND_BRAIN_PRO for all build platforms and recompile scripts.\n\nContinue?",
+                            "Yes, Upgrade", "Cancel"))
+                    {
+                        ProLicenseUtils.AddProDefine();
+                    }
 #else
-                // Production: send user to the Asset Store page.
-                UnityEngine.Application.OpenURL(ProLicenseUtils.ASSET_STORE_URL);
+                    // Production: send user to the Asset Store page.
+                    UnityEngine.Application.OpenURL(ProLicenseUtils.ASSET_STORE_URL);
 #endif
+                }
+                // Reset cursor — linkLabel sets a beam cursor we don't want here
+                EditorGUIUtility.AddCursorRect(GUILayoutUtility.GetLastRect(), MouseCursor.Arrow);
             }
-            // Reset cursor — linkLabel sets a beam cursor we don't want here
-            EditorGUIUtility.AddCursorRect(GUILayoutUtility.GetLastRect(), MouseCursor.Arrow);
-#endif
 
             s_PlusButtonStyle ??= new GUIStyle(EditorStyles.toolbarButton)
             {
@@ -150,17 +149,15 @@ namespace SecretZauce.SecondBrain.Editor
                 fontStyle = FontStyle.Bold,
                 padding = new RectOffset(0, 0, 0, 0)
             };
-#if SECOND_BRAIN_PRO
-            if (GUILayout.Button(new GUIContent(s_NewTabIcon, "New Tab"), s_PlusButtonStyle, GUILayout.Width(30), GUILayout.Height(toolbarHeight - 2)))
+            bool proTabs = ProFeature.Provider != null;
+            var tabTooltip = proTabs ? "New Tab" : "New Tab (SecondBrain PRO)";
+            if (GUILayout.Button(new GUIContent(s_NewTabIcon, tabTooltip), s_PlusButtonStyle, GUILayout.Width(30), GUILayout.Height(toolbarHeight - 2)))
             {
-                ownerWindow.PopOutNewWindow();
+                if (proTabs)
+                    ownerWindow.PopOutNewWindow();
+                else
+                    ProFeatureDialog.Show("Multiple Tabs");
             }
-#else
-            if (GUILayout.Button(new GUIContent(s_NewTabIcon, "New Tab (SecondBrain PRO)"), s_PlusButtonStyle, GUILayout.Width(30), GUILayout.Height(toolbarHeight - 2)))
-            {
-                ProFeatureDialog.Show("Multiple Tabs");
-            }
-#endif
            
             Texture settingsTexture = (Texture)s_SettingsIcon ?? EditorGUIUtility.IconContent("d_Settings").image;
             s_SettingsContent ??= new GUIContent(settingsTexture, "Settings");
