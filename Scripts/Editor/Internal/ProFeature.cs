@@ -3,6 +3,11 @@ using Object = UnityEngine.Object;
 
 namespace SecretZauce.SecondBrain.Editor
 {
+    /// <summary>
+    /// The free/Pro boundary. <see cref="Provider"/> is null in the free edition and non-null
+    /// once the Pro assembly has registered itself — that null check is the only Pro test in the
+    /// free assembly, which contains no <c>#if SECOND_BRAIN_PRO</c> anywhere.
+    /// </summary>
     public static class ProFeature
     {
         public static IProFeatureProvider Provider { get; private set; }
@@ -12,6 +17,25 @@ namespace SecretZauce.SecondBrain.Editor
         }
     }
 
+    /// <summary>
+    /// Implemented by the Pro assembly. Every type named here lives in the free assembly, which
+    /// is what lets free call Pro through a runtime null check rather than a compile-time define.
+    ///
+    /// THIS INTERFACE IS APPEND-ONLY. Free auto-updates from Git the moment a user asks for it;
+    /// Pro ships through Asset Store review and is updated by hand, so a newer free routinely
+    /// meets an older Pro. Changing or removing a member breaks that Pro build's compilation
+    /// outright — not one feature, the whole project.
+    ///
+    /// When adding a member, give it a default implementation so an older Pro still compiles and
+    /// the feature is simply inert there:
+    ///
+    ///     bool DoSomethingNew(BrowserWindow window) => false;
+    ///
+    /// Need a new parameter? Add an overload that forwards to the existing one; do not edit the
+    /// existing signature. Only when a member is genuinely required does the asmdef's
+    /// versionDefines lower bound move — and that stops every Pro build already in customers'
+    /// hands from compiling until they update.
+    /// </summary>
     public interface IProFeatureProvider
     {
         public SceneLinkGUIBase CreateSceneLinkGUI(UnityEditor.Editor editor);
