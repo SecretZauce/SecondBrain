@@ -56,26 +56,28 @@ namespace SecretZauce.SecondBrain.Editor
             if (ProFeature.Provider != null)
             {
                 DrawDefaultInspector();
-                return;
-            }
-
-            EditorGUILayout.HelpBox(
-                "Multiple Bases is a SecondBrain PRO feature.\n" +
-                "Adding or removing Bases from this list is disabled in the free version.\n" +
-                "Use the SecondBrain browser to manage your base.",
-                MessageType.Info);
-
-            EditorGUILayout.Space(6);
-
-            if (targets.Length > 1)
-            {
-                EditorGUILayout.HelpBox("Base list editing is not available when multiple Profiles are selected.", MessageType.Info);
             }
             else
             {
-                if (readOnlyList == null) BuildReadOnlyList();
-                readOnlyList?.DoLayoutList();
+                EditorGUILayout.HelpBox(
+                    "Multiple Bases is a SecondBrain PRO feature.\n" +
+                    "Adding or removing Bases from this list is disabled in the free version.\n" +
+                    "Use the SecondBrain browser to manage your base.",
+                    MessageType.Info);
+
+                EditorGUILayout.Space(6);
+
+                if (targets.Length > 1)
+                {
+                    EditorGUILayout.HelpBox("Base list editing is not available when multiple Profiles are selected.", MessageType.Info);
+                }
+                else
+                {
+                    if (readOnlyList == null) BuildReadOnlyList();
+                    readOnlyList?.DoLayoutList();
+                }
             }
+
             serializedObject.ApplyModifiedProperties();
         }
     }
