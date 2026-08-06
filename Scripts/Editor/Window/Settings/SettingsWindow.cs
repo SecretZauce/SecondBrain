@@ -118,11 +118,10 @@ namespace SecretZauce.SecondBrain.Editor
                     new GUIContent("Search Auto-Select", "Controls when typing in the search bar automatically selects the first matching result.\n• Always — always select the first match as you type.\n• Quick Browse Mode (Pro) — only auto-select when using the Quick Browse popup.\n• Off — never auto-select; navigate manually with the arrow keys."),
                     searchAutoSelect);
 
-#if SECOND_BRAIN_PRO
-                quickPeek = EditorGUILayout.ToggleLeft(
-                    new GUIContent("Enable Quick Peek on hover", "Show the floating Quick Peek inspector when hovering over items."),
-                    quickPeek);
-#endif
+                if (ProFeature.Provider != null)
+                    quickPeek = EditorGUILayout.ToggleLeft(
+                        new GUIContent("Enable Quick Peek on hover", "Show the floating Quick Peek inspector when hovering over items."),
+                        quickPeek);
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.Space(6);
@@ -162,9 +161,7 @@ namespace SecretZauce.SecondBrain.Editor
             ColorDisplayStyle colorStyle = BrowserSettings.DefaultColorStyle;
             bool foldoutOnly = BrowserSettings.DefaultColorFoldoutOnly;
             var expandOption = BrowserSettings.DefaultExpandOption;
-#if SECOND_BRAIN_PRO
             var quickPeekLayout = BrowserSettings.DefaultQuickPeekLayout;
-#endif
 
             if (DrawCollapsibleHeader(ref newContainerFoldout, "New Container Defaults", PrefNewContainer))
             {
@@ -181,23 +178,22 @@ namespace SecretZauce.SecondBrain.Editor
                     new GUIContent("Container Expand", "Default expand/collapse state for the container node itself in the tree view."),
                     expandOption);
 
-#if SECOND_BRAIN_PRO
-                quickPeekLayout = (ChildViewMode)EditorGUILayout.EnumPopup(
-                    new GUIContent("Preferred Child View", "Default layout for the child view (Quick Peek / Container Children) when no per-container preference has been set.\n• Tabs — one child per tab.\n• Foldouts — all children stacked as foldouts."),
-                    quickPeekLayout);
-#endif
+                if (ProFeature.Provider != null)
+                    quickPeekLayout = (ChildViewMode)EditorGUILayout.EnumPopup(
+                        new GUIContent("Preferred Child View", "Default layout for the child view (Quick Peek / Container Children) when no per-container preference has been set.\n• Tabs — one child per tab.\n• Foldouts — all children stacked as foldouts."),
+                        quickPeekLayout);
 
 
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.Space(6);
 
-#if SECOND_BRAIN_PRO
             // ── Scene Linking ──────────────────────────────────────────────────
             bool enableSceneLinking = BrowserSettings.EnableSceneLinking;
             bool closeOnSceneClose = BrowserSettings.CloseOnSceneClose;
 
-            if (DrawCollapsibleHeader(ref sceneLinkingFoldout, "Scene Linking", PrefSceneLinking))
+            if (ProFeature.Provider != null &&
+                DrawCollapsibleHeader(ref sceneLinkingFoldout, "Scene Linking", PrefSceneLinking))
             {
                 EditorGUI.indentLevel++;
                 enableSceneLinking = EditorGUILayout.ToggleLeft(
@@ -215,7 +211,6 @@ namespace SecretZauce.SecondBrain.Editor
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.Space(6);
-#endif
 
             // Apply all setting changes in one place after drawing the full UI so
             // clicks/toggles don't cause the popup to close before changes are recorded.
@@ -231,11 +226,9 @@ namespace SecretZauce.SecondBrain.Editor
                 BrowserSettings.DefaultColorStyle = colorStyle;
                 BrowserSettings.DefaultColorFoldoutOnly = foldoutOnly;
                 BrowserSettings.DefaultExpandOption = expandOption;
-#if SECOND_BRAIN_PRO
                 BrowserSettings.DefaultQuickPeekLayout = quickPeekLayout;
                 BrowserSettings.EnableSceneLinking = enableSceneLinking;
                 BrowserSettings.CloseOnSceneClose = closeOnSceneClose;
-#endif
             }
 
             EditorGUILayout.EndScrollView();

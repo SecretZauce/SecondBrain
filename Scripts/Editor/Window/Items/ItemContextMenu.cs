@@ -17,11 +17,9 @@ namespace SecretZauce.SecondBrain.Editor
 
             SampleMousePosition();
 
-#if SECOND_BRAIN_PRO
             // When opening the context menu, close the QuickPeek popup so it doesn't
             // overlap or remain visible while the user interacts with the menu.
             window.DisposeQuickPeek();
-#endif
 
             GenericMenu menu = new GenericMenu();
 
@@ -47,27 +45,27 @@ namespace SecretZauce.SecondBrain.Editor
                     });
                 }
 
-#if SECOND_BRAIN_PRO
-                var handler = ProFeature.Provider.CreateActionItemHandler();
-                // Embed action-type entries as a submenu so they appear in the same GenericMenu
-                handler.AddToMenu(menu, (selectedType) =>
+                if (ProFeature.Provider != null)
                 {
-                    window.CreateChildOfType(obj, selectedType);
-                });
-#endif
+                    var handler = ProFeature.Provider.CreateActionItemHandler();
+                    // Embed action-type entries as a submenu so they appear in the same GenericMenu
+                    handler.AddToMenu(menu, (selectedType) =>
+                    {
+                        window.CreateChildOfType(obj, selectedType);
+                    });
+                }
             }
 
             // ── Group 2: Item operations ──────────────────────────────────────
             if (isIStructure)
                 menu.AddSeparator("");
 
-#if SECOND_BRAIN_PRO
-            if (obj is ActionItem actionItem)
+            // ActionItem is a free type, so the Provider check is what keeps execution Pro-only.
+            if (ProFeature.Provider != null && obj is ActionItem actionItem)
             {
                 menu.AddItem(new GUIContent("Execute"), false, () => actionItem.Execute());
                 menu.AddSeparator("");
             }
-#endif
 
             if (!isIStructure)
             {
@@ -93,11 +91,10 @@ namespace SecretZauce.SecondBrain.Editor
             menu.AddSeparator("");
             menu.AddItem(new GUIContent("Properties"), false, window.ShowPropertiesForSelectedItem);
 
-#if SECOND_BRAIN_PRO
             // ── Group 4: Move to Base submenu ─────────────────────────────────
             // Only visible when inside a Base, the item is a container (IStructure),
-            // and other Bases exist to move to
-            if (isIStructure && window.Root is Base currentBase)
+            // and other Bases exist to move to. Multiple Bases/Profiles are a Pro capability.
+            if (ProFeature.Provider != null && isIStructure && window.Root is Base currentBase)
             {
                 var profile = Profile.Active;
                 if (profile?.Children != null)
@@ -125,7 +122,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Only visible at the home (Profile) view when the right-clicked item is
             // a Base and there are other Profiles available to move it to.
             // Operates on the whole selection when several Bases are selected.
-            if (obj is Base baseToMove && window.IsAtHome())
+            if (ProFeature.Provider != null && obj is Base baseToMove && window.IsAtHome())
             {
                 var allProfiles = ProfileManager.GetAllProfiles();
                 var currentProfile = Profile.Active;
@@ -157,7 +154,6 @@ namespace SecretZauce.SecondBrain.Editor
                     }
                 }
             }
-#endif
 
             // ── Group 5: Emoji icon ───────────────────────────────────────────
             // Multi-selection: get all selected objects from the window's selection state
@@ -227,7 +223,6 @@ namespace SecretZauce.SecondBrain.Editor
             }
         }
 
-#if SECOND_BRAIN_PRO
         /// <summary>
         /// Returns every Base in the current selection, keeping selection order.
         /// Falls back to just <paramref name="rightClickedBase"/> when it is not part of the
@@ -255,7 +250,6 @@ namespace SecretZauce.SecondBrain.Editor
 
             return bases;
         }
-#endif
 
         static void SampleMousePosition()
         {

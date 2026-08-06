@@ -143,10 +143,8 @@ namespace SecretZauce.SecondBrain.Editor
                 float buttonWidth = 16f;
                 float buttonPadding = 1f;
                 float rightPeekOffset = 0f;
-#if SECOND_BRAIN_PRO
                 if (ProFeature.Provider != null && BrowserSettings.EnableQuickPeek)
                     rightPeekOffset = TreeViewDragInput.QuickPeekZoneWidth;
-#endif
                 rightReservedSpace = showAddButton ? buttonWidth + buttonPadding + rightPeekOffset : 0f;
 
                 buttonRect = new Rect(rowRect.xMax - buttonWidth - buttonPadding - rightPeekOffset,
@@ -237,10 +235,8 @@ namespace SecretZauce.SecondBrain.Editor
                     DrawAddButtonIfNeeded();
                 }
             }
-#if SECOND_BRAIN_PRO
             if (!isRenaming && treeView != null && ProFeature.Provider != null && BrowserSettings.EnableQuickPeek)
                 TreeViewDragInput.DrawPeekZoneIndicator(rowRect, skipLeftZone: true);
-#endif
             return rowRect;
         }
 

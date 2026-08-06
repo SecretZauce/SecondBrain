@@ -133,12 +133,10 @@ namespace SecretZauce.SecondBrain.Editor
             float plusButtonWidth = 16f;
             float plusButtonPadding = 1f;
             float rightPeekOffset = 0f;
-#if SECOND_BRAIN_PRO
             // Always keep the ">" nav arrow left of the right peek zone when QuickPeek is enabled,
             // so hovering the button never triggers QuickPeek — same approach as FoldoutHeaderRenderer.
             if (ProFeature.Provider != null && BrowserSettings.EnableQuickPeek)
                 rightPeekOffset = TreeViewDragInput.QuickPeekZoneWidth;
-#endif
             float arrowX = rowRect.x + 1 + rowRect.width - plusButtonWidth - plusButtonPadding - rightPeekOffset + (plusButtonWidth - arrowSize) / 2f;
             arrowRect = new Rect(arrowX, rowRect.y + (rowRect.height - arrowSize) / 2f, arrowSize, arrowSize);
 
@@ -626,10 +624,12 @@ namespace SecretZauce.SecondBrain.Editor
                     labelContent = new GUIContent(displayName, isShowIcon ? this.icon : null);
                 }
 
-#if SECOND_BRAIN_PRO
-                var actionItemGUI = ProFeature.Provider.CreateActionItemGUI(node, s_ItemStyle, arrowRect, rowRect); 
-                labelContent = actionItemGUI.TryAppendActionItemDetail(labelContent);
-#endif
+                ActionItemGUIBase actionItemGUI = null;
+                if (ProFeature.Provider != null)
+                {
+                    actionItemGUI = ProFeature.Provider.CreateActionItemGUI(node, s_ItemStyle, arrowRect, rowRect);
+                    labelContent  = actionItemGUI.TryAppendActionItemDetail(labelContent);
+                }
 
                 // Draw the (possibly appended) label. Clamp width so it doesn't overlap controls.
                 float availableWidth = Math.Max(0f, arrowRect.x - 20f - trueIndentedItemRect.x); // space between indent and controls
@@ -658,10 +658,8 @@ namespace SecretZauce.SecondBrain.Editor
 
                 // Reset fontStyle on the cached style so the next leaf row starts clean.
                 s_ItemStyle.fontStyle = FontStyle.Normal;
-#if SECOND_BRAIN_PRO
-                if (actionItemGUI.TryDrawActionItem())
+                if (actionItemGUI != null && actionItemGUI.TryDrawActionItem())
                     return true;
-#endif
 
                 if (isFolder)
                 {
