@@ -51,7 +51,8 @@ namespace SecretZauce.SecondBrain.Editor
         void ResolveFiles()
         {
             freeCsPath   = FindAssetByFilename("SecondBrainVersion.cs");
-            proCsPath    = FindAssetByFilename("SecondBrainProVersion.cs");
+            // SecondBrainProVersion aliases this const, so the literal lives here.
+            proCsPath    = FindAssetByFilename("ProBootstrapVersion.cs");
             freeJsonPath = FindPackageJsonNear(freeCsPath);
             proJsonPath  = FindPackageJsonNear(proCsPath);
 
