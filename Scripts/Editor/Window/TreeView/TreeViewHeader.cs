@@ -70,12 +70,10 @@ namespace SecretZauce.SecondBrain.Editor
         static GUIContent s_HamburgerContent;
         static GUIContent s_PencilContent;
         static GUIContent s_EmptyFoldoutContent;
-#if SECOND_BRAIN_PRO
         static Texture  s_CoreSettingsIcon;
         static GUIStyle s_ProfileDropdownStyle;
         static GUIStyle s_LocationButtonStyle;
         static GUIStyle s_LocationButtonRightStyle;
-#endif
 
         // Binary-search truncation with "…" suffix; allocates minimally per overflow.
         static string TruncateWithEllipsis(GUIStyle style, string text, float maxWidth)
@@ -144,7 +142,6 @@ namespace SecretZauce.SecondBrain.Editor
                 padding   = new RectOffset(1, 1, 1, 1),
             };
 
-#if SECOND_BRAIN_PRO
             s_CoreSettingsIcon = IconUtils.Load("settings");
 
             s_ProfileDropdownStyle = new GUIStyle(EditorStyles.popup)
@@ -170,7 +167,6 @@ namespace SecretZauce.SecondBrain.Editor
                 padding   = new RectOffset(4, 4, 1, 1),
                 fixedHeight = 0,
             };
-#endif
 
             s_HeaderStylesValid = true;
 
@@ -254,14 +250,12 @@ namespace SecretZauce.SecondBrain.Editor
 
             // Reserve right-side space
             float hamburgerWidth = 18f;
-#if SECOND_BRAIN_PRO
             // Each location button needs enough width for "Editor" / "Build" text.
             const float locationBtnW = 44f;
             const float locationTotalW = locationBtnW * 2 + 4f; // two buttons + gap before expand toggle
-            float rightReserved = showingBaseTarget ? 180f : 110f + locationTotalW;
-#else
-            float rightReserved = showingBaseTarget ? 180f : 110f;
-#endif
+            float rightReserved = showingBaseTarget
+                ? 180f
+                : 110f + (ProFeature.Provider != null ? locationTotalW : 0f);
             rightReserved += hamburgerWidth + 4f;
             float labelWidth = Mathf.Max(150, headerRect.width - rightReserved - iconSize - 6 - peekInset * 2f);
             Rect labelRect = new Rect(iconRect.xMax + 6, 0, labelWidth, headerRect.height);
@@ -270,13 +264,10 @@ namespace SecretZauce.SecondBrain.Editor
             float plusWidth = 18f;
             float toggleWidth = 18f;
             Rect plusRect = new Rect(headerRect.width - plusWidth - peekInset, 1, plusWidth, headerRect.height - 2);
-#if SECOND_BRAIN_PRO
             // Expand/collapse sits immediately left of +; location buttons sit left of that when at home.
+            // locationRect is only consumed on the Pro path, but costs nothing to compute.
             Rect toggleRect = new Rect(plusRect.x - toggleWidth, 2, toggleWidth, headerRect.height - 4);
             Rect locationRect = new Rect(toggleRect.x - locationBtnW * 2 - 2f, 2, locationBtnW * 2, headerRect.height - 4);
-#else
-            Rect toggleRect = new Rect(plusRect.x - toggleWidth, 2, toggleWidth, headerRect.height - 4);
-#endif
 
             // Home button (cached icon)
             bool homeInteractive = !(window?.IsAtHome() ?? true) && !dragDropManager.IsDragging && !renamer.IsRenamingAny && !treeView.HasGhostSession && !isRenamingHeader;
@@ -294,13 +285,11 @@ namespace SecretZauce.SecondBrain.Editor
                 DrawBreadcrumbArrow(labelRect, out labelRect);
                 DrawTargetLabel(labelRect, window, root, pencilWidth, toggleRect, dragDropManager, renamer);
             }
-#if SECOND_BRAIN_PRO
-            else
+            else if (ProFeature.Provider != null)
             {
                 // At home with Pro: draw profile dropdown in the label area
                 DrawProfileDropdown(labelRect, headerRect, window, interactive);
             }
-#endif
 
             // Base settings (hamburger + default star) — only when header shows a Base
             if (showingBaseTarget)
@@ -311,16 +300,13 @@ namespace SecretZauce.SecondBrain.Editor
             // Collapse/expand foldout and + button
             DrawFoldoutAndPlus(toggleRect, plusRect, window, root, showingBaseTarget, interactive);
 
-#if SECOND_BRAIN_PRO
             // Location toggle (Editor / Build) sits on the right side when at home
-            if (!showingBaseTarget)
+            if (ProFeature.Provider != null && !showingBaseTarget)
                 DrawLocationToggle(locationRect, window, interactive);
-#endif
         }
 
         // ── Profile dropdown (Pro only — shown when at home) ───────────────────
 
-#if SECOND_BRAIN_PRO
         void DrawProfileDropdown(Rect labelRect, Rect headerRect, BrowserWindow window, bool interactive)
         {
             var activeProfile = Profile.Active;
@@ -472,7 +458,6 @@ namespace SecretZauce.SecondBrain.Editor
             if (moved)
                 window?.Repaint();
         }
-#endif
 
         void DrawBreadcrumbArrow(Rect labelRect, out Rect adjustedLabelRect)
         {
@@ -589,43 +574,45 @@ namespace SecretZauce.SecondBrain.Editor
 
             if (baseObj == null) return;
 
-#if SECOND_BRAIN_PRO
-            float defaultSize = 16f;
-            Rect defaultRect = new Rect(hamburgerRect.x - 4 - defaultSize, 0, defaultSize, headerRect.height);
-
-            var  mother    = Profile.Active;
-            bool isDefault = mother != null && mother.DefaultBase == baseObj;
-
-            bool  defaultHover = defaultRect.Contains(Event.current.mousePosition);
-            Color iconColor    = isDefault
-                ? new Color(0.14f, 0.45f, 0.90f, 1f)
-                : (defaultHover ? new Color(1f, 1f, 1f, 0.9f) : new Color(0.65f, 0.65f, 0.65f, 0.7f));
-
-            GUIContent defContent = s_DefaultBaseOnIcon != null
-                ? new GUIContent(s_DefaultBaseOnIcon, isDefault ? "Default Base" : "Set as Default Base")
-                : new GUIContent(isDefault ? "★" : "☆", isDefault ? "Default Base" : "Set as Default Base");
-
-            var prevColor = GUI.color;
-            GUI.color = iconColor;
-            if (GUI.Button(defaultRect, defContent, s_StarStyle))
+            // Default Base only means something once Pro's multiple Bases exist.
+            if (ProFeature.Provider != null)
             {
-                try
+                float defaultSize = 16f;
+                Rect defaultRect = new Rect(hamburgerRect.x - 4 - defaultSize, 0, defaultSize, headerRect.height);
+
+                var  mother    = Profile.Active;
+                bool isDefault = mother != null && mother.DefaultBase == baseObj;
+
+                bool  defaultHover = defaultRect.Contains(Event.current.mousePosition);
+                Color iconColor    = isDefault
+                    ? new Color(0.14f, 0.45f, 0.90f, 1f)
+                    : (defaultHover ? new Color(1f, 1f, 1f, 0.9f) : new Color(0.65f, 0.65f, 0.65f, 0.7f));
+
+                GUIContent defContent = s_DefaultBaseOnIcon != null
+                    ? new GUIContent(s_DefaultBaseOnIcon, isDefault ? "Default Base" : "Set as Default Base")
+                    : new GUIContent(isDefault ? "★" : "☆", isDefault ? "Default Base" : "Set as Default Base");
+
+                var prevColor = GUI.color;
+                GUI.color = iconColor;
+                if (GUI.Button(defaultRect, defContent, s_StarStyle))
                 {
-                    if (mother != null)
+                    try
                     {
-                        Undo.RecordObject(mother, isDefault ? "Clear Default Base" : "Set Default Base");
-                        mother.DefaultBase = isDefault ? null : baseObj;
-                        EditorUtility.SetDirty(mother);
-                        AssetDatabase.SaveAssets();
-                        try { EditorGUIUtils.ShowNotification(treeView.OwnerWindow, new GUIContent(isDefault ? "Cleared Default Base" : "Set Default Base")); } catch { }
+                        if (mother != null)
+                        {
+                            Undo.RecordObject(mother, isDefault ? "Clear Default Base" : "Set Default Base");
+                            mother.DefaultBase = isDefault ? null : baseObj;
+                            EditorUtility.SetDirty(mother);
+                            AssetDatabase.SaveAssets();
+                            try { EditorGUIUtils.ShowNotification(treeView.OwnerWindow, new GUIContent(isDefault ? "Cleared Default Base" : "Set Default Base")); } catch { }
+                        }
                     }
+                    catch { }
+                    EditorApplication.delayCall += () => treeView.OwnerWindow?.Repaint();
+                    Event.current.Use();
                 }
-                catch { }
-                EditorApplication.delayCall += () => treeView.OwnerWindow?.Repaint();
-                Event.current.Use();
+                GUI.color = prevColor;
             }
-            GUI.color = prevColor;
-#endif
 
             // Hamburger button — reuse cached style
             bool hamInteractive = !dragDropManager.IsDragging && !renamer.IsRenamingAny && interactive;
@@ -680,15 +667,13 @@ namespace SecretZauce.SecondBrain.Editor
                 : new GUIContent("+", plusTooltip);
             if (GUI.Button(plusRect, plusContent, s_HeaderPlusStyle))
             {
-#if !SECOND_BRAIN_PRO
                 // In free mode, block creating a second Base and show a PRO upgrade notice.
-                if (!showingBaseTarget && Profile.Active.Children.Count >= 1)
+                if (ProFeature.Provider == null && !showingBaseTarget && Profile.Active.Children.Count >= 1)
                 {
                     ProFeatureDialog.Show("Multiple Bases");
                     Event.current?.Use();
                     return;
                 }
-#endif
                 if (root is UnityEngine.Object rootObj)
                 {
                     if (rootObj is IHasCreateChildOption)

@@ -241,7 +241,6 @@ namespace SecretZauce.SecondBrain.Editor
                 if (pathsToDrag != null && pathsToDrag.Count > 0)
                 {
                     dragDropManager.BeginDrag(pathsToDrag, ownerTreeView.Context.Collections);
-#if SECOND_BRAIN_PRO
                     // Start Unity's external DnD during EventType.MouseDrag — the only reliable
                     // event context for DragAndDrop.StartDrag(). This allows items to be dropped
                     // on Scene View, Project Browser, or another BrowserWindow immediately.
@@ -255,7 +254,6 @@ namespace SecretZauce.SecondBrain.Editor
                         if (extItems.Count > 0)
                             ProFeature.Provider.BeginExternalDrag(ownerTreeView.OwnerWindow, extItems, extPaths);
                     }
-#endif
                     // Set initial hover state including expanded state
                     hoveredPath = path;
                     hoveredRect = rect;
@@ -292,11 +290,9 @@ namespace SecretZauce.SecondBrain.Editor
                             // window — visual mode for that case is handled by BrowserWindow.
                             if (!ownerTreeView.Renamer.IsRenamingAny && !dragDropManager.IsDragging)
                             {
-#if SECOND_BRAIN_PRO
                                 bool isOwnDragOut = ProFeature.Provider?.IsCrossWindowDragFromThisWindow(
                                     ownerTreeView.OwnerWindow) == true;
                                 if (!isOwnDragOut)
-#endif
                                 {
                                     var ctx = ownerTreeView.Context;
                                     dragDropManager.BeginExternalDrag(ctx.Collections);
@@ -434,7 +430,6 @@ namespace SecretZauce.SecondBrain.Editor
             // Handle DragExited for internal drags (window exit)
             if (e.type == EventType.DragExited && dragDropManager.IsDragging && !dragDropManager.IsExternalDrag)
             {
-#if SECOND_BRAIN_PRO
                 // Unity fires DragExited to the source window the instant DragAndDrop.StartDrag()
                 // is called — the external drag session is just starting, not ending. Skip here so
                 // the internal drag state survives; MouseLeaveWindow and the real post-drop DragExited
@@ -451,7 +446,6 @@ namespace SecretZauce.SecondBrain.Editor
                         return result;
                     ProFeature.Provider.HandleDragExited(ownerTreeView.OwnerWindow);
                 }
-#endif
                 dragDropManager.CancelDrag();
                 result.Handled = true;
                 result.Cancelled = true;
@@ -513,13 +507,11 @@ namespace SecretZauce.SecondBrain.Editor
                         out var dropTargetPath,
                         out var dropPosition))
                 {
-#if SECOND_BRAIN_PRO
                     // Accept the native drag so the OS drag loop ends cleanly on both
                     // Windows and macOS (DragExited then fires with IsDragging=false).
                     if (!dragDropManager.IsExternalDrag && ownerTreeView.OwnerWindow != null &&
                         ProFeature.Provider?.IsCrossWindowDragFromThisWindow(ownerTreeView.OwnerWindow) == true)
                         DragAndDrop.AcceptDrag();
-#endif
                     result.Handled = true;
                     result.DropPerformed = true;
                     result.IsExternal = dragDropManager.IsExternalDrag;
