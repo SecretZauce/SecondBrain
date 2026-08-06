@@ -7,10 +7,12 @@ using UnityEngine;
 namespace SecretZauce.SecondBrain.Editor
 {
     /// <summary>
-    /// Centralises PRO licence helpers:
-    ///  - Asset Store URL (update when published).
-    ///  - Scripting-define toggle for enabling/disabling the Pro assembly.
-    ///  - DEV + PRO "Rollback to Free" menu item.
+    /// Asset Store URL, plus the scripting-define toggles used by the DEV edition mocks.
+    ///
+    /// The define is NOT how Pro is enabled in a real install — the Pro asmdef's versionDefines
+    /// entry is (see CLAUDE.md, "What sets SECOND_BRAIN_PRO"). These toggles remain because in
+    /// this dev repo, where free is not a UPM package, PlayerSettings is what compiles Pro.
+    /// To ask whether Pro is active, check <c>ProFeature.Provider != null</c>.
     /// </summary>
     public static class ProLicenseUtils
     {
@@ -22,8 +24,7 @@ namespace SecretZauce.SecondBrain.Editor
         const string ProDefine = "SECOND_BRAIN_PRO";
 
         /// <summary>
-        /// Adds SECOND_BRAIN_PRO to all build platforms, triggering a recompile.
-        /// Called automatically when the Pro assembly is detected during initialization.
+        /// Adds SECOND_BRAIN_PRO to all build platforms, triggering a recompile. DEV mock only.
         /// </summary>
         public static void AddProDefine()
         {
@@ -34,7 +35,7 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Removes SECOND_BRAIN_PRO from all build platforms, triggering a recompile.
+        /// Removes SECOND_BRAIN_PRO from all build platforms, triggering a recompile. DEV mock only.
         /// </summary>
         public static void RemoveProDefine()
         {
@@ -44,22 +45,6 @@ namespace SecretZauce.SecondBrain.Editor
 #endif
         }
 
-        /// <summary>
-        /// Returns true if SECOND_BRAIN_PRO is set on the active build target.
-        /// </summary>
-        public static bool IsProDefineActive()
-        {
-            try
-            {
-                var target  = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
-                var defines = PlayerSettings.GetScriptingDefineSymbols(target);
-                return defines.Contains(ProDefine);
-            }
-            catch
-            {
-                return false;
-            }
-        }
 
         static void ToggleDefine(string define, bool add)
         {
