@@ -2,6 +2,20 @@
 
 All notable changes to SecondBrain will be documented in this file.
 
+## 1.1.0 (07-08-2026)
+
+### Fixed
+- Importing Pro into a project where SecondBrain had already finished its first-time setup left the activation half-done: the log stopped at the activation notice and the Installer never opened to confirm the edition. Pro now announces itself as soon as it becomes active, whichever order the two packages were installed in.
+- Action Items are no longer stripped out of their Containers while Pro is installed but not compiled — during an update, for instance. The entries were previously removed for good even though the assets themselves survived, so they did not come back when Pro returned.
+- A leftover Pro activation entry in Player Settings, written by earlier versions, is now cleaned up. It could otherwise let Pro run against a free version it was not built for.
+
+### Changed
+- Pro activates during the same compile that imports it, instead of writing a scripting define and waiting for a second recompile.
+- Free and Pro no longer need identical version numbers. Each Pro release supports a range of free versions, so updating the free package on its own keeps working with the Pro build you already have.
+- When the two genuinely are out of range, Pro stays fully inactive and a window names which side to update. This replaces the old mismatch dialog, and removes the in-between state where some Pro features worked and others quietly did not.
+- The Pro setup window can be reopened at any time from **Tools → Second Brain → Pro Installer**.
+- Pro's **Window → Second Brain (Home)** and **Window → Second Brain (Default Base)** entries now sit alongside the standard **Window → Second Brain Window** item instead of replacing it.
+
 ## 1.0.5 (31-07-2026)
 
 ### Fixed

@@ -1,6 +1,9 @@
 ## Opening SecondBrain
 
-Go to **Window → Second Brain (Home)** in the Unity menu bar.
+Go to **Window → Second Brain Window** in the Unity menu bar.
+
+> [!NOTE]
+> *(PRO)* PRO adds two more entry points — **Window → Second Brain (Home)** opens the top-level view, and **Window → Second Brain (Default Base)** jumps straight to your default Base. They exist because PRO supports multiple Profiles and Bases.
 
 The browser opens to the top-level view (Home). From here, double-click a Base workspace (or click the **>** arrow beside it) to navigate in. The window remembers your last open location between editor sessions and survives domain reloads.
 
@@ -15,11 +18,11 @@ On first launch, SecondBrain runs a one-time initialization flow that:
 
 1. Creates a default **Profile** asset at `Assets/Resources/Editor/Default Profile.asset` — the root of your hierarchy.
 2. Creates a default **"My Workspace"** Base so you have somewhere to start immediately.
-3. Detects whether SecondBrain Pro is installed and activates it automatically if found.
+3. Activates SecondBrain PRO if it is installed.
 4. Opens the **Installer Window** — your starting point for links to documentation, Discord, and the GitHub changelog.
 
 > [!NOTE]
-> If you have only the PRO package and have not yet imported the free package into this project, the Installer Window will prompt you to install the free package first via the Package Manager before PRO can activate.
+> If you have only the PRO package and have not yet added the free package to this project, a separate **SecondBrain Pro — Setup Required** window opens instead and offers to install it for you. See [Upgrading to PRO](08_Upgrading_To_Pro.md).
 
 > [!NOTE]
 > *(PRO)* Use the **Editor / Build** toggle in the browser header to move a Profile between editor-only storage (`Assets/Resources/Editor/`) and in-build storage (`Assets/Resources/`). Do not move Profile assets manually in the Project window.
@@ -33,7 +36,6 @@ The Installer Window opens automatically after setup. You can also reopen it any
 - Your installed version, edition (Free / Pro), and status as capsule tags.
 - A button to open the SecondBrain browser window.
 - If you have only the free package installed, a prompt to upgrade to PRO.
-- If you have only the Pro package installed (free package missing), a button to install the free package automatically via the Package Manager.
 
 ---
 

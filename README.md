@@ -222,17 +222,17 @@ On first launch, SecondBrain runs a one-time setup and automatically opens the *
 ### PRO
 
 1. Purchase and download SecondBrain PRO from the [Unity Asset Store](https://assetstore.unity.com/packages/slug/383598).
-2. Import the PRO `.unitypackage` into your project (the installer will prompt you to install the free package from GitHub if it is not already present).
-3. Unity recompiles and PRO features activate automatically — no license key required. On completion, the **Installer Window** opens automatically, same as the Free setup flow.
+2. Import the PRO `.unitypackage` into your project. If the free package is not already present, a setup window offers to install it from GitHub for you.
+3. Unity compiles and PRO activates — no license key required. On completion, the **Installer Window** opens automatically, same as the Free setup flow.
 
 > [!NOTE]
-> Both packages must be at matching versions. A **Version Mismatch** dialog appears if they fall out of sync and links you to the correct update.
+> The two packages do not need identical version numbers. Each PRO release supports a range of free versions, so a newer free package keeps working with an existing PRO build. If they do fall out of range, SecondBrain tells you which side to update and PRO stays inactive until then.
 
 ---
 
 ## Quick Start
 
-1. Open **Window → Second Brain (Home)**.
+1. Open **Window → Second Brain Window** (PRO also adds **Second Brain (Home)** and **Second Brain (Default Base)**).
 2. Double-click a Base to navigate into it, or press **Escape** to return to Home.
 3. Drag assets from the Project window, Hierarchy, or Inspector onto a Container.
 4. Right-click any Container to create children, rename, set an emoji, set a color, or delete.
