@@ -157,9 +157,7 @@ namespace SecretZauce.SecondBrain.Editor
         // auto-expanded state so re-entry with the setting off sees per-container defaults.
         bool foldoutExpandedOnEntry;
         
-#if SECOND_BRAIN_PRO
         QuickPeekHandlerBase quickPeekHandler;
-#endif
         
         /// <summary>
         /// Persisted GUID that uniquely identifies this window instance across domain reloads.
@@ -466,30 +464,34 @@ namespace SecretZauce.SecondBrain.Editor
         {
             BrowserWindowRegistry.Register(this);
 
-#if !SECOND_BRAIN_PRO
-            // Free mode: only one BrowserWindow instance is allowed.
-            // Schedule a delayed check so all windows have finished their own OnEnable
-            // before we evaluate the count (handles domain-reload restores correctly).
-            var selfRef = this;
-            EditorApplication.delayCall += () =>
+            if (ProFeature.Provider != null)
             {
-                if (selfRef == null) return;
-                var selfType = selfRef.GetType();
-                int sameTypeCount = 0;
-                var all = BrowserWindowRegistry.All;
-                for (int i = 0; i < all.Count; i++)
-                    if (all[i].GetType() == selfType)
-                        sameTypeCount++;
-
-                if (sameTypeCount > 1)
+                quickPeekHandler = ProFeature.Provider.CreateQuickPeekHandler(this);
+            }
+            else
+            {
+                // Free mode: only one BrowserWindow instance is allowed.
+                // Schedule a delayed check so all windows have finished their own OnEnable
+                // before we evaluate the count (handles domain-reload restores correctly).
+                var selfRef = this;
+                EditorApplication.delayCall += () =>
                 {
-                    selfRef.Close();
-                    return;
-                }
-            };
-#else
-            quickPeekHandler = ProFeature.Provider.CreateQuickPeekHandler(this);
-#endif
+                    if (selfRef == null) return;
+                    var selfType = selfRef.GetType();
+                    int sameTypeCount = 0;
+                    var all = BrowserWindowRegistry.All;
+                    for (int i = 0; i < all.Count; i++)
+                        if (all[i].GetType() == selfType)
+                            sameTypeCount++;
+
+                    if (sameTypeCount > 1)
+                    {
+                        selfRef.Close();
+                        return;
+                    }
+                };
+            }
+
             // Enable mouse move events for hover tracking and QuickPeek
             // This is especially important for popup windows to ensure events are properly received
             wantsMouseMove = true;
@@ -520,13 +522,11 @@ namespace SecretZauce.SecondBrain.Editor
                 // Ignore save failures during shutdown
             }
 
-#if SECOND_BRAIN_PRO
-            quickPeekHandler.CloseQuickPeek();
+            quickPeekHandler?.CloseQuickPeek();
             // Bump after CloseQuickPeek so SaveFoldoutStateIfNeeded captures token T, then the
             // next browser open sees T+1 and treats all saved QuickPeek history as stale.
             try { EditorPrefs.SetInt("QuickPeek_SessionToken", EditorPrefs.GetInt("QuickPeek_SessionToken", 0) + 1); }
             catch { }
-#endif
             DeinitializeControllerAndState();
 
             // Unregister last: the teardown above may still query peer windows.
@@ -685,11 +685,9 @@ namespace SecretZauce.SecondBrain.Editor
                 if (treeView == null)
                     return;
 
-#if SECOND_BRAIN_PRO
                 // Runs every editor update frame so the popup closes promptly when the
                 // mouse leaves both the BrowserWindow and the QuickPeekWindow.
-                quickPeekHandler.HandleQuickPeekCloseCheck();
-#endif
+                quickPeekHandler?.HandleQuickPeekCloseCheck();
                 
                 var dm = treeView.DragDropManager;
                 if (dm == null)
@@ -698,11 +696,9 @@ namespace SecretZauce.SecondBrain.Editor
                 if (!dm.IsDragging && !dm.IsPotentialDrag)
                     return;
 
-#if SECOND_BRAIN_PRO
                 // Close peek while a drag is in progress
                 if (dm.IsDragging)
-                    quickPeekHandler.CloseQuickPeek();
-#endif
+                    quickPeekHandler?.CloseQuickPeek();
 
                 var windowUnderMouse = mouseOverWindow;
                 bool mouseOutsideWindow = windowUnderMouse != this;
@@ -714,11 +710,9 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     if (dm.IsDragging && !dm.IsExternalDrag)
                     {
-#if SECOND_BRAIN_PRO
                         // Unity's external DnD is active — skip cancel; DragExited handles cleanup.
                         if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(this) == true)
                             return;
-#endif
                         dm.CancelDrag();
                         Repaint();
                         return;
@@ -857,10 +851,8 @@ namespace SecretZauce.SecondBrain.Editor
                 treeView.Cleanup();
             }
 
-#if SECOND_BRAIN_PRO
             // Close any open QuickPeek popup since the tree is about to be rebuilt
-            quickPeekHandler.CloseQuickPeek();
-#endif
+            quickPeekHandler?.CloseQuickPeek();
 
             treeView = new TreeView(collections);
             treeView.SetScrollPosition(leftScroll);
@@ -928,17 +920,15 @@ namespace SecretZauce.SecondBrain.Editor
             // Draw target-base tag line (one-liner at bottom) when navigated to a Base target
             DrawTargetBaseTagLine();
 
-#if SECOND_BRAIN_PRO
             // After drawing the tree (hover state is now current), update the QuickPeek popup.
             if (SettingsWindow.IsVisible)
             {
-                quickPeekHandler.CloseQuickPeek();
+                quickPeekHandler?.CloseQuickPeek();
             }
             else
             {
-                quickPeekHandler.UpdateQuickPeek();
+                quickPeekHandler?.UpdateQuickPeek();
             }
-#endif
 
             if (TryProcessDragAndDrop())
                 return;
@@ -1021,9 +1011,7 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         if (dm.IsDragging && !dm.IsExternalDrag)
                         {
-#if SECOND_BRAIN_PRO
                             if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(this) != true)
-#endif
                             {
                                 dm.CancelDrag();
                                 Event.current.Use();
@@ -1057,9 +1045,7 @@ namespace SecretZauce.SecondBrain.Editor
                         {
                             if (dm2.IsDragging && !dm2.IsExternalDrag)
                             {
-#if SECOND_BRAIN_PRO
                                 if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(this) != true)
-#endif
                                 {
                                     dm2.CancelDrag();
                                     Event.current.Use();
@@ -1084,7 +1070,6 @@ namespace SecretZauce.SecondBrain.Editor
                 // ignore
             }
 
-#if SECOND_BRAIN_PRO
             // Handle DragExited so the source window can run post-drop actions
             // (e.g. "Create Prefab" dialog when a SceneObjectRef is dropped on the Project Browser).
             // Skip the startup DragExited that Unity fires the instant DragAndDrop.StartDrag() is
@@ -1102,7 +1087,6 @@ namespace SecretZauce.SecondBrain.Editor
                 DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
                 return false;
             }
-#endif
 
             // Handle external drag into empty Base (no containers yet) — create a default
             // Container on drop and add the dragged assets to it.
@@ -1111,7 +1095,6 @@ namespace SecretZauce.SecondBrain.Editor
                 if (Event.current.type == EventType.DragUpdated &&
                     DragAndDropManager.HasExternalDragContent())
                 {
-#if SECOND_BRAIN_PRO
                     // A cross-window drag is a move, not a copy — show the same cursor an
                     // occupied Base shows.
                     if (ProFeature.Provider?.IsCrossWindowDragFromAnotherWindow(this) == true)
@@ -1120,7 +1103,6 @@ namespace SecretZauce.SecondBrain.Editor
                         Repaint();
                         return true;
                     }
-#endif
                     bool hasUnsavedScene = DragAndDropManager.CollectExternalDragObjects().Any(
                         SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
                     DragAndDrop.visualMode = hasUnsavedScene
@@ -1133,7 +1115,6 @@ namespace SecretZauce.SecondBrain.Editor
                 if (Event.current.type == EventType.DragPerform &&
                     DragAndDropManager.HasExternalDragContent())
                 {
-#if SECOND_BRAIN_PRO
                     // Cross-window SecondBrain drag: migrate the real sub-assets.
                     //
                     // This empty-Base branch runs before the TreeView drag pipeline, and it used
@@ -1155,7 +1136,6 @@ namespace SecretZauce.SecondBrain.Editor
                         Repaint();
                         return true;
                     }
-#endif
                     DragAndDrop.AcceptDrag();
                     var droppedItems = DragAndDropManager.CollectExternalDragObjects();
 
@@ -1190,14 +1170,12 @@ namespace SecretZauce.SecondBrain.Editor
                 && DragAndDropManager.HasExternalDragContent()
                 && treeView.DragDropManager.IsExternalDrag && !treeView.DragInput.HasHover)
             {
-#if SECOND_BRAIN_PRO
                 if (ProFeature.Provider?.IsCrossWindowDragFromAnotherWindow(this) == true)
                 {
                     DragAndDrop.visualMode = DragAndDropVisualMode.Move;
                     Repaint();
                 }
                 else
-#endif
                 {
                     bool hasUnsaved = DragAndDropManager.CollectExternalDragObjects().Any(
                         SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
@@ -1208,7 +1186,6 @@ namespace SecretZauce.SecondBrain.Editor
                 }
             }
 
-#if SECOND_BRAIN_PRO
             // Override visual mode to Move for cross-window drags landing on a valid row target.
             if (Event.current.type == EventType.DragUpdated
                 && ProFeature.Provider?.IsCrossWindowDragFromAnotherWindow(this) == true
@@ -1216,7 +1193,6 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
-#endif
 
             // Let TreeView's DragInput handle global drag decisions first
             var dragResult = treeView.ProcessGlobalDragEvent();
@@ -1229,7 +1205,6 @@ namespace SecretZauce.SecondBrain.Editor
                     if (dragResult.IsExternal && Root is Base && !treeView.DragInput.HasHover
                         && dragResult.DraggedItems != null && dragResult.DraggedItems.Count > 0)
                     {
-#if SECOND_BRAIN_PRO
                         // Cross-window: move items from source window to dest Base root
                         if (ProFeature.Provider?.ExecuteCrossWindowTransfer(
                                 this, null, (int)DragAndDropManager.DropPosition.None,
@@ -1238,7 +1213,6 @@ namespace SecretZauce.SecondBrain.Editor
                             Repaint();
                             return true;
                         }
-#endif
                         // Normal external drag → create new Container for the dropped assets
                         bool hasUnsaved = dragResult.DraggedItems.Any(
                             SceneObjectRefUtils.IsSceneObjectFromUnsavedScene);
@@ -1276,7 +1250,6 @@ namespace SecretZauce.SecondBrain.Editor
 
                     if (dragResult.IsExternal)
                     {
-#if SECOND_BRAIN_PRO
                         // Cross-window SecondBrain drag: migrate items via MoveItemsByPaths
                         // instead of AddExternalItems (which blocks cross-asset IStructures).
                         if (ProFeature.Provider?.ExecuteCrossWindowTransfer(
@@ -1288,7 +1261,6 @@ namespace SecretZauce.SecondBrain.Editor
                             Repaint();
                             return true;
                         }
-#endif
                         // External drop - add external items
                         Controller.AddExternalItems(
                             dragResult.DraggedItems,
@@ -1503,9 +1475,12 @@ namespace SecretZauce.SecondBrain.Editor
 
         public void PopOutNewWindow()
         {
-#if !SECOND_BRAIN_PRO
-            ProFeatureDialog.Show("Multiple Tabs");
-#else
+            if (ProFeature.Provider == null)
+            {
+                ProFeatureDialog.Show("Multiple Tabs");
+                return;
+            }
+
             var windowType = GetType();
             // Create a new instance instead of using GetWindow so we don't just focus the existing window
             var newWindow = CreateInstance(windowType) as EditorWindow;
@@ -1528,7 +1503,6 @@ namespace SecretZauce.SecondBrain.Editor
 
                 newWindow.Show();
             }
-#endif
         }
 
         /// <summary>
@@ -1647,51 +1621,53 @@ namespace SecretZauce.SecondBrain.Editor
             var allPaths = selectionState.GetAllPaths();
             var pathArray = selectionState.GetPrimaryPath();
 
-#if SECOND_BRAIN_PRO
-            // Popup (QuickBrowse) mode: intercept Enter while the search bar has keyboard focus.
-            // SearchBar.Draw runs later in the same frame and would consume the event via its
-            // preInterceptReturn block — we must act here before that happens.
-            if (isPopupMode && treeView.IsSearchBarFocused() &&
-                Event.current.type == EventType.KeyDown &&
-                !Event.current.control && !Event.current.command &&
-                (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
+            // QuickBrowse popup mode is Pro-only.
+            if (ProFeature.Provider != null)
             {
-                int[] targetPath = (treeView.DragInput?.HasHover == true)
-                    ? treeView.DragInput.HoveredPath
-                    : pathArray;
-
-                if (targetPath != null)
+                // Popup (QuickBrowse) mode: intercept Enter while the search bar has keyboard focus.
+                // SearchBar.Draw runs later in the same frame and would consume the event via its
+                // preInterceptReturn block — we must act here before that happens.
+                if (isPopupMode && treeView.IsSearchBarFocused() &&
+                    Event.current.type == EventType.KeyDown &&
+                    !Event.current.control && !Event.current.command &&
+                    (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
                 {
-                    var targetObj = treeView.GetObjectAtPath(targetPath);
-                    if (targetObj != null)
+                    int[] targetPath = (treeView.DragInput?.HasHover == true)
+                        ? treeView.DragInput.HoveredPath
+                        : pathArray;
+
+                    if (targetPath != null)
                     {
-                        Event.current.Use();
-
-                        // Base: navigate into it (keep popup open)
-                        if (targetObj is Base popupBase)
+                        var targetObj = treeView.GetObjectAtPath(targetPath);
+                        if (targetObj != null)
                         {
-                            SetTarget(popupBase);
-                            Repaint();
+                            Event.current.Use();
+
+                            // Base: navigate into it (keep popup open)
+                            if (targetObj is Base popupBase)
+                            {
+                                SetTarget(popupBase);
+                                Repaint();
+                                return;
+                            }
+
+                            // Scene / Prefab / ActionItem: fire the leaf enter action
+                            if (LeafNodeActionHelper.HasEnterAction(targetObj))
+                            {
+                                bool ok = LeafNodeActionHelper.TryEnterLeafNode(targetObj, Controller);
+                                Repaint();
+                                if (ok) TryCloseIfPopup();
+                                return;
+                            }
+
+                            // SceneComponentRef, notes, etc.: open QuickPeek and close popup
+                            OpenPropertyEditorFor(targetPath, this);
+                            TryCloseIfPopup();
                             return;
                         }
-
-                        // Scene / Prefab / ActionItem: fire the leaf enter action
-                        if (LeafNodeActionHelper.HasEnterAction(targetObj))
-                        {
-                            bool ok = LeafNodeActionHelper.TryEnterLeafNode(targetObj, Controller);
-                            Repaint();
-                            if (ok) TryCloseIfPopup();
-                            return;
-                        }
-
-                        // SceneComponentRef, notes, etc.: open QuickPeek and close popup
-                        OpenPropertyEditorFor(targetPath, this);
-                        TryCloseIfPopup();
-                        return;
                     }
                 }
             }
-#endif
 
             // Delegate decision-making to TreeView's key input handler
             var keyResult = treeView.ProcessGlobalKeyEvent(allPaths, ref pathArray);
@@ -2032,26 +2008,28 @@ namespace SecretZauce.SecondBrain.Editor
                 var tags = new List<BaseTag>();
 
                 // Default Base tag
-#if SECOND_BRAIN_PRO
-                try
+                // Default Base only exists once Pro's multiple Bases do.
+                if (ProFeature.Provider != null)
                 {
-                    var mother = Profile.Active;
-                    if (mother != null && mother.DefaultBase == baseTarget)
+                    try
                     {
-                        tags.Add(new BaseTag
+                        var mother = Profile.Active;
+                        if (mother != null && mother.DefaultBase == baseTarget)
                         {
-                            Label = "Default Base",
-                            Tooltip = "This Base is the project's Default Base. Click × to clear.",
-                            OnRemove = () =>
+                            tags.Add(new BaseTag
                             {
-                                try { Controller.ClearDefaultBase(baseTarget); } catch { }
-                                try { ShowNotification(new GUIContent("Cleared Default Base")); } catch { }
-                            }
-                        });
+                                Label = "Default Base",
+                                Tooltip = "This Base is the project's Default Base. Click × to clear.",
+                                OnRemove = () =>
+                                {
+                                    try { Controller.ClearDefaultBase(baseTarget); } catch { }
+                                    try { ShowNotification(new GUIContent("Cleared Default Base")); } catch { }
+                                }
+                            });
+                        }
                     }
+                    catch { }
                 }
-                catch { }
-#endif
                 
                 // Scene linking tag
                 try
@@ -2452,20 +2430,12 @@ namespace SecretZauce.SecondBrain.Editor
 
         public bool IsQuickPeekOpenForPath(int[] path)
         {
-#if SECOND_BRAIN_PRO
             return quickPeekHandler != null && quickPeekHandler.IsOpenForPath(path);
-#else
-            return false;
-#endif
         }
 
         public bool IsQuickPeekPendingShow()
         {
-#if SECOND_BRAIN_PRO
-            return quickPeekHandler.HasPendingShow;
-#else
-            return false;
-#endif
+            return quickPeekHandler?.HasPendingShow == true;
         }
 
         /// <summary>
@@ -2476,23 +2446,17 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public bool IsQuickPeekBlockedForPath(int[] path)
         {
-#if SECOND_BRAIN_PRO
             return quickPeekHandler != null && quickPeekHandler.IsBlockedForPath(path);
-#else
-            return false;
-#endif
         }
 
-#if SECOND_BRAIN_PRO
         public void OpenPropertyEditorFor(int[] selectedPath, BrowserWindow window)
         {
-           quickPeekHandler.OpenFor(selectedPath, window);
+           quickPeekHandler?.OpenFor(selectedPath, window);
         }
 
         public void DisposeQuickPeek()
         {
-            quickPeekHandler.DisposeQuickPeek();
+            quickPeekHandler?.DisposeQuickPeek();
         }
-#endif
     }
 }
