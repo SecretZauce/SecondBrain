@@ -217,8 +217,6 @@ Add via the Unity Package Manager using the Git URL:
 https://github.com/SecretZauce/SecondBrain.git
 ```
 
-Or download the latest release from the [GitHub releases page]() and import the `.unitypackage` into your project.
-
 On first launch, SecondBrain runs a one-time setup and automatically opens the **Installer Window** (Can be accessed later at `Tools → Second Brain → Installer`).
 
 ### PRO
