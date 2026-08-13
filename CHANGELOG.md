@@ -2,6 +2,13 @@
 
 All notable changes to SecondBrain will be documented in this file.
 
+## 1.1.1 (13-08-2026)
+
+### Fixed
+- The editor no longer crashes while dragging items in a browser window. Dragging an item out of the window kept updating what Unity hands to the operating system from a background editor tick, where that data is not valid to touch. The drag data could end up corrupt, and the next drag brought the whole editor down with no error message first — most often after a run of adding and deleting folders, which is what invalidated the items being carried.
+- A drag that ends outside Unity — released over another application or over the toolbar, or cancelled with Esc — now finishes cleanly. Such a drag previously left its per-frame tracking running for the rest of the session, which is what set up the crash above.
+- Items that were destroyed by a recent add or delete are now left out of a drag instead of being carried into it.
+
 ## 1.1.0 (07-08-2026)
 
 ### Fixed
