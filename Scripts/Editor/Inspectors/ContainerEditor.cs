@@ -85,8 +85,12 @@ namespace SecretZauce.SecondBrain.Editor
                 Undo.RecordObject(c, undoLabel);
                 apply(c);
                 EditorUtility.SetDirty(c);
+                SubAssetRefreshUtils.RegisterPendingSave(c);
             }
-            AssetDatabase.SaveAssets();
+            // Deferred + batched, same as EmojiTray/ColorTray: a synchronous SaveAssets here
+            // reimported every dirty asset in the project (not just this Container) on every
+            // toolbar click. See SubAssetRefreshUtils.SaveDirtyAssetsDeferred.
+            SubAssetRefreshUtils.SaveDirtyAssetsDeferred();
         }
 
         private void DrawOneLineToolbar(string label, string[] options, int current, bool mixed, System.Action<int> onChange)

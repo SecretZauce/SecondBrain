@@ -602,8 +602,7 @@ namespace SecretZauce.SecondBrain.Editor
                         {
                             Undo.RecordObject(mother, isDefault ? "Clear Default Base" : "Set Default Base");
                             mother.DefaultBase = isDefault ? null : baseObj;
-                            EditorUtility.SetDirty(mother);
-                            AssetDatabase.SaveAssets();
+                            SubAssetRefreshUtils.MarkDirtyAndSave(mother);
                             try { EditorGUIUtils.ShowNotification(treeView.OwnerWindow, new GUIContent(isDefault ? "Cleared Default Base" : "Set Default Base")); } catch { }
                         }
                     }
