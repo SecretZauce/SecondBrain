@@ -47,7 +47,16 @@ namespace SecretZauce.SecondBrain.Editor
             // failed path walk succeed (or vice versa), so retry everything after any change.
             EditorApplication.hierarchyChanged += ClearPathWalkCaches;
             EditorApplication.projectChanged += s_SceneGuidToPath.Clear;
+            // Runtime scene loads/unloads (SceneManager.LoadScene from play-mode code) do not raise
+            // the EditorSceneManager events above, so without these a ref that was unresolvable
+            // while the scene was being swapped stayed blacklisted for the rest of the session.
+            SceneManager.sceneLoaded += OnRuntimeSceneLoaded;
+            SceneManager.sceneUnloaded += OnRuntimeSceneUnloaded;
         }
+
+        static void OnRuntimeSceneLoaded(Scene scene, LoadSceneMode mode) => InvalidateCaches();
+
+        static void OnRuntimeSceneUnloaded(Scene scene) => InvalidateCaches();
 
         /// <summary>Lets refs whose hierarchy-path walk previously failed be retried.</summary>
         static void ClearPathWalkCaches()
@@ -146,6 +155,11 @@ namespace SecretZauce.SecondBrain.Editor
 
             if (GlobalObjectId.TryParse(globalId, out var gid))
             {
+                // The scene is mid-swap or closed — the native lookup would assert and return null.
+                // Not blacklisted: the scene can come back, and the path walk still gets its turn.
+                if (!CanResolveWithoutAssert(gid))
+                    return null;
+
                 obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid) as Object;
                 if (obj != null)
                 {
@@ -156,6 +170,59 @@ namespace SecretZauce.SecondBrain.Editor
 
             s_UnresolvableIds.Add(globalId);
             return null;
+        }
+
+        /// <summary>GlobalObjectId.identifierType for an object that lives in a scene.</summary>
+        const int SceneObjectIdentifierType = 2;
+
+        /// <summary>The GUID an unsaved scene reports — it has no asset to point at yet.</summary>
+        const string EmptyGuid = "00000000000000000000000000000000";
+
+        /// <summary>
+        /// True when <see cref="GlobalObjectId.GlobalObjectIdentifierToObjectSlow"/> is safe to call
+        /// for <paramref name="gid"/>.
+        ///
+        /// For a scene object the native implementation reaches into the owning scene's
+        /// PersistentManager. While that scene is closed — including the window in which a scene is
+        /// being reloaded, when the old one is already gone and the new one is not yet loaded — the
+        /// manager does not exist and Unity logs
+        ///
+        ///     Assertion failed on expression: 'manager != NULL'
+        ///
+        /// once per call. Nothing breaks (the call returns null), but a tree of SceneObjectRefs
+        /// makes that call per row per repaint, so the console fills up during any scene reload.
+        ///
+        /// The lookup could not have succeeded anyway, so it is skipped. Non-scene identifiers
+        /// (assets, and the Null type) go through untouched, as do scene objects whose scene GUID is
+        /// unknown — an unsaved scene has no GUID to match, and refusing those would break
+        /// resolution in scenes that have never been saved.
+        /// </summary>
+        static bool CanResolveWithoutAssert(GlobalObjectId gid)
+        {
+            if (gid.identifierType != SceneObjectIdentifierType)
+                return true;
+
+            var sceneGuid = gid.assetGUID.ToString();
+            if (string.IsNullOrEmpty(sceneGuid) || sceneGuid == EmptyGuid)
+                return true;
+
+            return TryGetLoadedScene(sceneGuid, null, out _) || IsOpenPrefabStage(sceneGuid);
+        }
+
+        /// <summary>
+        /// True when <paramref name="sceneGuid"/> is the prefab currently open in Prefab Mode.
+        ///
+        /// A prefab stage owns a preview scene that SceneManager does not enumerate, so the loaded
+        /// scene check above cannot see it. Without this, every ref pointing into an open prefab
+        /// stage would be treated as "scene closed" and skipped.
+        /// </summary>
+        static bool IsOpenPrefabStage(string sceneGuid)
+        {
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage == null || string.IsNullOrEmpty(stage.assetPath))
+                return false;
+
+            return AssetDatabase.AssetPathToGUID(stage.assetPath) == sceneGuid;
         }
 
         // ── Resolution with hierarchy-path fallback ───────────────────────────────────
