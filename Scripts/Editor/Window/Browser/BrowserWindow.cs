@@ -716,7 +716,9 @@ namespace SecretZauce.SecondBrain.Editor
                     {
 #if SECOND_BRAIN_PRO
                         // Unity's external DnD is active — skip cancel; DragExited handles cleanup.
-                        if (ProFeature.Provider?.IsCrossWindowDragFromThisWindow(this) == true)
+                        // HasActiveDragOutFrom: this is an EditorApplication.update callback, and
+                        // IsCrossWindowDragFromThisWindow reads DragAndDrop, which needs OnGUI.
+                        if (ProFeature.Provider?.HasActiveDragOutFrom(this) == true)
                             return;
 #endif
                         dm.CancelDrag();
@@ -899,7 +901,18 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (!TryPrepareBeforeDrawContent())
                 return;
-            
+
+#if SECOND_BRAIN_PRO
+            // Publish the drag-out payload from here, and only from here. Unity keeps DragAndDrop
+            // state on the current GUIState, so writing it from EditorApplication.update (which is
+            // where this used to live) corrupts the payload Unity later serializes for the OS drag
+            // — the editor then dies inside FetchDataFromDrag on the next DragEnter.
+            // DragOutController repaints this window every tick while the drag is active, so this
+            // runs just as often as the old poll did.
+            if (ProFeature.Provider?.HasActiveDragOutFrom(this) == true)
+                ProFeature.Provider.ApplyDragPayloadForCurrentTarget();
+#endif
+
             if (TopToolbarVisible && toolbar != null)
             {
                 toolbar.Draw();
