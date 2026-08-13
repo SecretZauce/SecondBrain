@@ -121,8 +121,11 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     // External DnD is already active from this window — let it run to completion.
                     // DragExited in BrowserWindow.TryProcessDragAndDrop handles cleanup.
+                    // HasActiveDragOutFrom, not IsCrossWindowDragFromThisWindow: this runs from
+                    // EditorApplication.update, and the latter reads DragAndDrop.GetGenericData,
+                    // which is only valid inside OnGUI.
                     if (OwnerWindow != null &&
-                        ProFeature.Provider?.IsCrossWindowDragFromThisWindow(OwnerWindow) == true)
+                        ProFeature.Provider?.HasActiveDragOutFrom(OwnerWindow) == true)
                     {
                         UnsubscribeFromEditorUpdate();
                         return;
