@@ -103,12 +103,7 @@ Several item types display a small focus icon on the right side of their row. Cl
 
 The toggle is saved on the asset itself and persists across sessions.
 
-**Folder assets**:
-
-- **Off (dim)** — selecting the folder highlights it in the Project window but does not navigate into it.
-- **On (blue)** — selecting the folder automatically navigates the Project window into it, the same as pressing **Return**.
-
-The toggle is per-folder and stored in EditorPrefs.
+**Folder assets** don't have a focus toggle — selecting a folder always navigates the Project window into it automatically, the same as pressing **Return**.
 
 ---
 

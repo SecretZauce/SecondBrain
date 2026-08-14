@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -50,33 +49,6 @@ namespace SecretZauce.SecondBrain.Editor
     /// </summary>
     public static class BrowserSettings
     {
-        const string KeyFolderFocusPrefix = "Browser_FolderFocus_";
-
-        // Per-folder focus flags are read once per folder row and then served from memory.
-        // EditorPrefs is a native call; the TreeView reads these every repaint for every
-        // visible folder, which showed up as measurable interop cost on large trees.
-        static readonly Dictionary<string, bool> s_FolderFocusCache =
-            new Dictionary<string, bool>(StringComparer.Ordinal);
-
-        public static bool GetFolderFocusOnSelect(string folderGuid)
-        {
-            if (string.IsNullOrEmpty(folderGuid)) return false;
-            if (s_FolderFocusCache.TryGetValue(folderGuid, out bool cached))
-                return cached;
-
-            bool stored = EditorPrefs.GetBool(KeyFolderFocusPrefix + folderGuid, false);
-            s_FolderFocusCache[folderGuid] = stored;
-            return stored;
-        }
-
-        public static void SetFolderFocusOnSelect(string folderGuid, bool value)
-        {
-            if (string.IsNullOrEmpty(folderGuid)) return;
-            if (value) EditorPrefs.SetBool(KeyFolderFocusPrefix + folderGuid, true);
-            else EditorPrefs.DeleteKey(KeyFolderFocusPrefix + folderGuid);
-            s_FolderFocusCache[folderGuid] = value;
-        }
-
         const string KeyShowIconsPerType = "Browser_ShowIconsPerType_v1";
         const string KeyForceNamingOnCreate = "Browser_ForceNamingOnCreate_v1";
         const string KeyDefaultColorStyle = "Browser_DefaultColorStyle_v1";
@@ -155,7 +127,6 @@ namespace SecretZauce.SecondBrain.Editor
         public static void ReloadFromPrefs()
         {
             s_CacheLoaded = false;
-            s_FolderFocusCache.Clear();
             EnsureCacheLoaded();
         }
 

@@ -245,11 +245,7 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         var folderPath = AssetDatabase.GetAssetPath(obj);
                         if (!string.IsNullOrEmpty(folderPath) && AssetDatabase.IsValidFolder(folderPath))
-                        {
-                            var guid = AssetDatabase.AssetPathToGUID(folderPath);
-                            if (BrowserSettings.GetFolderFocusOnSelect(guid))
-                                folderToEnter = obj;
-                        }
+                            folderToEnter = obj;
                     }
 
                     unitySelection.Add(obj);
