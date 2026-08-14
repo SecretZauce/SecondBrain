@@ -141,8 +141,14 @@ namespace SecretZauce.SecondBrain.Editor
         public static GUIContent BuildTabContent(Object child)
             => new GUIContent(GetDisplayName(child), GetIconForNode(child));
 
+        static readonly Color DefaultSelectionColor = new Color(0.24f, 0.48f, 0.90f, 0.25f);
+
         // Draw hover highlight and selection background for a given row rect.
-        public static void DrawHoverAndSelection(Rect itemRect, bool isRenaming, bool isSelected, bool isDragging, Color hoverColor)
+        // itemColor/colorStyle let a row's assigned Background/Gradient color tint the selection
+        // highlight itself, so selecting a colored item doesn't lose its color entirely; rows
+        // without that color style keep the plain default highlight.
+        public static void DrawHoverAndSelection(Rect itemRect, bool isRenaming, bool isSelected, bool isDragging, Color hoverColor,
+            Color? itemColor = null, ColorDisplayStyle colorStyle = ColorDisplayStyle.FontColor)
         {
             // Do not draw hover highlight when a floating picker tray (emoji/color) is open.
             // Keep drawing the selection background so existing selections remain visible.
@@ -157,7 +163,10 @@ namespace SecretZauce.SecondBrain.Editor
             {
                 var selRect = itemRect;
                 selRect.height += 1f; // increase selection highlight height by 1
-                EditorGUI.DrawRect(selRect, new Color(0.24f, 0.48f, 0.90f, 0.25f));
+                Color selectionColor = itemColor.HasValue && (colorStyle == ColorDisplayStyle.Background || colorStyle == ColorDisplayStyle.Gradient)
+                    ? new Color(itemColor.Value.r, itemColor.Value.g, itemColor.Value.b, DefaultSelectionColor.a)
+                    : DefaultSelectionColor;
+                EditorGUI.DrawRect(selRect, selectionColor);
             }
         }
 

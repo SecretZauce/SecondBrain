@@ -1243,7 +1243,7 @@ namespace SecretZauce.SecondBrain.Editor
 
             // Draw hover highlight and selection background
             ItemUtils.DrawHoverAndSelection(itemRect, Renamer.IsRenaming(path), isSelected, DragDropManager.IsDragging,
-                renderer.GetRowHoverColor());
+                renderer.GetRowHoverColor(), labelColor, colorStyle);
 
             // Use EditorGUI.IndentedRect to get the properly indented rect that matches Unity's indentation system
             // This ensures perfect alignment at all nesting levels

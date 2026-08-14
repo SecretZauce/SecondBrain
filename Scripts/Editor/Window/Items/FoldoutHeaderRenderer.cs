@@ -129,7 +129,7 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             // Draw hover highlight and selection background (mirrors the behaviour of leaf rows).
-            ItemUtils.DrawHoverAndSelection(rowRect, isRenaming, isSelected, treeView != null && treeView.DragDropManager.IsDragging, GetRowHoverColor());
+            ItemUtils.DrawHoverAndSelection(rowRect, isRenaming, isSelected, treeView != null && treeView.DragDropManager.IsDragging, GetRowHoverColor(), labelColor, colorStyle);
 
             if (treeView != null)
             {
