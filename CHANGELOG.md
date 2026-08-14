@@ -2,6 +2,21 @@
 
 All notable changes to SecondBrain will be documented in this file.
 
+## 1.1.2 (14-08-2026)
+
+### Fixed
+- Resolving a scene reference while its scene was mid-reload — the old one already gone, the new one not yet loaded — logged an `Assertion failed on expression: 'manager != NULL'` once per row per repaint. A tree of scene references filled the console during any scene reload; nothing else broke, but the lookup was attempted and failed loudly instead of being skipped. Runtime scene loads and unloads (`SceneManager.LoadScene` from Play mode code) also now invalidate the reference cache — they don't raise the editor-side scene events SecondBrain previously relied on, so a reference that failed to resolve mid-swap used to stay unresolved for the rest of the session.
+- Quick Peek could throw a null-reference exception and leave itself in a broken state when its header was dragged out to detach the window, or double-clicked to open a full editor, while the peek was mid-draw. Both gestures close the peek window and dispose its editors immediately; drawing carried on afterward and dereferenced them.
+- The Settings popup failed to open at all when the SecondBrain window sat close to the right edge of the screen — it tried to place itself off-screen instead of flipping to the window's left side. The bound check also compares against the main editor window's bounds now instead of `Screen.currentResolution`, which is in physical pixels and disagreed with the window's own position on HiDPI/Retina displays.
+- Toolbar edits (color, emoji, naming style) and toggling a Base's default-star no longer flush every dirty asset in the project through `AssetDatabase.SaveAssets()` on every click. Saves are batched and deferred the same way emoji/color assignment already was.
+
+### Changed
+- Selecting a colored item now tints its selection highlight with that item's assigned Background or Gradient color instead of covering it with a flat default highlight.
+- Folders no longer have a per-item auto-focus toggle. Selecting a folder always navigates the Project window into it, the same as pressing Return.
+
+### Removed
+- The Base Settings (hamburger) button in the header. It opened the Base asset in a floating Property Editor; the default-star pin remains in its place.
+
 ## 1.1.1 (13-08-2026)
 
 ### Fixed
