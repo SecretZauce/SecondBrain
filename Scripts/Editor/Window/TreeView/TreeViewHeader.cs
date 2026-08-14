@@ -51,7 +51,6 @@ namespace SecretZauce.SecondBrain.Editor
         // Icons (never change across skin — but we rebuild on skin change to be safe)
         static Texture  s_HomeIcon;
         static Texture  s_PencilIcon;
-        static Texture  s_HamburgerIcon;
         static Texture  s_BreadcrumbIcon;
         static Texture  s_DefaultBaseOnIcon;
         static Texture  s_CreateIcon;
@@ -67,7 +66,6 @@ namespace SecretZauce.SecondBrain.Editor
         // Cached GUIContent for buttons that don't change per frame
         static GUIContent s_HomeContent;
         static GUIContent s_BreadcrumbContent;
-        static GUIContent s_HamburgerContent;
         static GUIContent s_PencilContent;
         static GUIContent s_EmptyFoldoutContent;
         static Texture  s_CoreSettingsIcon;
@@ -102,7 +100,6 @@ namespace SecretZauce.SecondBrain.Editor
             s_HomeIcon          = IconUtils.Load("home");
             s_DefaultBaseOnIcon = IconUtils.Load("default_base_on");
             s_PencilIcon = IconUtils.Load("rename");
-            s_HamburgerIcon  = IconUtils.Load("properties");
             s_BreadcrumbIcon = IconUtils.Load("enter");
             s_CreateIcon  = IconUtils.Load("create");
             s_ExpandIcon  = IconUtils.Load("expand");
@@ -173,7 +170,6 @@ namespace SecretZauce.SecondBrain.Editor
             // Cached GUIContent (rebuilt on skin change along with styles)
             s_HomeContent       = new GUIContent(s_HomeIcon, "Go to Home");
             s_BreadcrumbContent = new GUIContent(s_BreadcrumbIcon);
-            s_HamburgerContent  = new GUIContent(s_HamburgerIcon, "Base Settings");
             s_PencilContent     = s_PencilIcon != null
                 ? new GUIContent(s_PencilIcon, "Rename")
                 : new GUIContent("✎", "Rename");
@@ -194,7 +190,7 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Draws the header bar (home button, breadcrumb label, pencil rename, hamburger,
+        /// Draws the header bar (home button, breadcrumb label, pencil rename,
         /// default-star, collapse/expand foldout and + button).
         /// Must be called inside an active GUILayout pass.
         /// </summary>
@@ -249,14 +245,12 @@ namespace SecretZauce.SecondBrain.Editor
             const float pencilWidth = 18f;
 
             // Reserve right-side space
-            float hamburgerWidth = 18f;
             // Each location button needs enough width for "Editor" / "Build" text.
             const float locationBtnW = 44f;
             const float locationTotalW = locationBtnW * 2 + 4f; // two buttons + gap before expand toggle
             float rightReserved = showingBaseTarget
                 ? 180f
                 : 110f + (ProFeature.Provider != null ? locationTotalW : 0f);
-            rightReserved += hamburgerWidth + 4f;
             float labelWidth = Mathf.Max(150, headerRect.width - rightReserved - iconSize - 6 - peekInset * 2f);
             Rect labelRect = new Rect(iconRect.xMax + 6, 0, labelWidth, headerRect.height);
 
@@ -291,10 +285,10 @@ namespace SecretZauce.SecondBrain.Editor
                 DrawProfileDropdown(labelRect, headerRect, window, interactive);
             }
 
-            // Base settings (hamburger + default star) — only when header shows a Base
+            // Default-base star — only when header shows a Base
             if (showingBaseTarget)
             {
-                DrawBaseControls(headerRect, toggleRect, hamburgerWidth, root, dragDropManager, renamer, interactive);
+                DrawBaseControls(headerRect, toggleRect, root);
             }
 
             // Collapse/expand foldout and + button
@@ -566,19 +560,18 @@ namespace SecretZauce.SecondBrain.Editor
             }
         }
 
-        void DrawBaseControls(Rect headerRect, Rect toggleRect, float hamburgerWidth,
-            IStructure root, DragAndDropManager dragDropManager, ItemRenamer renamer, bool interactive)
+        void DrawBaseControls(Rect headerRect, Rect toggleRect, IStructure root)
         {
             var baseObj = root as Base;
-            Rect hamburgerRect = new Rect(toggleRect.x - hamburgerWidth - 4f, 2, hamburgerWidth, headerRect.height - 4);
-
             if (baseObj == null) return;
 
             // Default Base only means something once Pro's multiple Bases exist.
             if (ProFeature.Provider != null)
             {
                 float defaultSize = 16f;
-                Rect defaultRect = new Rect(hamburgerRect.x - 4 - defaultSize, 0, defaultSize, headerRect.height);
+                // Pin sits immediately left of the collapse/expand toggle — the space
+                // previously occupied by the now-removed Base Settings button.
+                Rect defaultRect = new Rect(toggleRect.x - defaultSize - 4f, 0, defaultSize, headerRect.height);
 
                 var  mother    = Profile.Active;
                 bool isDefault = mother != null && mother.DefaultBase == baseObj;
@@ -596,34 +589,34 @@ namespace SecretZauce.SecondBrain.Editor
                 GUI.color = iconColor;
                 if (GUI.Button(defaultRect, defContent, s_StarStyle))
                 {
-                    try
+                    if (mother != null)
                     {
-                        if (mother != null)
+                        bool wasDefault = isDefault;
+                        Undo.RecordObject(mother, wasDefault ? "Clear Default Base" : "Set Default Base");
+                        mother.DefaultBase = wasDefault ? null : baseObj;
+
+                        // Defer the asset save/reimport to the next editor tick.
+                        // SubAssetRefreshUtils.MarkDirtyAndSave forces a synchronous AssetDatabase
+                        // reimport, which can invalidate in-flight Unity Object references or abort
+                        // the current GUI event when called mid-click. Either way, running it while
+                        // this OnGUI call is still on the stack leaves the enclosing GUILayout group
+                        // stack unbalanced for the rest of this frame ("EndLayoutGroup: BeginLayoutGroup
+                        // must be called first" on a later End call).
+                        var capturedMother = mother;
+                        var capturedWindow = treeView.OwnerWindow;
+                        string notifText = wasDefault ? "Cleared Default Base" : "Set Default Base";
+                        EditorApplication.delayCall += () =>
                         {
-                            Undo.RecordObject(mother, isDefault ? "Clear Default Base" : "Set Default Base");
-                            mother.DefaultBase = isDefault ? null : baseObj;
-                            SubAssetRefreshUtils.MarkDirtyAndSave(mother);
-                            try { EditorGUIUtils.ShowNotification(treeView.OwnerWindow, new GUIContent(isDefault ? "Cleared Default Base" : "Set Default Base")); } catch { }
-                        }
+                            if (capturedMother == null) return;
+                            SubAssetRefreshUtils.MarkDirtyAndSave(capturedMother);
+                            try { EditorGUIUtils.ShowNotification(capturedWindow, new GUIContent(notifText)); } catch { }
+                            capturedWindow?.Repaint();
+                        };
                     }
-                    catch { }
-                    EditorApplication.delayCall += () => treeView.OwnerWindow?.Repaint();
                     Event.current.Use();
                 }
                 GUI.color = prevColor;
             }
-
-            // Hamburger button — reuse cached style
-            bool hamInteractive = !dragDropManager.IsDragging && !renamer.IsRenamingAny && interactive;
-            EditorGUI.BeginDisabledGroup(!hamInteractive);
-            bool hamHover = hamburgerRect.Contains(Event.current.mousePosition);
-            if (hamHover && hamInteractive) EditorGUI.DrawRect(hamburgerRect, new Color(0.3f, 0.3f, 0.3f, 0.5f));
-            if (GUI.Button(hamburgerRect, s_HamburgerContent, s_HamStyle))
-            {
-                try { EditorUtility.OpenPropertyEditor(baseObj); } catch { }
-                Event.current.Use();
-            }
-            EditorGUI.EndDisabledGroup();
         }
 
         void DrawFoldoutAndPlus(Rect toggleRect, Rect plusRect, BrowserWindow window,
