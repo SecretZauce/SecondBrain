@@ -64,7 +64,20 @@ namespace SecretZauce.SecondBrain.Editor
             // Pass a zero-height activator rect at the button's top so ShowAsDropDown
             // places the popup's top-left at the button's top-left corner.
             var screenRect = GUIUtility.GUIToScreenRect(buttonRect);
-            wnd.ShowAsDropDown(new Rect(windowRect.x + windowRect.width, screenRect.y + EditorGUIUtility.singleLineHeight, screenRect.width, 0), new Vector2(PopupWidth, PopupHeight));
+
+            // Anchor the popup to the right of the browser window. If there isn't enough
+            // room on screen for it there (window is near the right edge), ShowAsDropDown
+            // can fail to place the popup anywhere visible, so flip it to the window's
+            // left side instead. Compare against the main editor window's bounds rather
+            // than Screen.currentResolution: the latter is in physical pixels and disagrees
+            // with EditorWindow.position (points) on HiDPI/Retina displays, which silently
+            // defeats this check.
+            var mainWindowRect = EditorGUIUtils.GetMainWindowRect();
+            float popupX = windowRect.x + windowRect.width;
+            if (popupX + PopupWidth > mainWindowRect.x + mainWindowRect.width)
+                popupX = windowRect.x - PopupWidth;
+
+            wnd.ShowAsDropDown(new Rect(popupX, screenRect.y + EditorGUIUtility.singleLineHeight, screenRect.width, 0), new Vector2(PopupWidth, PopupHeight));
 
             // Assign after ShowAsDropDown succeeds so the instance reference is only
             // set when the window is actually visible (guards the toggle check above).
