@@ -125,18 +125,7 @@ namespace SecretZauce.SecondBrain.Editor
                 var upgradeLabel = new GUIContent("✦ Upgrade to PRO", "Get SecondBrain PRO");
                 if (GUILayout.Button(upgradeLabel, UpgradeLinkStyle, GUILayout.Height(toolbarHeight - 2)))
                 {
-#if SECOND_BRAIN_DEV
-                    // DEV mock: add the scripting define directly so PRO code paths activate immediately.
-                    if (EditorUtility.DisplayDialog("Upgrade to PRO (Mock — DEV only)",
-                            "This will define SECOND_BRAIN_PRO for all build platforms and recompile scripts.\n\nContinue?",
-                            "Yes, Upgrade", "Cancel"))
-                    {
-                        ProLicenseUtils.AddProDefine();
-                    }
-#else
-                    // Production: send user to the Asset Store page.
                     UnityEngine.Application.OpenURL(ProLicenseUtils.ASSET_STORE_URL);
-#endif
                 }
                 // Reset cursor — linkLabel sets a beam cursor we don't want here
                 EditorGUIUtility.AddCursorRect(GUILayoutUtility.GetLastRect(), MouseCursor.Arrow);
