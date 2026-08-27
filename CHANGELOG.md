@@ -11,6 +11,8 @@ All notable changes to SecondBrain will be documented in this file.
 - Toolbar edits (color, emoji, naming style) and toggling a Base's default-star no longer flush every dirty asset in the project through `AssetDatabase.SaveAssets()` on every click. Saves are batched and deferred the same way emoji/color assignment already was.
 
 ### Changed
+- SecondBrain PRO is now a single self-contained package: it ships the free version's code alongside its own, so installing PRO no longer pulls the free package from GitHub and the two editions no longer have versions to keep compatible. If the free package is already in a project, remove it before importing PRO — both provide the same assemblies. See [Upgrading to PRO](Documentations/08_Upgrading_To_Pro.md).
+- The Installer Window drops its "Setup Required" state and the "Install Free Package" button along with it; edition and status now report only what is actually installed.
 - Selecting a colored item now tints its selection highlight with that item's assigned Background or Gradient color instead of covering it with a flat default highlight.
 - Folders no longer have a per-item auto-focus toggle. Selecting a folder always navigates the Project window into it, the same as pressing Return.
 
