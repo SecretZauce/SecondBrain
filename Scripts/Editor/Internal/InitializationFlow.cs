@@ -34,7 +34,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (state == ProfileInitializationState.InitializationCompleted)
             {
                 // Pro's ActionItem subclasses live in the Pro assembly. While Pro is installed but
-                // not compiled — free out of range, or mid-update — every sub-asset of those types
+                // not compiled — mid-import, or a compile error elsewhere — every sub-asset of those types
                 // reads back as null, and the sweep below would strip them out of their containers
                 // for good. The data comes back the moment Pro compiles again; the tree structure
                 // would not. Skip the sweep rather than destroy it.

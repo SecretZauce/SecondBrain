@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace SecretZauce.SecondBrain.Editor
@@ -13,10 +12,8 @@ namespace SecretZauce.SecondBrain.Editor
         const string ReportBugUrl      = "https://github.com/SecretZauce/SecondBrain/issues";
         const string ChangelogUrl      = "https://github.com/SecretZauce/SecondBrain/blob/main/CHANGELOG.md";
         const string ProFeaturesUrl    = ProLicenseUtils.ASSET_STORE_URL;
-        const string FreePackageGitUrl = "https://github.com/SecretZauce/SecondBrain.git";
 
         // ── Assembly names ────────────────────────────────────────────────────────
-        const string FreeAsmdefName = "SecretZauce.SecondBrain.Editor";
         const string ProAsmdefName  = "SecretZauce.SecondBrain.Pro.Editor";
 
         // ── Capsule tag colours ───────────────────────────────────────────────────
@@ -30,13 +27,8 @@ namespace SecretZauce.SecondBrain.Editor
 
         // ── State ─────────────────────────────────────────────────────────────────
         Texture2D bannerTexture;
-        bool freePresent;
         bool proPresent;
         bool proEnabled;
-
-#if SECOND_BRAIN_DEV
-        static bool s_devPreviewMissingFree;
-#endif
 
         // ─────────────────────────────────────────────────────────────────────────
 
@@ -48,15 +40,6 @@ namespace SecretZauce.SecondBrain.Editor
             win.Show();
         }
 
-#if SECOND_BRAIN_DEV
-        [MenuItem("Tools/Second Brain/DEV ─ Dialogs/Preview: Missing Free Version")]
-        static void Dev_PreviewMissingFreeVersion()
-        {
-            s_devPreviewMissingFree = true;
-            Open();
-        }
-#endif
-
         void OnEnable()
         {
 
@@ -64,13 +47,6 @@ namespace SecretZauce.SecondBrain.Editor
             var icon = Resources.Load<Texture2D>("Editor/Icons/second_brain_icon");
             titleContent = new GUIContent("SecondBrain Installer", icon);
         }
-
-#if SECOND_BRAIN_DEV
-        void OnDisable()
-        {
-            s_devPreviewMissingFree = false;
-        }
-#endif
 
         void OnGUI()
         {
@@ -83,16 +59,10 @@ namespace SecretZauce.SecondBrain.Editor
             GUILayout.Space(12);
             DrawMainButtons();
 
-            if (freePresent && !proPresent)
+            if (!proPresent)
             {
                 GUILayout.Space(12);
                 DrawGetProSection();
-            }
-
-            if (proPresent && !freePresent)
-            {
-                GUILayout.Space(12);
-                DrawSetupSection();
             }
         }
 
@@ -100,18 +70,8 @@ namespace SecretZauce.SecondBrain.Editor
 
         void RefreshState()
         {
-#if SECOND_BRAIN_DEV
-            if (s_devPreviewMissingFree)
-            {
-                freePresent = false;
-                proPresent  = true;
-                proEnabled  = false;
-                return;
-            }
-#endif
-            freePresent = IsFreeAssemblyPresent();
-            proPresent  = IsProAssemblyPresent();
-            proEnabled  = IsProEnabled();
+            proPresent = IsProAssemblyPresent();
+            proEnabled = IsProEnabled();
         }
 
         // ── Sections ──────────────────────────────────────────────────────────────
@@ -145,30 +105,20 @@ namespace SecretZauce.SecondBrain.Editor
         // Replaces old DrawVersionBadge + DrawSetupStatus — all info as capsule tags.
         void DrawTagRow()
         {
-            bool   isPro        = proEnabled && proPresent;
-            string editionText  = isPro ? "Pro" : "Free";
-            Color  editionColor = isPro ? TagPro : TagFree;
+            string editionText  = proEnabled ? "Pro" : "Free";
+            Color  editionColor = proEnabled ? TagPro : TagFree;
 
             string statusText;
             Color  statusColor;
-            if (!freePresent && proPresent)
+            if (proPresent && !proEnabled)
             {
-                statusText  = "Setup Required";
-                statusColor = TagWarning;
-            }
-            else if (freePresent && proPresent && proEnabled)
-            {
-                statusText  = "Ready";
-                statusColor = TagReady;
-            }
-            else if (freePresent && proPresent && !proEnabled)
-            {
+                // Pro files are in the project but have not compiled yet.
                 statusText  = "Enabling…";
                 statusColor = TagWarning;
             }
             else
             {
-                statusText  = "Installed";
+                statusText  = proEnabled ? "Ready" : "Installed";
                 statusColor = TagReady;
             }
 
@@ -225,30 +175,6 @@ namespace SecretZauce.SecondBrain.Editor
             if (GUILayout.Button("See Pro Features", GUILayout.Height(26)))
                 Application.OpenURL(ProFeaturesUrl);
             GUILayout.EndHorizontal();
-            GUILayout.EndVertical();
-        }
-
-        void DrawSetupSection()
-        {
-            GUILayout.BeginVertical(EditorStyles.helpBox);
-            GUILayout.Label("One-Time Setup Required", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox(
-                "SecondBrain Pro requires the free package to be installed first. " +
-                "Click below to install it automatically via the Package Manager.",
-                MessageType.Warning);
-            GUILayout.Space(4);
-
-            var urlStyle = new GUIStyle(EditorStyles.label)
-                { normal = { textColor = new Color(0.2f, 0.5f, 1f) } };
-            if (GUILayout.Button($"Source: {FreePackageGitUrl}", urlStyle))
-                Application.OpenURL(FreePackageGitUrl);
-
-            GUILayout.Space(6);
-            if (GUILayout.Button("Install Free Package", GUILayout.Height(28)))
-            {
-                Client.Add(FreePackageGitUrl);
-                Close();
-            }
             GUILayout.EndVertical();
         }
 
@@ -337,9 +263,6 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         // ── Presence / define helpers ─────────────────────────────────────────────
-
-        static bool IsFreeAssemblyPresent()
-            => AssetDatabase.FindAssets($"{FreeAsmdefName} t:AssemblyDefinitionAsset").Length > 0;
 
         static bool IsProAssemblyPresent()
             => AssetDatabase.FindAssets(
