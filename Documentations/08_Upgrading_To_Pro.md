@@ -1,6 +1,6 @@
 ## Getting PRO
 
-SecondBrain PRO builds on top of the free package — both must be installed. PRO ships as a `.unitypackage` from the Asset Store; the free package is installed through the Unity Package Manager from its Git URL.
+SecondBrain PRO ships as a single `.unitypackage` from the Asset Store. It contains **everything** — the core SecondBrain window and hierarchy plus the PRO features — so it is the only package you need. There is no second download, no license key, and no version to match.
 
 Purchase and download links are available through the Installer Window (**Tools → Second Brain → Installer**) or via the [Unity Asset Store](https://assetstore.unity.com/packages/slug/383598).
 
@@ -8,37 +8,43 @@ Purchase and download links are available through the Installer Window (**Tools 
 
 ## Installation Flow
 
-### If you have the free package and are adding PRO
+### If you have never installed SecondBrain
 
 1. Import the SecondBrain PRO `.unitypackage`.
-2. Unity compiles it. PRO activates during that same compile — there is no license key to enter and no second reload to wait for.
+2. Unity compiles it. PRO is active as soon as that compile finishes.
 3. The Installer Window opens and confirms the edition as **PRO**.
 
-### If you have PRO but the free package is missing
+### If you already have the free version installed
 
-A **SecondBrain Pro — Setup Required** window opens automatically. Click **Install / Update Free Package** to add the free package from its Git URL. Unity recompiles once it lands, and PRO activates.
+> [!IMPORTANT]
+> Remove the free version **before** importing PRO. PRO bundles the same core code, and leaving both in the project gives Unity two copies of the same assemblies — the console fills with duplicate-assembly errors and neither edition compiles.
 
-Until then PRO simply stays inactive — nothing is in a broken state, and no errors are produced.
+1. Remove the free version:
+   - **Installed from the Git URL (Package Manager):** open **Window → Package Manager → In Project**, select **SecondBrain**, and click **Remove**.
+   - **Imported as files:** delete the `Assets/SecretZauce/SecondBrain` folder from the Project window.
+2. Let Unity finish recompiling.
+3. Import the SecondBrain PRO `.unitypackage`.
+4. The Installer Window opens and confirms the edition as **PRO**.
 
-> [!NOTE]
-> If you dismiss the window, reopen it any time via **Tools → Second Brain → Pro Installer**. That menu item appears only when PRO is installed.
+Your content is safe across the swap. Profiles, Bases, and everything inside them are assets in your own project (`Assets/Resources/Editor/`, or `Assets/Resources/` for in-build Profiles) — they are not part of either package, so removing free and importing PRO leaves them untouched.
 
 ---
 
-## Version Compatibility
+## Going Back to Free
 
-Free and PRO do **not** need identical version numbers. Each PRO release supports a range of free versions — in practice, any free release sharing the same major version.
+Delete the `Assets/SecretZauce/SecondBrain` and `Assets/SecretZauce/SecondBrainPro` folders, then add the free package again through the Package Manager using the Git URL:
 
-That means the common case needs no attention at all: a free package that is newer than your PRO build keeps working, because the two are designed to stay compatible across minor updates.
+```
+https://github.com/SecretZauce/SecondBrain.git
+```
 
-Two situations do need action, and SecondBrain tells you which:
+Your Profiles and Bases stay where they are. PRO-only content — Action Items, and Scene Links on Bases — stops resolving once the PRO assembly is gone, so export or note anything you want to keep first.
 
-| Situation | What you see | What to do |
-|-----------|--------------|------------|
-| Free is **older** than your PRO build requires | A window naming your installed free version and the required range | Click **Install / Update Free Package** to pull the current free release |
-| Free is **newer** than your PRO build supports (a new major version) | A window explaining that PRO is the side that must move | Update SecondBrain PRO from the Asset Store |
+---
 
-In both cases PRO stays inactive rather than running against a version it does not match, and the free package continues to work normally in the meantime.
+## Versions
+
+There is only one package to keep up to date. Update PRO from the Asset Store as new versions land; nothing needs to line up with anything else.
 
 > [!NOTE]
 > PRO is either fully active or fully inactive — there is no partial state where some PRO features work and others silently do not.

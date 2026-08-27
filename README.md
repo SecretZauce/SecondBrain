@@ -221,12 +221,12 @@ On first launch, SecondBrain runs a one-time setup and automatically opens the *
 
 ### PRO
 
-1. Purchase and download SecondBrain PRO from the [Unity Asset Store](https://assetstore.unity.com/packages/slug/383598).
-2. Import the PRO `.unitypackage` into your project. If the free package is not already present, a setup window offers to install it from GitHub for you.
-3. Unity compiles and PRO activates — no license key required. On completion, the **Installer Window** opens automatically, same as the Free setup flow.
+> [!IMPORTANT]
+> If the free package is already in the project, remove it first — **Window → Package Manager → In Project → SecondBrain → Remove**, or delete `Assets/SecretZauce/SecondBrain` if you imported it as files. The PRO package bundles the same core code, and keeping both gives Unity duplicate assemblies. Your Profiles and Bases live in your own project folders and are not affected.
 
-> [!NOTE]
-> The two packages do not need identical version numbers. Each PRO release supports a range of free versions, so a newer free package keeps working with an existing PRO build. If they do fall out of range, SecondBrain tells you which side to update and PRO stays inactive until then.
+1. Purchase and download SecondBrain PRO from the [Unity Asset Store](https://assetstore.unity.com/packages/slug/383598).
+2. Import the PRO `.unitypackage` into your project. It contains the full tool — core plus PRO features — so it is the only package you need.
+3. Unity compiles and PRO is active — no license key, no second package, no version matching. On completion, the **Installer Window** opens automatically, same as the Free setup flow.
 
 ---
 
