@@ -359,7 +359,10 @@ namespace SecretZauce.SecondBrain.Editor
                 BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var browser in browsers)
             {
-                try { method?.Invoke(browser, new object[] { folder.GetStableInstanceId(), true }); }
+                // Unity's own internal method — it needs the real native id (int pre-migration,
+                // EntityId once GetInstanceID is obsolete), not our hash-based GetStableInstanceId,
+                // which is only good for our own bookkeeping and means nothing to Unity's reflection call.
+                try { method?.Invoke(browser, new object[] { folder.GetStableNativeId(), true }); }
                 catch { }
             }
         }
