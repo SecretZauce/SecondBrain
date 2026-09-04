@@ -31,13 +31,10 @@ namespace SecretZauce.SecondBrain.Editor
             if (o == null)
                 return false;
 
-            int instanceId = o.GetStableInstanceId();
-            if (instanceId == 0)
-                return false;
-
             // A wrapper left behind by a reimport (or held alive by the undo buffer after
             // Undo.DestroyObjectImmediate) no longer round-trips through the instance ID table.
-            if (InstanceIdCompat.ResolveInstanceId(instanceId) != o)
+            var nativeId = o.GetStableNativeId();
+            if (InstanceIdCompat.ResolveNativeId(nativeId) != o)
                 return false;
 
             // Scene objects (GameObjects resolved from SceneObjectRef) have no asset identity.

@@ -283,7 +283,7 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     try
                     {
-                        var obj = InstanceIdCompat.ResolveInstanceId(instanceId);
+                        var obj = InstanceIdCompat.TryResolveStableInstanceId(instanceId);
                         return obj as Object;
                     }
                     catch

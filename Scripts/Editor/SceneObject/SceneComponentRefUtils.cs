@@ -5,9 +5,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-#if UNITY_6000_3_OR_NEWER
-using UnityEngine.Assemblies;
-#endif
 using Object = UnityEngine.Object;
 
 namespace SecretZauce.SecondBrain.Editor
@@ -107,35 +104,18 @@ namespace SecretZauce.SecondBrain.Editor
                 return resolvedType;
             }
 
-#if UNITY_6000_3_OR_NEWER
-            var loadedAssemblies = CurrentAssemblies.GetLoadedAssemblies();
-#else
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-#endif
-            foreach (var assembly in loadedAssemblies)
+            // ResolveComponentType only ever resolves Component subtypes (its only caller is
+            // GetComponentType(SceneComponent), and the fallback below is Component itself), so
+            // TypeCache.GetTypesDerivedFrom can replace the manual assembly/type scan outright —
+            // it's immune to the unloaded-assembly problem AppDomain.GetAssemblies() has, since
+            // Unity maintains it directly instead of walking the live AppDomain.
+            resolvedType = TypeCache.GetTypesDerivedFrom<Component>().FirstOrDefault(type =>
+                string.Equals(type.FullName, componentTypeName, StringComparison.Ordinal) ||
+                string.Equals(type.Name, componentTypeName, StringComparison.Ordinal));
+            if (resolvedType != null)
             {
-                try
-                {
-                    resolvedType = assembly.GetType(componentTypeName, false);
-                    if (resolvedType != null)
-                    {
-                        s_TypeCache[componentTypeName] = resolvedType;
-                        return resolvedType;
-                    }
-
-                    resolvedType = assembly.GetTypes().FirstOrDefault(type =>
-                        string.Equals(type.FullName, componentTypeName, StringComparison.Ordinal) ||
-                        string.Equals(type.Name, componentTypeName, StringComparison.Ordinal));
-                    if (resolvedType != null)
-                    {
-                        s_TypeCache[componentTypeName] = resolvedType;
-                        return resolvedType;
-                    }
-                }
-                catch
-                {
-                    // Ignore dynamic or partially loaded assemblies.
-                }
+                s_TypeCache[componentTypeName] = resolvedType;
+                return resolvedType;
             }
 
             s_TypeCache[componentTypeName] = typeof(Component);
