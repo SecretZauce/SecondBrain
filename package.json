@@ -1,0 +1,24 @@
+﻿{
+  "name": "com.secretzauce.secondbrain",
+  "version": "1.1.2",
+  "displayName": "SecondBrain",
+  "description": "A Second Hierarchy Window for Anything in Unity. Organize assets, prefabs, scenes, GameObjects, and more in a custom window for faster access and better productivity.",
+  "type": "tool",
+  "keywords": [
+    "hierarchy",
+    "organization",
+    "editor",
+    "productivity"
+  ],
+  "author": {
+    "name": "SecretZauce",
+    "email": "sc.zauce.support@gmail.com",
+    "url": "https://github.com/SecretZauce"
+  },
+  "documentationUrl" : "https://github.com/SecretZauce/SecondBrain/wiki/Getting-Started",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SecretZauce/SecondBrain"
+  },
+  "dependencies": {}
+}
