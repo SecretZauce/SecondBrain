@@ -251,6 +251,12 @@ See the [full documentation](https://github.com/SecretZauce/SecondBrain/wiki/Get
 
 ---
 
+## License
+
+SecondBrain uses Google Material Design Icons under the Apache License, Version 2.0; see `Third-Party Notices.txt` in the package for details.
+
+---
+
 ## Contact
 - [Discord Server](https://discord.gg/wzxhQS6eFc)
 - **Support Email:** sc.zauce.support@gmail.com

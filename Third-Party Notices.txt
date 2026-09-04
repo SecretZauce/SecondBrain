@@ -1,3 +1,17 @@
+THIRD-PARTY NOTICES
+====================
+
+This package includes the following third-party content:
+
+Component: Icon artwork in Resources/Editor/Icons/
+Source:    Google Material Design Icons (https://github.com/google/material-design-icons)
+Copyright: Copyright 2014 Google LLC
+License:   Apache License, Version 2.0 (see full text below)
+Changes:   Filenames have been modified for use in this project. No other
+           changes were made to the icon artwork.
+
+The full text of the Apache License, Version 2.0 follows.
+
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -166,10 +180,6 @@
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
-
-   The icons in this directory are derived from Google Material Design Icons
-   (https://github.com/google/material-design-icons). Filenames have been
-   modified for use in this project. No other changes were made to the icon artwork.
 
    Copyright 2014 Google LLC
 
