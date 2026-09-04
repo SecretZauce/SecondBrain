@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-#if UNITY_6000_8_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
 using UnityEngine.Assemblies;
 #endif
 using Object = UnityEngine.Object;
@@ -107,7 +107,7 @@ namespace SecretZauce.SecondBrain.Editor
                 return resolvedType;
             }
 
-#if UNITY_6000_8_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
             var loadedAssemblies = CurrentAssemblies.GetLoadedAssemblies();
 #else
             var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
