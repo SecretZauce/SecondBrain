@@ -178,7 +178,17 @@ namespace SecretZauce.SecondBrain
             for (int i = 1; i < parts.Length; i++)
             {
                 string next = current + "/" + parts[i];
-                if (!AssetDatabase.IsValidFolder(next))
+
+                // AssetDatabase.IsValidFolder reflects Unity's in-memory index, which can lag the
+                // real filesystem right after a Refresh() triggered moments earlier in the same
+                // call chain — e.g. Profile and SecondBrainCore both independently ensuring
+                // "Assets/Resources" during the same fresh-import domain reload. If the index
+                // hasn't caught up yet, CreateFolder runs against a path that's already there on
+                // disk and Unity silently disambiguates into "Resources 1" instead of skipping it.
+                // Checking the actual directory closes that gap.
+                string absolute = System.IO.Path.Combine(
+                    Application.dataPath, next.Substring("Assets".Length).TrimStart('/'));
+                if (!AssetDatabase.IsValidFolder(next) && !System.IO.Directory.Exists(absolute))
                     AssetDatabase.CreateFolder(current, parts[i]);
                 current = next;
             }
