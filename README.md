@@ -251,14 +251,6 @@ See the [full documentation](https://github.com/SecretZauce/SecondBrain/wiki/Get
 
 ---
 
-## License
-
-| Part                | License                        |
-|---------------------|--------------------------------|
-| Second Brain (Free) | MIT                            |
-| Second Brain Pro    | Unity Asset Store EULA         |
-| Material Icons      | Apache 2.0 — © 2014 Google LLC |
-
 ## Contact
 - [Discord Server](https://discord.gg/wzxhQS6eFc)
 - **Support Email:** sc.zauce.support@gmail.com
