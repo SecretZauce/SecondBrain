@@ -2,6 +2,13 @@
 
 All notable changes to SecondBrain will be documented in this file.
 
+## 1.1.3 (04-09-2026)
+
+### Fixed
+- SecondBrain failed to compile on Unity 6000.3 and later. Unity's transition from int-based instance IDs to the 64-bit `EntityId` type turns `Object.GetInstanceID()`, `EditorUtility.InstanceIDToObject()`, and the `SceneHandle`-to-`int` conversion into compile errors or warnings depending on the exact 6.x version, with the replacement API's shape also varying release to release. Every internal use of these — GUI caches, drag-payload validation, undo/redo handling, window-focus tracking, folder-focus navigation in the Project window — now goes through version-appropriate replacements and compiles unchanged from Unity 2022.3 LTS through current Unity 6 releases.
+- A Unity 6 static-analyzer warning about `AppDomain.GetAssemblies()` potentially returning unloaded assemblies is resolved by looking up scene-component types through `TypeCache.GetTypesDerivedFrom<Component>()` instead of scanning every loaded assembly by hand.
+- A fresh import could create both `Assets/Resources` and a duplicate `Assets/Resources 1` folder. `Profile` and `SecondBrainCore` each independently ensure `Assets/Resources` exists during first-time setup, and `AssetDatabase.IsValidFolder` can momentarily lag the real filesystem right after an `AssetDatabase.Refresh()` earlier in the same call chain, so a second, redundant folder got created. The check now also verifies the folder on disk before creating it.
+
 ## 1.1.2 (14-08-2026)
 
 ### Fixed
