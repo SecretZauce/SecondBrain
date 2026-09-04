@@ -86,7 +86,7 @@ namespace SecretZauce.SecondBrain.Editor
         /// AssetDatabase.GetAssetPath only on the first lookup per object.</summary>
         static string GetAssetPathCached(Object obj)
         {
-            int id = obj.GetInstanceID();
+            int id = obj.GetStableInstanceId();
             if (!s_AssetPathCache.TryGetValue(id, out string path))
             {
                 path = AssetDatabase.GetAssetPath(obj);

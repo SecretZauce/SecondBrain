@@ -116,7 +116,7 @@ namespace SecretZauce.SecondBrain.Editor
             }
             else
             {
-                int instanceId = node.GetInstanceID();
+                int instanceId = node.GetStableInstanceId();
                 if (!s_IconByInstance.TryGetValue(instanceId, out var tex))
                 {
                     tex = EditorGUIUtility.ObjectContent(node, nodeType).image;

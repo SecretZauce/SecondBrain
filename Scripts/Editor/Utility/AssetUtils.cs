@@ -173,7 +173,7 @@ namespace SecretZauce.SecondBrain.Editor
             // Last resort: instance id (not stable across sessions)
             try
             {
-                return $"i:{obj.GetInstanceID()}";
+                return $"i:{obj.GetStableInstanceId()}";
             }
             catch
             {
@@ -283,7 +283,7 @@ namespace SecretZauce.SecondBrain.Editor
                 {
                     try
                     {
-                        var obj = EditorUtility.InstanceIDToObject(instanceId);
+                        var obj = InstanceIdCompat.ResolveInstanceId(instanceId);
                         return obj as Object;
                     }
                     catch

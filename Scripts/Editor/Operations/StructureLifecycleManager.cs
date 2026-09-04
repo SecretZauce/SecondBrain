@@ -2264,7 +2264,7 @@ namespace SecretZauce.SecondBrain.Editor
 
             public void OnUndoRedo()
             {
-                var child = EditorUtility.InstanceIDToObject(childInstanceId) as ScriptableObject;
+                var child = InstanceIdCompat.ResolveInstanceId(childInstanceId) as ScriptableObject;
 
                 if (isCurrentlyPresent && child == null)
                 {
@@ -2546,7 +2546,7 @@ namespace SecretZauce.SecondBrain.Editor
                         // On redo the order reverses: child re-created first, then parent.children
                         // restored with the live reference.
                         Undo.RegisterCreatedObjectUndo(scriptableChild, "Create Child Asset");
-                        RegisterCreationUndoRedoHandler(scriptableChild.GetInstanceID(), assetPath);
+                        RegisterCreationUndoRedoHandler(scriptableChild.GetStableInstanceId(), assetPath);
                     }
                 }
                 else if (parentObj is ScriptableObject scriptableParentForAsset && !(newChild is ScriptableObject))
@@ -2566,7 +2566,7 @@ namespace SecretZauce.SecondBrain.Editor
                     {
                         AssetDatabase.AddObjectToAsset(newChild, assetPath);
                         Undo.RegisterCreatedObjectUndo(newChild, "Create Child Asset");
-                        RegisterCreationUndoRedoHandler(newChild.GetInstanceID(), assetPath);
+                        RegisterCreationUndoRedoHandler(newChild.GetStableInstanceId(), assetPath);
                     }
                 }
 

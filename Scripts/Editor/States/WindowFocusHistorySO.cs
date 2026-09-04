@@ -43,7 +43,7 @@ namespace SecretZauce.SecondBrain.Editor
         /// </summary>
         public void SetCurrentWindow(BrowserWindow window)
         {
-            currentWindowInstanceID = window != null ? window.GetInstanceID() : 0;
+            currentWindowInstanceID = window != null ? window.GetStableInstanceId() : 0;
         }
     }
 }

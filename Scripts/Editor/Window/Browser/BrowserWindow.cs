@@ -89,7 +89,7 @@ namespace SecretZauce.SecondBrain.Editor
             for (int i = 0; i < Windows.Count; i++)
             {
                 var window = Windows[i];
-                if (window != null && window.GetInstanceID() == instanceID)
+                if (window != null && window.GetStableInstanceId() == instanceID)
                     return window;
             }
 

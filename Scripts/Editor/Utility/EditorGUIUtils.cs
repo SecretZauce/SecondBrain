@@ -97,7 +97,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         static UnityEditor.Editor GetCachedEditor(Object obj)
         {
-            int id = obj.GetInstanceID();
+            int id = obj.GetStableInstanceId();
 
             if (InspectorCache.TryGetValue(id, out var cached))
             {
@@ -359,7 +359,7 @@ namespace SecretZauce.SecondBrain.Editor
                 BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var browser in browsers)
             {
-                try { method?.Invoke(browser, new object[] { folder.GetInstanceID(), true }); }
+                try { method?.Invoke(browser, new object[] { folder.GetStableInstanceId(), true }); }
                 catch { }
             }
         }

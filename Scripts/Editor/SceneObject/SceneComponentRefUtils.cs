@@ -5,6 +5,9 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+#if UNITY_6000_8_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 using Object = UnityEngine.Object;
 
 namespace SecretZauce.SecondBrain.Editor
@@ -104,7 +107,12 @@ namespace SecretZauce.SecondBrain.Editor
                 return resolvedType;
             }
 
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+#if UNITY_6000_8_OR_NEWER
+            var loadedAssemblies = CurrentAssemblies.GetLoadedAssemblies();
+#else
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+#endif
+            foreach (var assembly in loadedAssemblies)
             {
                 try
                 {

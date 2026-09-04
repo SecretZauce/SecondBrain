@@ -261,7 +261,7 @@ namespace SecretZauce.SecondBrain.Editor
                     if (asset is not ScriptableObject) continue;
 
                     scriptableObjectSubAssetCount++;
-                    if (!referencedIds.Contains(asset.GetInstanceID()))
+                    if (!referencedIds.Contains(asset.GetStableInstanceId()))
                         candidates.Add(asset);
                 }
 
@@ -301,7 +301,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (node == null) return;
             if (node is Object obj)
             {
-                ids.Add(obj.GetInstanceID());
+                ids.Add(obj.GetStableInstanceId());
                 string p = AssetDatabase.GetAssetPath(obj);
                 if (!string.IsNullOrEmpty(p) && p.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)) paths.Add(p);
             }
@@ -311,7 +311,7 @@ namespace SecretZauce.SecondBrain.Editor
             foreach (var child in children)
             {
                 if (child == null) continue;
-                ids.Add(child.GetInstanceID());
+                ids.Add(child.GetStableInstanceId());
                 string cp = AssetDatabase.GetAssetPath(child);
                 if (!string.IsNullOrEmpty(cp) && cp.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)) paths.Add(cp);
                 if (child is IStructure childStruct)

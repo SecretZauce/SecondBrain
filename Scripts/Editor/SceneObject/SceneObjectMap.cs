@@ -511,14 +511,14 @@ namespace SecretZauce.SecondBrain.Editor
 
         static Dictionary<string, List<GameObject>> GetNameIndex(Scene scene)
         {
-            if (s_NameIndexByScene.TryGetValue(scene.handle, out var index))
+            if (s_NameIndexByScene.TryGetValue(scene.GetStableHandle(), out var index))
                 return index;
 
             index = new Dictionary<string, List<GameObject>>(System.StringComparer.Ordinal);
             foreach (var root in scene.GetRootGameObjects())
                 IndexRecursive(root.transform, index);
 
-            s_NameIndexByScene[scene.handle] = index;
+            s_NameIndexByScene[scene.GetStableHandle()] = index;
             return index;
         }
 
