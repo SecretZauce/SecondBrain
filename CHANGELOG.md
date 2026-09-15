@@ -2,6 +2,12 @@
 
 All notable changes to SecondBrain will be documented in this file.
 
+## 1.1.4 (16-09-2026)
+
+### Fixed
+- Adding an item could reimport unrelated assets in your project. Creating an item, dropping assets or scene objects into the window, dropping items at root level, and wrapping items in a Container all still saved through `AssetDatabase.SaveAssets()`, which writes every dirty asset in the project, not just SecondBrain's own. Whatever happened to be dirty at that moment — a RenderTexture, a Material, a font atlas, a package's settings asset — got written and reimported too. It only showed when something else was dirty, so it came and went. These operations now save only the SecondBrain asset files they change, as toolbar edits and undo already did.
+- Adding an item reimported the Profile asset twice: once when it was saved, then again through a forced reimport. For a large Profile that second pass was a visible stall. The forced reimport is gone; saving the file already refreshes the Project window.
+
 ## 1.1.3 (04-09-2026)
 
 ### Fixed
