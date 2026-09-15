@@ -321,7 +321,7 @@ namespace SecretZauce.SecondBrain.Editor
                 try
                 {
                     option.PostCreate?.Invoke(newChild, option.ChildType);
-                    try { EditorUtility.SetDirty(newChild); AssetDatabase.SaveAssets(); } catch { }
+                    try { EditorUtility.SetDirty(newChild); SubAssetRefreshUtils.SaveOwners(parent, newChild); } catch { }
                 }
                 catch (Exception ex)
                 {
@@ -388,7 +388,7 @@ namespace SecretZauce.SecondBrain.Editor
                 try
                 {
                     option.PostCreate?.Invoke(newChild, option.ChildType);
-                    try { EditorUtility.SetDirty(newChild); AssetDatabase.SaveAssets(); } catch { }
+                    try { EditorUtility.SetDirty(newChild); SubAssetRefreshUtils.SaveOwners(parent, newChild); } catch { }
                 }
                 catch (Exception ex)
                 {
@@ -454,7 +454,7 @@ namespace SecretZauce.SecondBrain.Editor
             try
             {
                 matched.PostCreate?.Invoke(newChild, matched.ChildType);
-                try { EditorUtility.SetDirty(newChild); AssetDatabase.SaveAssets(); } catch { }
+                try { EditorUtility.SetDirty(newChild); SubAssetRefreshUtils.SaveOwners(parent, newChild); } catch { }
             }
             catch (Exception ex)
             {
@@ -603,7 +603,10 @@ namespace SecretZauce.SecondBrain.Editor
             foreach (var item in validItems)
                 newContainer.AddChild(item);
             EditorUtility.SetDirty(newChild as Object);
-            AssetDatabase.SaveAssets();
+            // Only our own files — never validItems, which can be the user's own assets
+            // (a dirty Material dragged in would get written). Scene-ref wrappers are either
+            // embedded in newChild's file or were written by CreateAsset already.
+            SubAssetRefreshUtils.SaveOwners(newChild as Object, baseRoot as Object);
             SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(newChild as Object));
 
             // Rebuild fresh collections so item-path lookups reflect the new children
@@ -1245,7 +1248,9 @@ namespace SecretZauce.SecondBrain.Editor
             }
 
             EditorUtility.SetDirty(Root as Object);
-            AssetDatabase.SaveAssets();
+            SubAssetRefreshUtils.SaveOwners(removedParents.Select(p => p as Object)
+                .Append(Root as Object)
+                .Append(newContainerObj));
 
             foreach (var op in removedParents)
             {
@@ -1378,7 +1383,9 @@ namespace SecretZauce.SecondBrain.Editor
             });
 
             EditorUtility.SetDirty(containerParent as Object);
-            AssetDatabase.SaveAssets();
+            SubAssetRefreshUtils.SaveOwners(affectedParents.Select(p => p as Object)
+                .Append(containerParent as Object)
+                .Append(newContainerObj));
 
             foreach (var parent in affectedParents)
             {
@@ -1577,7 +1584,10 @@ namespace SecretZauce.SecondBrain.Editor
             }
             
             EditorUtility.SetDirty(targetParent as Object);
-            AssetDatabase.SaveAssets();
+            // Only the parent's file — never addedItems, which can be the user's own assets
+            // (a dirty Material dragged in would get written). Scene-ref wrappers are either
+            // embedded in the parent's file or were written by CreateAsset already.
+            SubAssetRefreshUtils.SaveOwners(targetParent as Object);
             // Targeted refresh so the Project window reflects the newly added external items.
             SubAssetRefreshUtils.ImportAndRegister(AssetDatabase.GetAssetPath(targetParent as Object));
             OnStructureChanged?.Invoke();
@@ -2608,7 +2618,9 @@ namespace SecretZauce.SecondBrain.Editor
                 }
 
                 EditorUtility.SetDirty(parentObj);
-                AssetDatabase.SaveAssets();
+                // Scoped to the files this creation touched. A project-global SaveAssets here
+                // wrote and reimported every unrelated dirty asset on each item added.
+                SubAssetRefreshUtils.SaveOwners(parentObj, newChild);
 
                 // Targeted import so the Project window reflects the updated sub-assets
                 try

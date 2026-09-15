@@ -109,6 +109,39 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
+        /// Synchronously saves the asset files that own the given objects — and nothing else.
+        ///
+        /// Drop-in replacement for <c>AssetDatabase.SaveAssets()</c> in structural operations
+        /// (create child, add external items, wrap in container). Those used to flush every
+        /// dirty asset in the project, so adding an item while some unrelated asset happened to
+        /// be dirty (a RenderTexture, a material, a TMP font atlas, a package's settings asset)
+        /// wrote and reimported that asset too. The symptom is intermittent — it only shows when
+        /// something else is dirty at that moment — which is why it looked fixed after the
+        /// undo/styling paths were scoped and then "came back". See <see cref="SaveOnly"/>.
+        ///
+        /// Pass every object the operation dirtied; sub-assets resolve to their owning file.
+        /// </summary>
+        public static void SaveOwners(params Object[] objs) => SaveOwners((IEnumerable<Object>)objs);
+
+        /// <inheritdoc cref="SaveOwners(Object[])"/>
+        public static void SaveOwners(IEnumerable<Object> objs)
+        {
+            if (objs == null) return;
+
+            var paths = new HashSet<string>();
+            foreach (var obj in objs)
+            {
+                if (obj == null) continue;
+                string path = AssetDatabase.GetAssetPath(obj);
+                if (!string.IsNullOrEmpty(path))
+                    paths.Add(path);
+            }
+
+            if (paths.Count > 0)
+                SaveOnly(paths);
+        }
+
+        /// <summary>
         /// Registers an asset path as affected and force-imports it so the Project window
         /// reflects the change immediately. Does NOT call SaveAssets — use after the caller
         /// has already saved.
