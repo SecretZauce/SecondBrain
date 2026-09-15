@@ -120,6 +120,8 @@ namespace SecretZauce.SecondBrain.Editor
         /// undo/styling paths were scoped and then "came back". See <see cref="SaveOnly"/>.
         ///
         /// Pass every object the operation dirtied; sub-assets resolve to their owning file.
+        /// Writing the file already imports it, so follow with <see cref="RegisterAffectedAsset"/>
+        /// rather than <see cref="ImportAndRegister"/>, whose ForceUpdate would import it again.
         /// </summary>
         public static void SaveOwners(params Object[] objs) => SaveOwners((IEnumerable<Object>)objs);
 
