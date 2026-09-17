@@ -660,7 +660,7 @@ namespace SecretZauce.SecondBrain.Editor
             if (GUI.Button(plusRect, plusContent, s_HeaderPlusStyle))
             {
                 // In free mode, block creating a second Base and show a PRO upgrade notice.
-                if (ProFeature.Provider == null && !showingBaseTarget && Profile.Active.Children.Count >= 1)
+                if (ProFeature.Provider == null && !showingBaseTarget && Profile.Active != null && Profile.Active.Children.Count >= 1)
                 {
                     ProFeatureDialog.Show("Multiple Bases");
                     Event.current?.Use();
