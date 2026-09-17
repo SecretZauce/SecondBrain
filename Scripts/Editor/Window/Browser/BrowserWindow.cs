@@ -78,22 +78,19 @@ namespace SecretZauce.SecondBrain.Editor
         }
 
         /// <summary>
-        /// Returns the live window whose instance ID matches, or null when it no longer exists.
+        /// True when <paramref name="window"/> is alive and currently registered. Non-allocating,
+        /// so it is safe on per-row draw paths.
         /// </summary>
-        public static BrowserWindow FindByInstanceID(int instanceID)
+        public static bool Contains(BrowserWindow window)
         {
-            if (instanceID == 0)
-                return null;
+            if (window == null)
+                return false;
 
-            Prune();
             for (int i = 0; i < Windows.Count; i++)
-            {
-                var window = Windows[i];
-                if (window != null && window.GetStableInstanceId() == instanceID)
-                    return window;
-            }
+                if (ReferenceEquals(Windows[i], window))
+                    return true;
 
-            return null;
+            return false;
         }
 
         /// <summary>Drops entries whose native object has been destroyed.</summary>
