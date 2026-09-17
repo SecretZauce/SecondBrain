@@ -15,7 +15,7 @@ namespace SecretZauce.SecondBrain.Editor
         static readonly Dictionary<System.Type, Texture>   s_IconByType        = new Dictionary<System.Type, Texture>();
         // Per-instance cache for non-ScriptableObject assets (Sprite, Texture2D, Material, etc.)
         // whose thumbnails differ per asset rather than per type.
-        static readonly Dictionary<int, Texture>            s_IconByInstance    = new Dictionary<int, Texture>();
+        static readonly Dictionary<Object, Texture>         s_IconByInstance    = new Dictionary<Object, Texture>();
         static readonly Dictionary<string, Texture>         s_EditorIconByName  = new Dictionary<string, Texture>();
         static readonly Dictionary<string, Texture>         s_CustomIconByName  = new Dictionary<string, Texture>();
         static bool s_IconCacheSubscribed;
@@ -31,6 +31,9 @@ namespace SecretZauce.SecondBrain.Editor
                 s_EditorIconByName.Clear();
                 s_CustomIconByName.Clear();
             };
+            // Per-instance thumbnails go stale on reimport, and deleted assets would otherwise
+            // stay in the cache for the rest of the session.
+            EditorApplication.projectChanged += static () => s_IconByInstance.Clear();
         }
 
         // Centralize icon lookup for nodes to avoid duplicated logic
@@ -116,11 +119,10 @@ namespace SecretZauce.SecondBrain.Editor
             }
             else
             {
-                int instanceId = node.GetStableInstanceId();
-                if (!s_IconByInstance.TryGetValue(instanceId, out var tex))
+                if (!s_IconByInstance.TryGetValue(node, out var tex))
                 {
                     tex = EditorGUIUtility.ObjectContent(node, nodeType).image;
-                    s_IconByInstance[instanceId] = tex;
+                    s_IconByInstance[node] = tex;
                 }
                 return tex;
             }
