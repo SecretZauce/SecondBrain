@@ -99,6 +99,19 @@ namespace SecretZauce.SecondBrain
         public const string FOLDER_RESOURCES        = "Assets/Resources";
         public const string FOLDER_EDITOR_RESOURCES = "Assets/Resources/Editor";
 
+        // False until the editor has ticked once since the last domain reload. Static fields
+        // reset on reload, so this needs no explicit clearing.
+        static bool s_ReloadSettled;
+
+        [InitializeOnLoadMethod]
+        static void TrackReloadSettled() => EditorApplication.delayCall += () => s_ReloadSettled = true;
+
+        /// <summary>
+        /// True while an import interrupted by a domain reload may still be pending, so a Profile
+        /// that is on disk but not loadable yet should be retried rather than treated as broken.
+        /// </summary>
+        public static bool IsImportSettling => !s_ReloadSettled || EditorApplication.isUpdating;
+
         static Profile LoadActiveProfileEditor()
         {
             // ── 1. Try the GUID stored in EditorPrefs (Pro profile switching) ──────
@@ -121,8 +134,20 @@ namespace SecretZauce.SecondBrain
                     // Default Profile behind. Return null without caching; the next Active access
                     // retries once the import has finished. Asset paths are project-relative, and
                     // the editor's working directory is the project root.
+                    //
+                    // Only while the import can still be settling, though. A file that still won't
+                    // load after that (merge-conflict markers, corruption, a broken script reference)
+                    // never will, and returning null for it would leave Active null all session.
                     if (System.IO.File.Exists(guidPath))
-                        return null;
+                    {
+                        if (IsImportSettling)
+                            return null;
+
+                        Debug.LogWarning(
+                            $"[SecondBrain] The selected Profile at '{guidPath}' exists but could not be " +
+                            "loaded as a Profile — falling back to the Default Profile. Please check the " +
+                            "file manually.");
+                    }
                 }
             }
 

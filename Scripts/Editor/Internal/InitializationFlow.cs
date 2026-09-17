@@ -27,7 +27,13 @@ namespace SecretZauce.SecondBrain.Editor
         {
             var profile = Profile.Active;
             if (profile == null)
+            {
+                // The selected Profile is still waiting on an interrupted import. Try again next
+                // tick instead of skipping setup and the orphan sweep until the next reload.
+                if (Profile.IsImportSettling)
+                    EditorApplication.delayCall += RunInitializationFlow;
                 return;
+            }
 
             var core = SecondBrainCore.Instance;
             var state = core.InitializationState;
