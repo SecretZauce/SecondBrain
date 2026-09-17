@@ -342,6 +342,16 @@ namespace SecretZauce.SecondBrain.Editor
         public static LabelWidthScope TemporaryLabelWidth(Rect rect, float reservedSpace)
             => new LabelWidthScope(rect, reservedSpace);
 
+        static bool s_ShowFolderContentsFailureLogged;
+
+        static void LogShowFolderContentsFailureOnce(Exception ex)
+        {
+            if (s_ShowFolderContentsFailureLogged) return;
+            s_ShowFolderContentsFailureLogged = true;
+            if (ex is TargetInvocationException { InnerException: not null } tie) ex = tie.InnerException;
+            Debug.LogWarning($"[SecondBrain] Could not open folder in the Project window (ProjectBrowser.ShowFolderContents): {ex.GetType().Name}: {ex.Message}");
+        }
+
         public static void EnterFolderInProjectWindow(Object folder)
         {
             if (folder == null) return;
@@ -380,10 +390,10 @@ namespace SecretZauce.SecondBrain.Editor
                 }
 
                 // Unity's own internal method — it needs the real native id (int pre-migration,
-                // EntityId once GetInstanceID is obsolete), not our hash-based GetStableInstanceId,
-                // which is only good for our own bookkeeping and means nothing to Unity's reflection call.
+                // EntityId once GetInstanceID is obsolete). Its signature isn't public API, so a
+                // mismatch on some Unity version must surface rather than silently do nothing.
                 try { method?.Invoke(browser, new object[] { folder.GetStableNativeId(), true }); }
-                catch { }
+                catch (Exception ex) { LogShowFolderContentsFailureOnce(ex); }
             }
         }
     }
