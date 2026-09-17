@@ -359,8 +359,16 @@ namespace SecretZauce.SecondBrain.Editor
                 BindingFlags.NonPublic | BindingFlags.Instance);
             var isTwoColumnsMethod = projectBrowserType.GetMethod("IsTwoColumns",
                 BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null);
+            const BindingFlags memberFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
+            var isLockedProperty = projectBrowserType.GetProperty("isLocked", memberFlags);
+            var isLockedField = isLockedProperty == null ? projectBrowserType.GetField("m_IsLocked", memberFlags) : null;
             foreach (var browser in browsers)
             {
+                // A locked Project window is pinned by the user; leave its folder alone.
+                var isLocked = isLockedProperty != null ? isLockedProperty.GetValue(browser) : isLockedField?.GetValue(browser);
+                if (isLocked is bool locked && locked)
+                    continue;
+
                 // ShowFolderContents logs an error and bails in one-column layout; ping the folder there instead.
                 if (isTwoColumnsMethod != null && isTwoColumnsMethod.Invoke(browser, null) is bool isTwoColumns && !isTwoColumns)
                 {
