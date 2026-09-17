@@ -357,8 +357,17 @@ namespace SecretZauce.SecondBrain.Editor
             }
             var method = projectBrowserType.GetMethod("ShowFolderContents",
                 BindingFlags.NonPublic | BindingFlags.Instance);
+            var isTwoColumnsMethod = projectBrowserType.GetMethod("IsTwoColumns",
+                BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null);
             foreach (var browser in browsers)
             {
+                // ShowFolderContents logs an error and bails in one-column layout; ping the folder there instead.
+                if (isTwoColumnsMethod != null && isTwoColumnsMethod.Invoke(browser, null) is bool isTwoColumns && !isTwoColumns)
+                {
+                    EditorGUIUtility.PingObject(folder);
+                    continue;
+                }
+
                 // Unity's own internal method — it needs the real native id (int pre-migration,
                 // EntityId once GetInstanceID is obsolete), not our hash-based GetStableInstanceId,
                 // which is only good for our own bookkeeping and means nothing to Unity's reflection call.
