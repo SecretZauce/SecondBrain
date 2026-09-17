@@ -82,7 +82,7 @@ namespace SecretZauce.SecondBrain.Editor
             var resolution = Screen.currentResolution;
             return new Rect(0, 0, resolution.width, resolution.height);
         }
-        // Editors used by the detail panel, keyed by target instance ID.
+        // Editors used by the detail panel, keyed by target object.
         //
         // DrawObjectInspector runs on every OnGUI pass. Creating an Editor and destroying it again
         // each pass is expensive — for a GameObject or prefab target it rebuilds GameObjectInspector
@@ -90,32 +90,30 @@ namespace SecretZauce.SecondBrain.Editor
         // The cache is capped and evicts the least recently used entry. Unity destroys the cached
         // Editors on domain reload, which the null checks below absorb.
         const int InspectorCacheCapacity = 8;
-        static readonly Dictionary<int, UnityEditor.Editor> InspectorCache = new Dictionary<int, UnityEditor.Editor>();
-        static readonly Dictionary<int, long> InspectorCacheLastUse = new Dictionary<int, long>();
-        static readonly List<int> InspectorCacheScratch = new List<int>();
+        static readonly Dictionary<Object, UnityEditor.Editor> InspectorCache = new Dictionary<Object, UnityEditor.Editor>();
+        static readonly Dictionary<Object, long> InspectorCacheLastUse = new Dictionary<Object, long>();
+        static readonly List<Object> InspectorCacheScratch = new List<Object>();
         static long inspectorCacheClock;
 
         static UnityEditor.Editor GetCachedEditor(Object obj)
         {
-            int id = obj.GetStableInstanceId();
-
-            if (InspectorCache.TryGetValue(id, out var cached))
+            if (InspectorCache.TryGetValue(obj, out var cached))
             {
                 if (cached != null && cached.target == obj)
                 {
-                    InspectorCacheLastUse[id] = ++inspectorCacheClock;
+                    InspectorCacheLastUse[obj] = ++inspectorCacheClock;
                     return cached;
                 }
 
-                DestroyCachedEditor(id);
+                DestroyCachedEditor(obj);
             }
 
             var created = UnityEditor.Editor.CreateEditor(obj);
             if (created == null)
                 return null;
 
-            InspectorCache[id] = created;
-            InspectorCacheLastUse[id] = ++inspectorCacheClock;
+            InspectorCache[obj] = created;
+            InspectorCacheLastUse[obj] = ++inspectorCacheClock;
             TrimInspectorCache();
             return created;
         }
@@ -128,12 +126,12 @@ namespace SecretZauce.SecondBrain.Editor
                 if (kvp.Value == null || kvp.Value.target == null)
                     InspectorCacheScratch.Add(kvp.Key);
 
-            foreach (var id in InspectorCacheScratch)
-                DestroyCachedEditor(id);
+            foreach (var key in InspectorCacheScratch)
+                DestroyCachedEditor(key);
 
             while (InspectorCache.Count > InspectorCacheCapacity)
             {
-                int oldestId = 0;
+                Object oldestKey = null;
                 long oldestUse = long.MaxValue;
                 foreach (var kvp in InspectorCacheLastUse)
                 {
@@ -141,20 +139,25 @@ namespace SecretZauce.SecondBrain.Editor
                         continue;
 
                     oldestUse = kvp.Value;
-                    oldestId = kvp.Key;
+                    oldestKey = kvp.Key;
                 }
 
-                DestroyCachedEditor(oldestId);
+                // Compared by reference: a destroyed target is still a valid key here, and
+                // Unity's overloaded == would treat it as null.
+                if (ReferenceEquals(oldestKey, null))
+                    break;
+
+                DestroyCachedEditor(oldestKey);
             }
         }
 
-        static void DestroyCachedEditor(int id)
+        static void DestroyCachedEditor(Object key)
         {
-            if (InspectorCache.TryGetValue(id, out var editor) && editor != null)
+            if (InspectorCache.TryGetValue(key, out var editor) && editor != null)
                 Object.DestroyImmediate(editor);
 
-            InspectorCache.Remove(id);
-            InspectorCacheLastUse.Remove(id);
+            InspectorCache.Remove(key);
+            InspectorCacheLastUse.Remove(key);
         }
 
         public static void DrawObjectInspector(Object obj)
@@ -339,6 +342,16 @@ namespace SecretZauce.SecondBrain.Editor
         public static LabelWidthScope TemporaryLabelWidth(Rect rect, float reservedSpace)
             => new LabelWidthScope(rect, reservedSpace);
 
+        static bool s_ShowFolderContentsFailureLogged;
+
+        static void LogShowFolderContentsFailureOnce(Exception ex)
+        {
+            if (s_ShowFolderContentsFailureLogged) return;
+            s_ShowFolderContentsFailureLogged = true;
+            if (ex is TargetInvocationException { InnerException: not null } tie) ex = tie.InnerException;
+            Debug.LogWarning($"[SecondBrain] Could not open folder in the Project window (ProjectBrowser.ShowFolderContents): {ex.GetType().Name}: {ex.Message}");
+        }
+
         public static void EnterFolderInProjectWindow(Object folder)
         {
             if (folder == null) return;
@@ -357,13 +370,30 @@ namespace SecretZauce.SecondBrain.Editor
             }
             var method = projectBrowserType.GetMethod("ShowFolderContents",
                 BindingFlags.NonPublic | BindingFlags.Instance);
+            var isTwoColumnsMethod = projectBrowserType.GetMethod("IsTwoColumns",
+                BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null);
+            const BindingFlags memberFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
+            var isLockedProperty = projectBrowserType.GetProperty("isLocked", memberFlags);
+            var isLockedField = isLockedProperty == null ? projectBrowserType.GetField("m_IsLocked", memberFlags) : null;
             foreach (var browser in browsers)
             {
+                // A locked Project window is pinned by the user; leave its folder alone.
+                var isLocked = isLockedProperty != null ? isLockedProperty.GetValue(browser) : isLockedField?.GetValue(browser);
+                if (isLocked is bool locked && locked)
+                    continue;
+
+                // ShowFolderContents logs an error and bails in one-column layout; ping the folder there instead.
+                if (isTwoColumnsMethod != null && isTwoColumnsMethod.Invoke(browser, null) is bool isTwoColumns && !isTwoColumns)
+                {
+                    EditorGUIUtility.PingObject(folder);
+                    continue;
+                }
+
                 // Unity's own internal method — it needs the real native id (int pre-migration,
-                // EntityId once GetInstanceID is obsolete), not our hash-based GetStableInstanceId,
-                // which is only good for our own bookkeeping and means nothing to Unity's reflection call.
+                // EntityId once GetInstanceID is obsolete). Its signature isn't public API, so a
+                // mismatch on some Unity version must surface rather than silently do nothing.
                 try { method?.Invoke(browser, new object[] { folder.GetStableNativeId(), true }); }
-                catch { }
+                catch (Exception ex) { LogShowFolderContentsFailureOnce(ex); }
             }
         }
     }

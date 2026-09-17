@@ -506,19 +506,19 @@ namespace SecretZauce.SecondBrain.Editor
         /// scan per ref would walk the entire scene once for every row that failed the exact walk.
         /// The index moves that to once per scene per hierarchy change.
         /// </summary>
-        static readonly Dictionary<int, Dictionary<string, List<GameObject>>> s_NameIndexByScene =
-            new Dictionary<int, Dictionary<string, List<GameObject>>>();
+        static readonly Dictionary<Scene, Dictionary<string, List<GameObject>>> s_NameIndexByScene =
+            new Dictionary<Scene, Dictionary<string, List<GameObject>>>();
 
         static Dictionary<string, List<GameObject>> GetNameIndex(Scene scene)
         {
-            if (s_NameIndexByScene.TryGetValue(scene.GetStableHandle(), out var index))
+            if (s_NameIndexByScene.TryGetValue(scene, out var index))
                 return index;
 
             index = new Dictionary<string, List<GameObject>>(System.StringComparer.Ordinal);
             foreach (var root in scene.GetRootGameObjects())
                 IndexRecursive(root.transform, index);
 
-            s_NameIndexByScene[scene.GetStableHandle()] = index;
+            s_NameIndexByScene[scene] = index;
             return index;
         }
 

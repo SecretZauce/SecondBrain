@@ -2,6 +2,19 @@
 
 All notable changes to SecondBrain will be documented in this file.
 
+## 1.1.5 (17-09-2026)
+
+### Fixed
+- A stray, empty "Default Profile" could appear after a script recompile. If the domain reload interrupted an asset import, SecondBrain started up before your selected Profile had been imported, didn't find it, and created a new Default Profile in the middle of the import, which also logged "Unable to import newly created asset" and "Global asset import parameters have been changed during import". It now waits for the import to finish and loads your selected Profile. If that Profile still can't be loaded afterwards (merge-conflict markers, a corrupt file, a missing script), SecondBrain logs a warning naming the file and falls back to the Default Profile instead of leaving the window empty.
+- Selecting a folder no longer navigates a locked Project window. Locking the Project window pins it to a folder of your choosing, and SecondBrain now leaves it there.
+- Selecting a folder while the Project window used the One Column Layout logged an error from Unity and did nothing. The folder is now pinged in the Project window instead.
+- If Unity changes the internal method SecondBrain uses to open a folder in the Project window, folder navigation used to stop working with no message. It now logs one warning explaining why.
+- On Unity 6000.3 and later, the inspector, icon and asset-path caches identified objects by a hash of their instance ID. Unity advises against this, because it stops being unique once instance IDs outgrow 32 bits, so two objects could share an entry and show each other's icon or inspector. The caches now key on the object itself. The icon cache also clears when the project changes, so reimported or deleted assets no longer keep an old icon.
+- Drawing the tree added every visible object to an internal lookup table that never shrank, so memory grew slowly the longer a window stayed open. That table is now used only where an object has no persistent ID.
+
+### Changed
+- The emoji tray builds its button styles once instead of on every GUI event, and rebuilds them only when the editor theme changes.
+
 ## 1.1.4 (16-09-2026)
 
 ### Fixed

@@ -129,19 +129,34 @@ namespace SecretZauce.SecondBrain.Editor
                 tabLabels[i + 1] = db.categories[i].label;
         }
 
-        void OnGUI()
+        // Skin the cached styles were built for; a theme switch rebuilds them.
+        static bool? _stylesProSkin;
+
+        // Built once rather than per OnGUI, so repaints reuse the same style objects
+        // instead of allocating new ones for every event.
+        static void EnsureStyles()
         {
+            bool proSkin = EditorGUIUtility.isProSkin;
+            if (_emojiButtonStyle != null && _iconButtonStyle != null && _stylesProSkin == proSkin)
+                return;
+
             _emojiButtonStyle = new GUIStyle
             {
                 alignment = TextAnchor.MiddleCenter,
                 fontSize = 24,
-                normal = { textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black }
+                normal = { textColor = proSkin ? Color.white : Color.black }
             };
             _iconButtonStyle = new GUIStyle(GUIStyle.none)
             {
                 alignment = TextAnchor.MiddleCenter,
                 padding = new RectOffset(2, 2, 2, 2)
             };
+            _stylesProSkin = proSkin;
+        }
+
+        void OnGUI()
+        {
+            EnsureStyles();
 
             // Top-level mode selector: Emojis | Editor Icons
             int newMode = GUILayout.Toolbar(selectedMode, ModeLabels);

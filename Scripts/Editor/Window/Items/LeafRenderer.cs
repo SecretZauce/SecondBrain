@@ -41,8 +41,8 @@ namespace SecretZauce.SecondBrain.Editor
         static GUIStyle s_ArrowStyle;  // GUI.skin.label, MiddleCenter, fontSize=14 (shared by arrow/exec/play buttons)
 
         // Per-type asset path cache – avoids calling AssetDatabase.GetAssetPath on every repaint.
-        // Keyed by instance ID; cleared when the AssetDatabase is modified.
-        static readonly Dictionary<int, string> s_AssetPathCache = new Dictionary<int, string>();
+        // Keyed by object; cleared when the AssetDatabase is modified.
+        static readonly Dictionary<Object, string> s_AssetPathCache = new Dictionary<Object, string>();
         static bool s_AssetPathCacheSubscribed;
 
         static void EnsureStyles()
@@ -86,11 +86,10 @@ namespace SecretZauce.SecondBrain.Editor
         /// AssetDatabase.GetAssetPath only on the first lookup per object.</summary>
         static string GetAssetPathCached(Object obj)
         {
-            int id = obj.GetStableInstanceId();
-            if (!s_AssetPathCache.TryGetValue(id, out string path))
+            if (!s_AssetPathCache.TryGetValue(obj, out string path))
             {
                 path = AssetDatabase.GetAssetPath(obj);
-                s_AssetPathCache[id] = path;
+                s_AssetPathCache[obj] = path;
             }
             return path;
         }

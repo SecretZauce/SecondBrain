@@ -27,7 +27,13 @@ namespace SecretZauce.SecondBrain.Editor
         {
             var profile = Profile.Active;
             if (profile == null)
+            {
+                // The selected Profile is still waiting on an interrupted import. Try again next
+                // tick instead of skipping setup and the orphan sweep until the next reload.
+                if (Profile.IsImportSettling)
+                    EditorApplication.delayCall += RunInitializationFlow;
                 return;
+            }
 
             var core = SecondBrainCore.Instance;
             var state = core.InitializationState;
@@ -227,8 +233,8 @@ namespace SecretZauce.SecondBrain.Editor
         {
             if (profile == null) return false;
 
-            // Build the referenced-ID set and the set of host .asset paths in one pass.
-            var referencedIds = new HashSet<int>();
+            // Build the referenced-object set and the set of host .asset paths in one pass.
+            var referencedIds = new HashSet<Object>();
             var hostPaths     = new HashSet<string>();
             CollectReferencedIds(profile as IStructure, referencedIds, hostPaths);
 
@@ -261,7 +267,7 @@ namespace SecretZauce.SecondBrain.Editor
                     if (asset is not ScriptableObject) continue;
 
                     scriptableObjectSubAssetCount++;
-                    if (!referencedIds.Contains(asset.GetStableInstanceId()))
+                    if (!referencedIds.Contains(asset))
                         candidates.Add(asset);
                 }
 
@@ -294,14 +300,14 @@ namespace SecretZauce.SecondBrain.Editor
             return anyRemoved;
         }
 
-        // Recursively adds instance IDs of all live tree nodes to <paramref name="ids"/>
+        // Recursively adds all live tree nodes to <paramref name="ids"/>
         // and the .asset file path of each node to <paramref name="paths"/>.
-        static void CollectReferencedIds(IStructure node, HashSet<int> ids, HashSet<string> paths)
+        static void CollectReferencedIds(IStructure node, HashSet<Object> ids, HashSet<string> paths)
         {
             if (node == null) return;
             if (node is Object obj)
             {
-                ids.Add(obj.GetStableInstanceId());
+                ids.Add(obj);
                 string p = AssetDatabase.GetAssetPath(obj);
                 if (!string.IsNullOrEmpty(p) && p.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)) paths.Add(p);
             }
@@ -311,7 +317,7 @@ namespace SecretZauce.SecondBrain.Editor
             foreach (var child in children)
             {
                 if (child == null) continue;
-                ids.Add(child.GetStableInstanceId());
+                ids.Add(child);
                 string cp = AssetDatabase.GetAssetPath(child);
                 if (!string.IsNullOrEmpty(cp) && cp.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)) paths.Add(cp);
                 if (child is IStructure childStruct)
