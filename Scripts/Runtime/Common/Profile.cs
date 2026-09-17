@@ -111,6 +111,18 @@ namespace SecretZauce.SecondBrain
                     var byGuid = AssetDatabase.LoadAssetAtPath<Profile>(guidPath);
                     if (byGuid != null)
                         return byGuid;
+
+                    // The chosen Profile is on disk but didn't load. This happens when
+                    // [InitializeOnLoad] runs during a domain reload that interrupted an import,
+                    // before that asset was imported. Falling through would either return some
+                    // other Profile (and cache it as active) or create a new one mid-import, which
+                    // fails with "Unable to import newly created asset" / "Global asset import
+                    // parameters have been changed during import" and can leave a stray empty
+                    // Default Profile behind. Return null without caching; the next Active access
+                    // retries once the import has finished. Asset paths are project-relative, and
+                    // the editor's working directory is the project root.
+                    if (System.IO.File.Exists(guidPath))
+                        return null;
                 }
             }
 
