@@ -11,11 +11,16 @@ namespace SecretZauce.SecondBrain.Editor
     public static class ProFeatureDialog
     {
         /// <summary>
-        /// URL opened when the user clicks "Upgrade to PRO" or "What's on pro version?".
-        /// Set this once at startup (e.g. from an <see cref="InitializeOnLoadAttribute"/> class)
-        /// or leave it null to hide those affordances.
+        /// URL opened when the user clicks "What's on pro version?".
+        /// Defaults to the free-vs-pro comparison; override to hide the affordance (e.g. in tests).
         /// </summary>
-        public static string LearnMoreUrl { get; set; } = null;
+        public static string LearnMoreUrl { get; set; } = ProLicenseUtils.LEARN_MORE_URL;
+
+        /// <summary>
+        /// URL opened when the user clicks "Upgrade to PRO".
+        /// Defaults to the Asset Store listing; override to hide the affordance (e.g. in tests).
+        /// </summary>
+        public static string UpgradeUrl { get; set; } = ProLicenseUtils.ASSET_STORE_URL;
 
         /// <summary>
         /// Show the PRO upgrade notice for the given feature name.
@@ -23,14 +28,13 @@ namespace SecretZauce.SecondBrain.Editor
         /// <param name="featureName">Short display name of the gated feature, e.g. "Multiple Bases".</param>
         public static void Show(string featureName)
         {
-            ProFeatureDialogWindow.Show(featureName, LearnMoreUrl);
+            ProFeatureDialogWindow.Show(featureName, LearnMoreUrl, UpgradeUrl);
         }
 
 #if SECOND_BRAIN_DEV
         [MenuItem("Tools/Second Brain/DEV ─ Dialogs/Preview: Pro License Dialog")]
         static void Dev_PreviewProLicenseDialog()
         {
-            LearnMoreUrl = ProLicenseUtils.ASSET_STORE_URL;
             Show("Quick Browse");
         }
 #endif
@@ -47,6 +51,7 @@ namespace SecretZauce.SecondBrain.Editor
 
         // ── State ──────────────────────────────────────────────────────────────
         string featureName;
+        string learnMoreUrl;
         string upgradeUrl;
         Texture2D windowIcon;
 
@@ -55,11 +60,12 @@ namespace SecretZauce.SecondBrain.Editor
         GUIStyle bodyStyle;
 
         // ── Entry point ────────────────────────────────────────────────────────
-        public static void Show(string featureName, string upgradeUrl)
+        public static void Show(string featureName, string learnMoreUrl, string upgradeUrl)
         {
             var wnd = CreateInstance<ProFeatureDialogWindow>();
-            wnd.featureName = featureName;
-            wnd.upgradeUrl  = upgradeUrl;
+            wnd.featureName   = featureName;
+            wnd.learnMoreUrl  = learnMoreUrl;
+            wnd.upgradeUrl    = upgradeUrl;
             wnd.windowIcon = Resources.Load<Texture2D>("Editor/Icons/second_brain_icon");
             wnd.titleContent = new GUIContent("SecondBrain PRO", wnd.windowIcon);
             wnd.minSize = new Vector2(WindowWidth, 100);
@@ -123,7 +129,7 @@ namespace SecretZauce.SecondBrain.Editor
             // ── "What's on pro version?" link ─────────────────────────────────
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            DrawLinkButton("What's on pro version?", upgradeUrl);
+            DrawLinkButton("What's on pro version?", learnMoreUrl);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
