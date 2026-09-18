@@ -2,6 +2,6 @@
 {
     public static class SecondBrainVersion
     {
-        public const string Current = "1.1.5";
+        public const string Current = "1.1.6";
     }
 }

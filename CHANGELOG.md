@@ -2,6 +2,11 @@
 
 All notable changes to SecondBrain will be documented in this file.
 
+## 1.1.6 (19-09-2026)
+
+### Fixed
+- The Pro feature notice dialog's "Upgrade to PRO" button and "What's on pro version?" link never wired up in the free edition, so both were permanently disabled. "What's on pro version?" now opens the free-vs-pro comparison and "Upgrade to PRO" opens the Asset Store listing.
+
 ## 1.1.5 (17-09-2026)
 
 ### Fixed
